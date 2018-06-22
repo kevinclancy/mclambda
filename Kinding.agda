@@ -1,0 +1,70 @@
+module Kinding where
+
+open import Scalars
+open import Syntax
+open import FinPoset
+
+open import Relation.Nullary
+open import Data.Sum
+open import Data.Product
+open import Data.Empty
+open import Data.Nat
+open import Data.Vec
+
+
+data IsPoset : τ → Set
+data IsToset : τ → Set
+data IsSemilat : τ → τ → Set
+  
+data IsPoset where
+  FunPoset : {dom cod : τ} {q : q} → IsPoset dom → IsPoset cod → IsPoset (τFun dom q cod) 
+  DictPoset : {dom cod dCod : τ} → IsToset dom → IsSemilat cod dCod → IsPoset (τDict dom cod)
+  CapsulePoset : {q : q} {underlying : τ} → IsPoset underlying → IsPoset (τCapsule q underlying)
+  ProductPoset : {τL τR : τ} → IsPoset τL → IsPoset τR → IsPoset (τProduct τL τR)
+  SumPoset : {τL τR : τ} → IsPoset τL → IsPoset τR → IsPoset (τSum τL τR)
+  IVarPoset : {τContents : τ} → IsToset τContents → IsPoset (τIVar τContents)
+  PartialPoset : {τContents : τ} → IsPoset τContents → IsPoset (τPartial τContents)
+  UnitPoset : IsPoset τUnit
+  NatPoset : IsPoset τNat
+  BoolPoset : IsPoset τBool
+
+data IsToset where
+  UnitToset : IsToset τUnit
+  NatToset : IsToset τNat
+  BoolToset : IsToset τBool
+  ProductToset : {τL τR : τ} → IsToset τL → IsToset τR → IsToset (τProduct τL τR)
+  SumToset : {τL τR : τ} → IsToset τL → IsToset τR → IsToset (τSum τL τR)
+  
+data IsSemilat where
+  NatSemilat : IsSemilat τNat τNat
+  BoolSemilat : IsSemilat τBool τUnit
+  DictSemilat : {dom cod dCod : τ} → IsToset dom → IsSemilat cod dCod → 
+                IsSemilat (τDict dom cod) (τProduct (τCapsule qAny dom) dCod) 
+  ProductSemilat : {τL τR τL₀ τR₀ : τ} → IsSemilat τL τL₀ → IsSemilat τR τR₀ → IsSemilat (τProduct τL τR) (τSum τL₀ τR₀)
+  IVarSemilat : {τ : τ} → IsToset τ → IsSemilat (τIVar τ) (τCapsule qAny τ)
+  PartialSemilat : {τ τ₀ : τ} → IsSemilat τ τ₀ → IsSemilat (τPartial τ) (τPartial τ₀)
+
+-- kCheckPoset : 
+--   (σ : τ) → Dec( Σ[ S ∈ Set ] Σ[ refσ ∈ (S → Set) ] Σ[ ⊑ ∈ (S → S → Set) ] Σ[ ref⊑ ∈ (⊑ → Set) ] IsPoset σ )
+-- kCheckPoset = {!!}
+
+-- -- kCheckSemilat : (σ : τ) → Dec( Σ[ σ₀ ∈ τ ] IsSemilat σ σ₀ )
+-- -- kCheckSemilat (τFun σ scalar σ₁) = no contr
+-- --   where
+-- --     contr : Σ[ σ₀ ∈ τ ] IsSemilat (τFun σ scalar σ₁) σ₀ → ⊥
+-- --     contr (σ₀ , ())
+-- -- kCheckSemilat (τDict σ σ₁) = {!!}
+-- -- kCheckSemilat (τCapsule scalar σ) = no contr
+-- --   where
+-- --     contr  : Σ[ σ₀ ∈ τ ] IsSemilat (τCapsule scalar σ) σ₀ → ⊥
+-- --     contr (σ₀ , ())
+-- -- kCheckSemilat (τProduct σ σ₁) = {!!}
+-- -- kCheckSemilat (τSum σ σ₁) = no contr
+-- --   where
+-- --     contr : Σ[ σ₀ ∈ τ ] IsSemilat (τSum σ σ₁) σ₀ → ⊥
+-- --     contr (σ₀ , ())
+-- -- kCheckSemilat (τIVar σ) = {!!}
+-- -- kCheckSemilat (τPartial σ) = {!!}
+-- -- kCheckSemilat τUnit = {!!}
+-- -- kCheckSemilat τBool = {!!}
+-- -- kCheckSemilat τNat = {!!}
