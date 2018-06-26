@@ -233,3 +233,37 @@ imagePreorder {ℓ₀} {ℓ₁} {ℓ₂} {ℓ₃} {A} {B} _B≤_ _B≈_ preorder
        trans = A≤-trans
      }
     
+------------------- Strict total order for unit
+
+module UnitStrictTotal where
+  open import Data.Unit
+  
+  -- no pair of units is in the strict less-than relation
+  -- hence no constructors
+  data _lt_ (x y : ⊤) : Set where
+
+  lt-isTransitive : Transitive _lt_
+  lt-isTransitive () () 
+  
+  lt-trichotomous : Trichotomous _≡_ _lt_
+  lt-trichotomous x y = tri≈ (λ ()) refl (λ ())
+ 
+  ≡-isEquivalence : IsEquivalence {A = ⊤} _≡_
+  ≡-isEquivalence = PE.isEquivalence
+  
+  ⊤-IsStrictTotalOrder : IsStrictTotalOrder _≡_ _lt_
+  ⊤-IsStrictTotalOrder = 
+    record{ 
+      isEquivalence = ≡-isEquivalence;
+      trans = lt-isTransitive;
+      compare = lt-trichotomous
+     }
+
+  ⊤-strictTotalOrder : StrictTotalOrder l0 l0 l0
+  ⊤-strictTotalOrder =
+    record{
+      Carrier = ⊤;
+      _≈_ = _≡_;
+      _<_ = _lt_;
+      isStrictTotalOrder = ⊤-IsStrictTotalOrder
+     }
