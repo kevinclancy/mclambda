@@ -34,7 +34,9 @@ data IsToset where
   BoolToset : IsToset τBool
   ProductToset : {τL τR : τ} → IsToset τL → IsToset τR → IsToset (τProduct τL τR)
   SumToset : {τL τR : τ} → IsToset τL → IsToset τR → IsToset (τSum τL τR)
-  
+  CapsuleToset : {τ₀ : τ} {q : q} → IsToset τ₀ → IsToset (τCapsule q τ₀)
+  PartialToset : {τ₀ : τ} → IsToset τ₀ → IsToset (τPartial τ₀)
+
 data IsSemilat where
   NatSemilat : IsSemilat τNat τNat
   BoolSemilat : IsSemilat τBool τUnit

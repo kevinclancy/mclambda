@@ -12,6 +12,7 @@ open import Data.Nat as N
 open import Data.Nat.Properties as NP
 open import Data.Bool
 open import Relation.Binary.PropositionalEquality as PE using (_≡_)
+open import RelationalStructures
 open Util
 
 -- record SemPoset {ℓ₁} : Set (suc ℓ₁) where
@@ -23,8 +24,6 @@ open Util
 --     -- Proof that it's actually a partial order
 --     isPartialOrder : IsPartialOrder _⊑_ 
 
-Preorder0 : Set₁
-Preorder0 = Preorder l0 l0 l0
 
 open Preorder
 
@@ -104,8 +103,6 @@ open Preorder
 ⟦ NatPoset ⁎⟧ = NP.≤-preorder
 
 
-StrictTotalOrder0 : Set₁
-StrictTotalOrder0 = StrictTotalOrder l0 l0 l0
 
 -- agda-mode: ⁑ is \asterisk, second choice
 ⟦_⁑⟧ : ∀ {τ : τ} → IsToset τ → StrictTotalOrder0
@@ -134,5 +131,10 @@ open import Relation.Binary.Lattice
 BoundedJoinSemilattice0 : Set₁
 BoundedJoinSemilattice0 = BoundedJoinSemilattice l0 l0 l0
 
-⟦_↩_⁂⟧ : ∀ {τ τ₀ : τ} → IsSemilat τ τ₀ → BoundedJoinSemilattice0 
-⟦_↩_⁂⟧ = {!!}
+⟦_⁂⟧ : ∀ {τ τ₀ : τ} → IsSemilat τ τ₀ → BoundedJoinSemilattice0 × DeltaPoset 
+⟦ NatSemilat ⁂⟧ = {!!}
+⟦ BoolSemilat ⁂⟧ = {!!}
+⟦ DictSemilat x x₁ ⁂⟧ = {!!}
+⟦ ProductSemilat x x₁ ⁂⟧ = {!!}
+⟦ IVarSemilat x ⁂⟧ = {!!}
+⟦ PartialSemilat x ⁂⟧ = {!!}
