@@ -1,5 +1,6 @@
 module RelationalStructures where
 
+open import Data.Empty
 open import Function using (_$_)
 open import Relation.Nullary
 open import Relation.Binary
@@ -37,17 +38,34 @@ record DeltaPoset0 : Set l1 where
   open IsDecPartialOrder isDecPartialOrder public hiding (_≟_ ; module Eq) renaming (_≤?_ to _⊑?_)  
 
   module Eq = IsStrictTotalOrder.Eq isStrictTotalOrder
-
-  -- incomparable
-  _∥_ : Rel Carrier l0 
-  a ∥ b = (¬ (a ⊑ b)) × (¬ (b ⊑ a))
-
+ 
   -- comparable
   _∦_ : Rel Carrier l0
   a ∦ b = (a ⊑ b) ⊎ (b ⊑ a)
 
+
+  -- incomparable
+  _∥_ : Rel Carrier l0 
+  a ∥ b = ¬ (a ∦ b)
+
   field    
     unimodality : {a b c d : Carrier} → (a < b) → (b < c) → (d ∦ a) → (d ∥ b) → (d ∥ c) 
+
+  ∦-sym : {a b : Carrier} → (a ∦ b) → (b ∦ a)
+  ∦-sym (inj₁ x) = inj₂ x
+  ∦-sym (inj₂ x) = inj₁ x
+
+  ∥-sym : {a b : Carrier} → (a ∥ b) → (b ∥ a)
+  ∥-sym p b∦a = p (∦-sym b∦a)
+
+  ∥⇒¬≈ : {a b : Carrier} → (a ∥ b) → (a ≈ b) → ⊥
+  ∥⇒¬≈ {a} {b} a∥b a≈b = a∥b (inj₁ a⊑b)
+    where
+      a⊑b : a ⊑ b
+      a⊑b = reflexive a≈b
+
+  ∦-refl : (x : Carrier) → x ∦ x
+  ∦-refl x = inj₁ refl
 
   _∦?_ : (x : Carrier) → (y : Carrier) → Dec (x ∦ y)
   x ∦? y with x ⊑? y | y ⊑? x

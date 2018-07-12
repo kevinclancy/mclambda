@@ -13,12 +13,13 @@ open import Data.Nat as N
 open import Data.Nat.Properties as NP
 open import Relation.Binary
 open import Relation.Nullary
-open import Relation.Unary hiding (_⇒_ ; Decidable)
-open import Data.Vec as V hiding ([_] ; _++_ ; reverse ; _∷ʳ_ )
+open import Relation.Unary hiding (_⇒_ ; Decidable ; _∈_ )
+open import Data.Vec as V hiding ([_] ; _++_ ; reverse ; _∷ʳ_ ; _∈_)
 open import Data.List as L
 open import Data.List.Properties as LP
 open import Data.List.Any as LA
 open import Data.List.Any.Properties as LAP
+open import Data.List.Membership.Propositional using (_∈_)
 open import Level renaming (zero to ℓ₀; suc to lsuc)
 open import Relation.Binary.PropositionalEquality as PE hiding ( [_] )  
 open import Relation.Binary.PropositionalEquality.TrustMe
@@ -56,7 +57,8 @@ AnyEliminator : ∀ (A B : Set) → (P : Pred A ℓ₀) → (l : List A) → Set
 AnyEliminator A B P l = 
   (a : A) → 
   (f : (Q : Pred A ℓ₀) → Q a → LA.Any Q l) → 
-  (p : P a) → 
+  (p : P a) →
+  (a∈l : a ∈ l) →
   B
 
 
@@ -84,7 +86,7 @@ anyEliminate {A} {B} {P} l eliminator any-P-l = elimAux l any-P-l [] PE.refl
 
     elimAux : (as : List A) → (any-P-as : LA.Any P as) → (prev-as : List A) → (p : l ≡ (reverse prev-as) ++ as) → B 
     elimAux .(a ∷ as') (here {x = a} {xs = as'} pa) prev-as p =
-      eliminator a f pa
+      eliminator a f pa a∈l
       where
         open import Function.Inverse
         f : (Q : Pred A ℓ₀) → Q a → LA.Any Q l
@@ -92,6 +94,8 @@ anyEliminate {A} {B} {P} l eliminator any-P-l = elimAux l any-P-l [] PE.refl
           where
             equiv : (LA.Any Q (reverse prev-as) ⊎ LA.Any Q (a ∷ as')) ↔ LA.Any Q ((reverse prev-as) ++ (a ∷ as'))
             equiv = LAP.++↔
+        a∈l : a ∈ l
+        a∈l rewrite p = ++⁺ʳ (reverse prev-as) (LA.here PE.refl) 
     elimAux .(a ∷ as') (there {x = a} {xs = as'} any-P-as') prev-as p =
       elimAux as' any-P-as' (a ∷ prev-as) (shift prev-as as' a p)
 

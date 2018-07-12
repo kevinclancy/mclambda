@@ -136,7 +136,7 @@ module FinPoset
         yes $ anyEliminate covers eliminator anyThrough
         where 
           eliminator : AnyEliminator (Cover A depth) (A₀ ≤ A₁) (PathThrough A₀ A₁) covers
-          eliminator cov f (A₀≡lo , hi≤A₁) = A₀≺hi ◅ hi≤A₁
+          eliminator cov f (A₀≡lo , hi≤A₁) cov∈covers = A₀≺hi ◅ hi≤A₁
             where
               A₀≺hi : A₀ ≺ Cover.hi cov
               A₀≺hi = f (CoverMatches A₀ (Cover.hi cov)) (sym A₀≡lo , refl)
@@ -147,7 +147,7 @@ module FinPoset
           contr (_◅_ {j = B} A₀≺B B≤A₁) = ¬anyThrough $ anyEliminate covers eliminator A₀≺B
             where
               eliminator : AnyEliminator (Cover A depth) (LA.Any (PathThrough A₀ A₁) covers) (CoverMatches A₀ B) covers
-              eliminator cov f (lo≡A₀ , hi≡B) = f (PathThrough A₀ A₁) (sym lo≡A₀ , hi≤A₁)
+              eliminator cov f (lo≡A₀ , hi≡B) cov∈covers = f (PathThrough A₀ A₁) (sym lo≡A₀ , hi≤A₁)
                 where
                   hi≤A₁ : Cover.hi cov ≤ A₁
                   hi≤A₁ rewrite hi≡B = B≤A₁

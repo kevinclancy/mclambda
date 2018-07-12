@@ -131,7 +131,7 @@ open import Relation.Binary.Lattice
 BoundedJoinSemilattice0 : Set₁
 BoundedJoinSemilattice0 = BoundedJoinSemilattice l0 l0 l0
 
-⟦_⁂⟧ : ∀ {τ τ₀ : τ} → IsSemilat τ τ₀ → BoundedJoinSemilattice0 × DeltaPoset 
+⟦_⁂⟧ : ∀ {τ τ₀ : τ} → IsSemilat τ τ₀ → BoundedJoinSemilattice0 × DeltaPoset0
 ⟦ NatSemilat ⁂⟧ = {!!}
 ⟦ BoolSemilat ⁂⟧ = {!!}
 ⟦ DictSemilat x x₁ ⁂⟧ = {!!}
