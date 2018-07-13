@@ -28,11 +28,10 @@ record DeltaPoset0 : Set l1 where
   infix  4 _≈_ _<_ _⊑_
   field
     Carrier                  : Set l0
-    _≈_                      : Rel Carrier l0  -- The underlying equality.
     _⊑_                      : Rel Carrier l0  -- The partial order.
     _<_                      : Rel Carrier l0  -- The total order.
-    isStrictTotalOrder : IsStrictTotalOrder _≈_ _<_
-    isDecPartialOrder  : IsDecPartialOrder _≈_ _⊑_
+    isStrictTotalOrder : IsStrictTotalOrder _≡_ _<_
+    isDecPartialOrder  : IsDecPartialOrder _≡_ _⊑_
 
   open IsStrictTotalOrder isStrictTotalOrder public hiding(module Eq)
   open IsDecPartialOrder isDecPartialOrder public hiding (_≟_ ; module Eq) renaming (_≤?_ to _⊑?_)  
@@ -58,11 +57,11 @@ record DeltaPoset0 : Set l1 where
   ∥-sym : {a b : Carrier} → (a ∥ b) → (b ∥ a)
   ∥-sym p b∦a = p (∦-sym b∦a)
 
-  ∥⇒¬≈ : {a b : Carrier} → (a ∥ b) → (a ≈ b) → ⊥
-  ∥⇒¬≈ {a} {b} a∥b a≈b = a∥b (inj₁ a⊑b)
+  ∥⇒¬≈ : {a b : Carrier} → (a ∥ b) → (a ≡ b) → ⊥
+  ∥⇒¬≈ {a} {b} a∥b a≡b = a∥b (inj₁ a⊑b)
     where
       a⊑b : a ⊑ b
-      a⊑b = reflexive a≈b
+      a⊑b = reflexive a≡b
 
   ∦-refl : (x : Carrier) → x ∦ x
   ∦-refl x = inj₁ refl
