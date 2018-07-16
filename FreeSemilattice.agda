@@ -191,13 +191,13 @@ F⟨ P ⟩ = {!!}
     ... | (yes h<x , s) rewrite s = PE.refl
     ... | (no ¬h<x , s) rewrite s = ⊥-elim $ ¬h<x (LA.head min)
 
-    ∨-discard : (h1 h2 : Carrier) → (t1 t2 : List Carrier) → (h1 ⊑ h2) →
+    ∨-discardˡ : (h1 h2 : Carrier) → (t1 t2 : List Carrier) → (h1 ⊑ h2) →
                  (∨ (h1 ∷ t1) (h2 ∷ t2) ≡ ∨ t1 (h2 ∷ t2))
-    ∨-discard h1 h2 t1 t2 h1⊑h2 with h1 ∦? h2
-    ∨-discard h1 h2 t1 t2 h1⊑h2 | l⊑r _ ¬h2⊑h1 = PE.refl
-    ∨-discard h1 h2 t1 t2 h1⊑h2 | r⊑l ¬h1⊑h2 _ = ⊥-elim $ ¬h1⊑h2 h1⊑h2
-    ∨-discard h1 h2 t1 t2 h1⊑h2 | l≡r PE.refl = PE.refl
-    ∨-discard h1 h2 t1 t2 h1⊑h2 | l∥r h1∥h2 = ⊥-elim $ h1∥h2 (inj₁ h1⊑h2)
+    ∨-discardˡ h1 h2 t1 t2 h1⊑h2 with h1 ∦? h2
+    ∨-discardˡ h1 h2 t1 t2 h1⊑h2 | l⊑r _ ¬h2⊑h1 = PE.refl
+    ∨-discardˡ h1 h2 t1 t2 h1⊑h2 | r⊑l ¬h1⊑h2 _ = ⊥-elim $ ¬h1⊑h2 h1⊑h2
+    ∨-discardˡ h1 h2 t1 t2 h1⊑h2 | l≡r PE.refl = PE.refl
+    ∨-discardˡ h1 h2 t1 t2 h1⊑h2 | l∥r h1∥h2 = ⊥-elim $ h1∥h2 (inj₁ h1⊑h2)
 
     ∨-first : (h : Carrier) → (t l1 l2 : List Carrier) → (h ∷ t ≡ ∨ l1 l2) → (h ∈ l1 ⊎ h ∈ l2)
     ∨-first h t [] [] ()
@@ -221,7 +221,119 @@ F⟨ P ⟩ = {!!}
       where
         open import Data.List.Properties
 
-    mutual
+    ∨-push : ∀ (h : Carrier) → (l1 l2 : List Carrier) → (All (h <_) l1) → ¬ (Any (h ∦_) l1) → (All (h <_) l2) → ¬ (Any (h ∦_) l2) → (h ∷ (∨ l1 l2) ≡ (∨ (h ∷ l1) l2))
+    ∨-push h l1 [] min1 incomp1 min2 incomp2 rewrite (∨-idem l1) = PE.refl
+    ∨-push h l1 (h2 ∷ l2) min1 incomp1 min2 incomp2 with h ∦? h2
+    ∨-push h l1 (h2 ∷ l2) min1 incomp1 min2 incomp2 | l⊑r h⊑h2 ¬h2⊑h = ⊥-elim $ incomp2 (here $ inj₁ h⊑h2)
+    ∨-push h l1 (h2 ∷ l2) min1 incomp1 min2 incomp2 | r⊑l ¬h⊑h2 h2⊑h = ⊥-elim $ incomp2 (here $ inj₂ h2⊑h)
+    ∨-push h l1 (h2 ∷ l2) min1 incomp1 min2 incomp2 | l≡r h≡h2@PE.refl = ⊥-elim $ incomp2 (here $ inj₁ (reflexive PE.refl))
+    ∨-push h l1 (h2 ∷ l2) min1 incomp1 min2 incomp2 | l∥r h∥h2 with h <? h2
+    ∨-push h l1 (h2 ∷ l2) min1 incomp1 min2 incomp2 | l∥r h∥h2 | yes h<h2 = PE.refl
+    ∨-push h l1 (h2 ∷ l2) min1 incomp1 min2 incomp2 | l∥r h∥h2 | no ¬h<h2 = ⊥-elim $ ¬h<h2 (head min2)
+
+    ∨-comm : (l1 l2 : List Carrier) → IsFreeList _<_ _⊑_ l1 → IsFreeList _<_ _⊑_ l2 → (∨ l1 l2) ≡ (∨ l2 l1)
+    ∨-comm [] k f1 f2 = PE.sym (∨-idem k)
+    ∨-comm (h1 ∷ t1) [] f1 f2 = PE.refl
+    ∨-comm (h1 ∷ t1) (h2 ∷ t2) f1 f2 with h1 ∦? h2
+    ∨-comm (h1 ∷ t1) (h2 ∷ t2) f1 f2 | l⊑r h1⊑h2 ¬h2⊑h1 with h2 ∦? h1
+    ∨-comm (h1 ∷ t1) (h2 ∷ t2) f1 f2 | l⊑r h1⊑h2 ¬h2⊑h1 | l⊑r h2⊑h1 ¬h1⊑h2 = ⊥-elim $ ¬h1⊑h2 h1⊑h2
+    ∨-comm (h1 ∷ t1) (h2 ∷ t2) f1@(∷-Free _ _ _ _ ft1) f2 | l⊑r h1⊑h2 ¬h2⊑h1 | DeltaPoset0.r⊑l x x₁ = ∨-comm t1 (h2 ∷ t2) ft1 f2
+    ∨-comm (h1 ∷ t1) (.h1 ∷ t2) f1@(∷-Free _ _ min1 incomp1 ft1) f2@(∷-Free _ _ min2 incomp2 ft2) | l⊑r h1⊑h2 ¬h2⊑h1 | DeltaPoset0.l≡r h1≡h2@PE.refl = 
+      begin
+        ∨ t1 (h1 ∷ t2) ≡⟨ ∨-comm t1 (h1 ∷ t2) ft1 f2 ⟩
+        ∨ (h1 ∷ t2) t1 ≡⟨ PE.sym $ ∨-push h1 t2 t1 min2 incomp2 min1 incomp1 ⟩
+        h1 ∷ ∨ t2 t1 ≡⟨ PE.cong (λ x → h1 ∷ x) $ ∨-comm t2 t1 ft2 ft1 ⟩
+        h1 ∷ ∨ t1 t2 ≡⟨ ∨-push h1 t1 t2 min1 incomp1 min2 incomp2 ⟩
+        ∨ (h1 ∷ t1) t2 ≡⟨ ∨-comm (h1 ∷ t1) t2 f1 ft2 ⟩
+        ∨ t2 (h1 ∷ t1)
+       ∎
+      where
+        open PE.≡-Reasoning
+    ∨-comm (h1 ∷ t1) (h2 ∷ t2) f1 f2 | l⊑r h1⊑h2 ¬h2⊑h1 | l∥r h2∥h1 = ⊥-elim $ h2∥h1 (inj₂ h1⊑h2) 
+    ∨-comm (h1 ∷ t1) (h2 ∷ t2) f1 f2 | r⊑l ¬h1⊑h2 h2⊑h1 with h2 ∦? h1
+    ∨-comm (h1 ∷ t1) (h2 ∷ t2) f1 f2@(∷-Free _ _ _ _ ft2) | r⊑l ¬h1⊑h2 h2⊑h1 | l⊑r _ _ = ∨-comm (h1 ∷ t1) t2 f1 ft2
+    ∨-comm (h1 ∷ t1) (h2 ∷ t2) f1 f2 | r⊑l ¬h1⊑h2 h2⊑h1 | r⊑l ¬h2⊑h1 h1⊑h2 = ⊥-elim $ ¬h1⊑h2 h1⊑h2
+    ∨-comm (h1 ∷ t1) (.h1 ∷ t2) f1 f2 | r⊑l ¬h1⊑h1 h1⊑h1 | l≡r h1≡h2@PE.refl = ⊥-elim $ ¬h1⊑h1 h1⊑h1
+    ∨-comm (h1 ∷ t1) (h2 ∷ t2) f1 f2 | DeltaPoset0.r⊑l ¬h1⊑h2 h2⊑h1 | l∥r h1∥h2 = ⊥-elim $ h1∥h2 (inj₁ h2⊑h1)
+    ∨-comm (h1 ∷ t1) (.h1 ∷ t2) f1@(∷-Free .h1 .t1 min1 incomp1 ft1) f2@(∷-Free .h1 .t2 min2 incomp2 ft2) | l≡r h1≡h2@PE.refl with h1 ∦? h1 
+    ∨-comm (h1 ∷ t1) (.h1 ∷ t2) f1@(∷-Free .h1 .t1 min1 incomp1 ft1) f2@(∷-Free .h1 .t2 min2 incomp2 ft2) | l≡r h1≡h2@PE.refl | l⊑r h1⊑h1 ¬h1⊑h1 = ⊥-elim $ ¬h1⊑h1 h1⊑h1
+    ∨-comm (h1 ∷ t1) (.h1 ∷ t2) f1@(∷-Free .h1 .t1 min1 incomp1 ft1) f2@(∷-Free .h1 .t2 min2 incomp2 ft2) | l≡r h1≡h2@PE.refl | r⊑l ¬h1⊑h1 h1⊑h1 = ⊥-elim $ ¬h1⊑h1 h1⊑h1
+    ∨-comm (h1 ∷ t1) (.h1 ∷ t2) f1@(∷-Free .h1 .t1 min1 incomp1 ft1) f2@(∷-Free .h1 .t2 min2 incomp2 ft2) | l≡r h1≡h2@PE.refl | l≡r _ = 
+      begin
+        ∨ t1 (h1 ∷ t2) ≡⟨ ∨-comm t1 (h1 ∷ t2) ft1 f2 ⟩
+        ∨ (h1 ∷ t2) t1 ≡⟨ PE.sym $ ∨-push h1 t2 t1 min2 incomp2 min1 incomp1 ⟩
+        h1 ∷ ∨ t2 t1 ≡⟨ PE.cong (λ x → h1 ∷ x) $ ∨-comm t2 t1 ft2 ft1 ⟩
+        h1 ∷ ∨ t1 t2 ≡⟨ ∨-push h1 t1 t2 min1 incomp1 min2 incomp2 ⟩
+        ∨ (h1 ∷ t1) t2 ≡⟨ ∨-comm (h1 ∷ t1) t2 f1 ft2 ⟩
+        ∨ t2 (h1 ∷ t1)
+       ∎
+      where
+        open PE.≡-Reasoning
+    ∨-comm (h1 ∷ t1) (.h1 ∷ t2) f1@(∷-Free .h1 .t1 min1 incomp1 ft1) f2@(∷-Free .h1 .t2 min2 incomp2 ft2) | l≡r h1≡h2@PE.refl | l∥r h1∥h1 = ⊥-elim $ h1∥h1 (∦-refl h1)
+    ∨-comm (h1 ∷ t1) (h2 ∷ t2) f1 f2 | l∥r h1∥h2 with h1 <? h2 
+    ∨-comm (h1 ∷ t1) (h2 ∷ t2) f1 f2 | l∥r h1∥h2 | yes h1<h2 with h2 ∦? h1
+    ∨-comm (h1 ∷ t1) (h2 ∷ t2) f1 f2 | l∥r h1∥h2 | yes h1<h2 | l⊑r h2⊑h1 ¬h1⊑h2 = ⊥-elim $ h1∥h2 (inj₂ h2⊑h1)
+    ∨-comm (h1 ∷ t1) (h2 ∷ t2) f1 f2 | l∥r h1∥h2 | yes h1<h2 | r⊑l ¬h2⊑h1 h1⊑h2 = ⊥-elim $ h1∥h2 (inj₁ h1⊑h2)
+    ∨-comm (h1 ∷ t1) (.h1 ∷ t2) f1 f2 | l∥r h1∥h1 | yes h1<h1 | l≡r h1≡h2@PE.refl = ⊥-elim $ h1∥h1 (∦-refl h1)
+    ∨-comm (h1 ∷ t1) (h2 ∷ t2) f1 f2 | l∥r h1∥h2 | yes h1<h2 | l∥r h2∥h1 with h2 <? h1 
+    ∨-comm (h1 ∷ t1) (h2 ∷ t2) f1 f2 | l∥r h1∥h2 | yes h1<h2 | l∥r h2∥h1 | yes h2<h1 with h1≡h2 
+      where 
+        h1≡h2 : h1 ≡ h2
+        h1≡h2 with compare h1 h2
+        h1≡h2 | tri< _ _ ¬h2<h1 = ⊥-elim $ ¬h2<h1 h2<h1
+        h1≡h2 | tri≈ _ h1≡h2 _ = h1≡h2
+        h1≡h2 | tri> ¬h1<h2 _ _ = ⊥-elim $ ¬h1<h2 h1<h2
+    ∨-comm (h1 ∷ t1) (.h1 ∷ t2) f1@(∷-Free .h1 .t1 min1 incomp1 ft1) f2@(∷-Free .h1 .t2 min2 incomp2 ft2) | l∥r h1∥h1 | yes h1<h1 | l∥r _ | yes _ | PE.refl = 
+      begin
+        h1 ∷ ∨ t1 (h1 ∷ t2) ≡⟨ PE.cong (λ x → h1 ∷ x) $ ∨-comm t1 (h1 ∷ t2) ft1 f2 ⟩
+        h1 ∷ ∨ (h1 ∷ t2) t1 ≡⟨ PE.cong (λ x → h1 ∷ x) $ PE.sym (∨-push h1 t2 t1 min2 incomp2 min1 incomp1) ⟩
+        h1 ∷ h1 ∷ ∨ t2 t1 ≡⟨ PE.cong (λ x → h1 ∷ h1 ∷ x) $ ∨-comm t2 t1 ft2 ft1 ⟩
+        h1 ∷ h1 ∷ ∨ t1 t2 ≡⟨ PE.cong (λ x → h1 ∷ x) $ ∨-push h1 t1 t2 min1 incomp1 min2 incomp2 ⟩
+        h1 ∷ ∨ (h1 ∷ t1) t2 ≡⟨ PE.cong (λ x → h1 ∷ x) $ ∨-comm (h1 ∷ t1) t2 f1 ft2 ⟩ 
+        h1 ∷ ∨ t2 (h1 ∷ t1)
+       ∎
+      where
+        open PE.≡-Reasoning
+    ∨-comm (h1 ∷ t1) (h2 ∷ t2) f1@(∷-Free .h1 .t1 min1 incomp1 ft1) f2@(∷-Free .h2 .t2 min2 incomp2 ft2) | l∥r h1∥h2 | yes h1<h2 | l∥r h2∥h1 | no ¬h2<h1 = 
+      PE.cong (λ x → h1 ∷ x) $ ∨-comm t1 (h2 ∷ t2) ft1 f2
+    ∨-comm (h1 ∷ t1) (h2 ∷ t2) f1 f2 | l∥r h1∥h2 | no ¬h1<h2 with h2 ∦? h1 
+    ∨-comm (h1 ∷ t1) (h2 ∷ t2) f1 f2 | l∥r h1∥h2 | no ¬h1<h2 | l⊑r h2⊑h1 ¬h1⊑h2 = ⊥-elim $ h1∥h2 (inj₂ h2⊑h1)
+    ∨-comm (h1 ∷ t1) (h2 ∷ t2) f1 f2 | l∥r h1∥h2 | no ¬h1<h2 | r⊑l ¬h2⊑h1 h1⊑h2 = ⊥-elim $ h1∥h2 (inj₁ h1⊑h2)
+    ∨-comm (.h2 ∷ t1) (h2 ∷ t2) f1 f2 | l∥r h2∥h2 | no ¬h2<h2 | l≡r h2≡h1@PE.refl = ⊥-elim $ h2∥h2 (∦-refl h2) 
+    ∨-comm (h1 ∷ t1) (h2 ∷ t2) f1 f2 | l∥r h1∥h2 | no ¬h1<h2 | l∥r _ with h2 <? h1
+    ∨-comm (h1 ∷ t1) (h2 ∷ t2) f1 f2@(∷-Free .h2 .t2 min2 incomp2 ft2) | l∥r h1∥h2 | no ¬h1<h2 | l∥r _ | yes h2<h1 = 
+      PE.cong (λ x → h2 ∷ x) $ ∨-comm (h1 ∷ t1) t2 f1 ft2 
+    ∨-comm (h1 ∷ t1) (h2 ∷ t2) f1 f2 | l∥r h1∥h2 | no ¬h1<h2 | l∥r _ | no ¬h2<h1 with h1≡h2 
+      where
+        h1≡h2 : h1 ≡ h2
+        h1≡h2 with compare h1 h2
+        h1≡h2 | tri< h1<h2 _ _ = ⊥-elim $ ¬h1<h2 h1<h2
+        h1≡h2 | tri≈ _ goal _ = goal
+        h1≡h2 | tri> _ _ h2<h1 = ⊥-elim $ ¬h2<h1 h2<h1
+    ∨-comm (h1 ∷ t1) (.h1 ∷ t2) f1@(∷-Free .h1 .t1 min1 incomp1 ft1) f2@(∷-Free .h1 .t2 min2 incomp2 ft2) | l∥r h1∥h1 | no ¬h1<h1 | l∥r _ | no _ | PE.refl =
+      begin
+        h1 ∷ ∨ (h1 ∷ t1) t2 ≡⟨ PE.cong (λ x → h1 ∷ x) $ PE.sym (∨-push h1 t1 t2 min1 incomp1 min2 incomp2) ⟩
+        h1 ∷ h1 ∷ ∨ t1 t2 ≡⟨ PE.cong (λ x → h1 ∷ h1 ∷ x) $ ∨-comm t1 t2 ft1 ft2 ⟩
+        h1 ∷ h1 ∷ ∨ t2 t1 ≡⟨ PE.cong (λ x → h1 ∷ x) $ ∨-push h1 t2 t1 min2 incomp2 min1 incomp1 ⟩
+        h1 ∷ ∨ (h1 ∷ t2) t1
+       ∎
+      where
+        open PE.≡-Reasoning
+
+    ∨-discardʳ : {h1 h2 : Carrier} → {t1 t2 : List Carrier} → IsFreeList _<_ _⊑_ (h1 ∷ t1) → IsFreeList _<_ _⊑_ (h2 ∷ t2) → (h2 ⊑ h1) →
+                 (∨ (h1 ∷ t1) (h2 ∷ t2) ≡ ∨ (h1 ∷ t1) t2)
+    ∨-discardʳ {h1} {h2} {t1} {t2} f1 f2@(∷-Free _ _ _ _ ft2) h2⊑h1 =
+      begin
+        ∨ (h1 ∷ t1) (h2 ∷ t2) ≡⟨ ∨-comm (h1 ∷ t1) (h2 ∷ t2) f1 f2 ⟩
+        ∨ (h2 ∷ t2) (h1 ∷ t1) ≡⟨ ∨-discardˡ h2 h1 t2 t1 h2⊑h1  ⟩
+        ∨ t2 (h1 ∷ t1) ≡⟨ ∨-comm t2 (h1 ∷ t1) ft2 f1 ⟩
+        ∨ (h1 ∷ t1) t2
+       ∎
+      where
+        open PE.≡-Reasoning
+
+    -- mutual   
+     {-     
      ∨-assoc : (l1 l2 l3 : List Carrier) → IsFreeList _<_ _⊑_ l1 → IsFreeList _<_ _⊑_ l2 → IsFreeList _<_ _⊑_ l3 → (∨ l1 (∨ l2 l3)) ≡ (∨ (∨ l1 l2) l3)
      ∨-assoc [] l2 l3 f1 f2 f3 = PE.refl
      ∨-assoc (h1 ∷ t1) [] l3 f1 f2 f3 = PE.refl
@@ -237,10 +349,10 @@ F⟨ P ⟩ = {!!}
        begin
          ∨ (h1 ∷ t1) (∨ t2 (h3 ∷ t3)) ≡⟨ PE.cong (λ x → ∨ (h1 ∷ t1) x) $ ∨-comm t2 (h3 ∷ t3) ft2 f3 ⟩
          ∨ (h1 ∷ t1) (∨ (h3 ∷ t3) t2) ≡⟨ ∨-assoc (h1 ∷ t1) (h3 ∷ t3) t2 f1 f3 ft2 ⟩
-         ∨ (∨ (h1 ∷ t1) (h3 ∷ t3)) t2 ≡⟨ PE.cong (λ x → ∨ x t2) $ ∨-discard h1 h3 t1 t3 (transitive h1⊑h2 h2⊑h3) ⟩
+         ∨ (∨ (h1 ∷ t1) (h3 ∷ t3)) t2 ≡⟨ PE.cong (λ x → ∨ x t2) $ ∨-discardˡ h1 h3 t1 t3 (transitive h1⊑h2 h2⊑h3) ⟩
          ∨ (∨ t1 (h3 ∷ t3)) t2 ≡⟨ PE.sym $ ∨-assoc t1 (h3 ∷ t3) t2 ft1 f3 ft2 ⟩
          ∨ t1 (∨ (h3 ∷ t3) t2) ≡⟨ PE.cong (λ x → ∨ t1 x) $ ∨-comm (h3 ∷ t3) t2 f3 ft2 ⟩
-         ∨ t1 (∨ t2 (h3 ∷ t3)) ≡⟨ PE.cong (λ x → ∨ t1 x) $ PE.sym (∨-discard h2 h3 t2 t3 h2⊑h3)  ⟩
+         ∨ t1 (∨ t2 (h3 ∷ t3)) ≡⟨ PE.cong (λ x → ∨ t1 x) $ PE.sym (∨-discardˡ h2 h3 t2 t3 h2⊑h3)  ⟩
          ∨ t1 (∨ (h2 ∷ t2) (h3 ∷ t3)) ≡⟨ ∨-assoc t1 (h2 ∷ t2) (h3 ∷ t3) ft1 f2 f3 ⟩
          ∨ (∨ t1 (h2 ∷ t2)) (h3 ∷ t3)
         ∎ 
@@ -251,10 +363,10 @@ F⟨ P ⟩ = {!!}
      ∨-assoc (h1 ∷ t1) (h2 ∷ t2) (h3 ∷ t3) f1@(∷-Free .h1 .t1 _ _ ft1) f2 f3@(∷-Free .h3 .t3 _ _ ft3) | l⊑r h1⊑h2 ¬h2⊑h1 | r⊑l ¬h2⊑h3 h3⊑h2 =
        begin
          ∨ (h1 ∷ t1) (∨ (h2 ∷ t2) t3) ≡⟨ ∨-assoc (h1 ∷ t1) (h2 ∷ t2) t3 f1 f2 ft3 ⟩
-         ∨ (∨ (h1 ∷ t1) (h2 ∷ t2)) t3 ≡⟨ PE.cong (λ x → ∨ x t3) $ ∨-discard h1 h2 t1 t2 h1⊑h2 ⟩
+         ∨ (∨ (h1 ∷ t1) (h2 ∷ t2)) t3 ≡⟨ PE.cong (λ x → ∨ x t3) $ ∨-discardˡ h1 h2 t1 t2 h1⊑h2 ⟩
          ∨ (∨ t1 (h2 ∷ t2)) t3 ≡⟨ PE.sym $ ∨-assoc t1 (h2 ∷ t2) t3 ft1 f2 ft3 ⟩
          ∨ t1 (∨ (h2 ∷ t2) t3) ≡⟨ PE.cong (λ x → ∨ t1 x) $ ∨-comm (h2 ∷ t2) t3 f2 ft3  ⟩
-         ∨ t1 (∨ t3 (h2 ∷ t2)) ≡⟨ PE.cong (λ x → ∨ t1 x) $ PE.sym (∨-discard h3 h2 t3 t2 h3⊑h2) ⟩
+         ∨ t1 (∨ t3 (h2 ∷ t2)) ≡⟨ PE.cong (λ x → ∨ t1 x) $ PE.sym (∨-discardˡ h3 h2 t3 t2 h3⊑h2) ⟩
          ∨ t1 (∨ (h3 ∷ t3) (h2 ∷ t2)) ≡⟨ PE.cong (λ x → ∨ t1 x) $ ∨-comm (h3 ∷ t3) (h2 ∷ t2) f3 f2 ⟩ 
          ∨ t1 (∨ (h2 ∷ t2) (h3 ∷ t3)) ≡⟨ ∨-assoc t1 (h2 ∷ t2) (h3 ∷ t3) ft1 f2 f3 ⟩ 
          ∨ (∨ t1 (h2 ∷ t2)) (h3 ∷ t3)
@@ -265,10 +377,10 @@ F⟨ P ⟩ = {!!}
        begin
          ∨ (h1 ∷ t1) (∨ t2 (h2 ∷ t3)) ≡⟨ PE.cong (λ x → ∨ (h1 ∷ t1) x) $ ∨-comm t2 (h2 ∷ t3) ft2 f3 ⟩
          ∨ (h1 ∷ t1) (∨ (h2 ∷ t3) t2) ≡⟨ ∨-assoc (h1 ∷ t1) (h2 ∷ t3) t2 f1 f3 ft2 ⟩
-         ∨ (∨ (h1 ∷ t1) (h2 ∷ t3)) t2 ≡⟨ PE.cong (λ x → ∨ x t2) $ ∨-discard h1 h2 t1 t3 h1⊑h2 ⟩
+         ∨ (∨ (h1 ∷ t1) (h2 ∷ t3)) t2 ≡⟨ PE.cong (λ x → ∨ x t2) $ ∨-discardˡ h1 h2 t1 t3 h1⊑h2 ⟩
          ∨ (∨ t1 (h2 ∷ t3)) t2 ≡⟨ PE.sym $ ∨-assoc t1 (h2 ∷ t3) t2 ft1 f3 ft2 ⟩
          ∨ t1 (∨ (h2 ∷ t3) t2) ≡⟨ PE.cong (λ x → ∨ t1 x) $ ∨-comm (h2 ∷ t3) t2 f3 ft2 ⟩
-         ∨ t1 (∨ t2 (h2 ∷ t3)) ≡⟨ PE.cong (λ x → ∨ t1 x) $ PE.sym (∨-discard h2 h2 t2 t3 (reflexive PE.refl)) ⟩
+         ∨ t1 (∨ t2 (h2 ∷ t3)) ≡⟨ PE.cong (λ x → ∨ t1 x) $ PE.sym (∨-discardˡ h2 h2 t2 t3 (reflexive PE.refl)) ⟩
          ∨ t1 (∨ (h2 ∷ t2) (h2 ∷ t3)) ≡⟨ ∨-assoc t1 (h2 ∷ t2) (h2 ∷ t3) ft1 f2 f3 ⟩
          ∨ (∨ t1 (h2 ∷ t2)) (h2 ∷ t3)
         ∎
@@ -277,7 +389,7 @@ F⟨ P ⟩ = {!!}
      ∨-assoc (h1 ∷ t1) (h2 ∷ t2) (h3 ∷ t3) f1 f2 f3 | l⊑r h1⊑h2 ¬h2⊑h1 | l∥r h2∥h3 with h2 <? h3
      ∨-assoc (h1 ∷ t1) (h2 ∷ t2) (h3 ∷ t3) f1@(∷-Free _ _ _ _ ft1) f2@(∷-Free _ _ min2 incomp2 ft2) f3@(∷-Free _ _ min3 incomp3 _) | l⊑r h1⊑h2 ¬h2⊑h1 | l∥r h2∥h3 | yes h2<h3 =
        begin
-          ∨ (h1 ∷ t1) (h2 ∷ ∨ t2 (h3 ∷ t3)) ≡⟨ ∨-discard h1 h2 t1 (∨ t2 (h3 ∷ t3)) h1⊑h2 ⟩
+          ∨ (h1 ∷ t1) (h2 ∷ ∨ t2 (h3 ∷ t3)) ≡⟨ ∨-discardˡ h1 h2 t1 (∨ t2 (h3 ∷ t3)) h1⊑h2 ⟩
           ∨ t1 (h2 ∷ ∨ t2 (h3 ∷ t3)) ≡⟨ PE.cong (λ x → ∨ t1 x) $ h∷t≡h∨t h2 (∨ t2 (h3 ∷ t3)) p1 p2 ⟩
           ∨ t1 (∨ (h2 ∷ []) (∨ t2 (h3 ∷ t3))) ≡⟨ PE.cong (λ x → ∨ t1 x) $ ∨-assoc (h2 ∷ []) t2 (h3 ∷ t3) (∷-Free h2 [] [] (λ ()) []-Free) ft2 f3 ⟩
           ∨ t1 (∨ (∨ (h2 ∷ []) t2) (h3 ∷ t3)) ≡⟨ PE.cong (λ x → ∨ t1 (∨ x (h3 ∷ t3))) $ PE.sym (h∷t≡h∨t h2 t2 min2 incomp2) ⟩
@@ -318,7 +430,8 @@ F⟨ P ⟩ = {!!}
      ∨-assoc (h1 ∷ t1) (h2 ∷ t2) (h3 ∷ t3) (∷-Free .h1 .t1 _ _ ft1) f2@(∷-Free .h2 .t2 min2 incomp2 ft2) f3@(∷-Free .h3 .t3 min3 incomp3 ft3) | l⊑r h1⊑h2 ¬h2⊑h1 | l∥r h2∥h3 | no ¬h2<h3 | h3<h2 | l⊑r h1⊑h3 ¬h3⊑h1 = 
        begin
          ∨ t1 (h3 ∷ ∨ (h2 ∷ t2) t3) ≡⟨ PE.cong (λ x → ∨ t1 x) $ h∷t≡h∨t h3 (∨ (h2 ∷ t2) t3) p1 p2 ⟩
-         ∨ t1 (∨ (h3 ∷ []) (∨ (h2 ∷ t2) t3)) ≡⟨ PE.cong (λ x → ∨ t1 (∨ (h3 ∷ []) x)) $ ∨-comm (h2 ∷ t2) t3 f2 ft3 ⟩
+           ∨ t1 (∨ (h3 ∷ []) (∨ (h2 ∷ t2) t3)) ≡⟨ PE.cong (λ x → ∨ t1 (∨ (h3 ∷ []) x)) $ ∨-comm (h2 ∷ t2) t3 f2 ft3 ⟩
+         -- How to solve: instead of using the awkward h∷t≡h∨t, we use a new lemma that says "h ∷ (∨ l1 l2) ≡ ∨ (h ∷ l1) l2" under the condition that h is min and incomp 
          ∨ t1 (∨ (h3 ∷ []) (∨ t3 (h2 ∷ t2))) ≡⟨ PE.cong (λ x → ∨ t1 x) $ ∨-assoc (h3 ∷ []) t3 (h2 ∷ t2) h3-free ft3 f2 ⟩
          ∨ t1 (∨ (∨ (h3 ∷ []) t3) (h2 ∷ t2)) ≡⟨ PE.cong (λ x → ∨ t1 (∨ x (h2 ∷ t2))) $ (PE.sym (h∷t≡h∨t h3 t3 min3 incomp3)) ⟩
          ∨ t1 (∨ (h3 ∷ t3) (h2 ∷ t2)) ≡⟨ PE.cong (λ x → ∨ t1 x) $ ∨-comm (h3 ∷ t3) (h2 ∷ t2) f3 f2 ⟩
@@ -393,17 +506,88 @@ F⟨ P ⟩ = {!!}
      ∨-assoc (h1 ∷ t1) (h2 ∷ t2) (h3 ∷ t3) (∷-Free .h1 .t1 _ _ ft1) (∷-Free .h2 .t2 min2 incomp2 ft2) (∷-Free .h3 .t3 min3 incomp3 _) | l⊑r h1⊑h2 ¬h2⊑h1 | l∥r h2∥h3 | no ¬h2<h3 | h3<h2 | l∥r h1∥h3 with h1 <? h3
      ∨-assoc (h1 ∷ t1) (h2 ∷ t2) (h3 ∷ t3) (∷-Free .h1 .t1 _ _ ft1) (∷-Free .h2 .t2 min2 incomp2 ft2) (∷-Free .h3 .t3 min3 incomp3 _) | l⊑r h1⊑h2 ¬h2⊑h1 | l∥r h2∥h3 | no ¬h2<h3 | h3<h2 | l∥r h1∥h3 | yes h1<h3 =
         ⊥-elim $ (unimodality h1<h3 h3<h2 (∦-refl h1) h1∥h3) (inj₁ h1⊑h2)
-     ∨-assoc (h1 ∷ t1) (h2 ∷ t2) (h3 ∷ t3) (∷-Free .h1 .t1 _ _ ft1) (∷-Free .h2 .t2 min2 incomp2 ft2) (∷-Free .h3 .t3 min3 incomp3 _) | l⊑r h1⊑h2 ¬h2⊑h1 | l∥r h2∥h3 | no ¬h2<h3 | h3<h2 | l∥r h1∥h3 | no ¬h1<h3 = {!!}
-     
-     ∨-assoc (h1 ∷ t1) (h2 ∷ t2) (h3 ∷ t3) f1 f2 f3 | DeltaPoset0.r⊑l x x₁ | q = {!!}
+     ∨-assoc (h1 ∷ t1) (h2 ∷ t2) (h3 ∷ t3) f1@(∷-Free .h1 .t1 min1 incomp1 ft1) f2@(∷-Free .h2 .t2 min2 incomp2 ft2) f3@(∷-Free .h3 .t3 min3 incomp3 ft3) | l⊑r h1⊑h2 ¬h2⊑h1 | l∥r h2∥h3 | no ¬h2<h3 | h3<h2 | l∥r h1∥h3 | no ¬h1<h3 with (compare h1 h3)
+     ∨-assoc (h1 ∷ t1) (h2 ∷ t2) (h3 ∷ t3) (∷-Free .h1 .t1 min1 incomp1 ft1) (∷-Free .h2 .t2 min2 incomp2 ft2) (∷-Free .h3 .t3 min3 incomp3 ft3) | l⊑r h1⊑h2 ¬h2⊑h1 | l∥r h2∥h3 | no ¬h2<h3 | h3<h2 | DeltaPoset0.l∥r h1∥h3 | no ¬h1<h3 | tri< h1<h3 _ _ =
+       ⊥-elim $ ¬h1<h3 h1<h3
+     ∨-assoc (h1 ∷ t1) (h2 ∷ t2) (.h1 ∷ t3) f1@(∷-Free .h1 .t1 min1 incomp1 ft1) f2@(∷-Free .h2 .t2 min2 incomp2 ft2) f3@(∷-Free .h1 .t3 min3 incomp3 ft3) | l⊑r h1⊑h2 ¬h2⊑h1 | l∥r h2∥h1 | no ¬h2<h1 | h1<h2 | l∥r h1∥h3 | no ¬h1<h3 | tri≈ _ h1≡h3@PE.refl _ = 
+       begin 
+         h1 ∷ ∨ (h1 ∷ t1) (∨ (h2 ∷ t2) t3) ≡⟨ PE.cong (λ x → h1 ∷ x) $ ∨-assoc (h1 ∷ t1) (h2 ∷ t2) t3 f1 f2 ft3 ⟩
+         h1 ∷ ∨ (∨ (h1 ∷ t1) (h2 ∷ t2)) t3 ≡⟨ PE.cong (λ x → h1 ∷ ∨ x t3) $ ∨-discardˡ h1 h2 t1 t2 h1⊑h2 ⟩
+         h1 ∷ ∨ (∨ t1 (h2 ∷ t2)) t3 ≡⟨ PE.cong (λ x → h1 ∷ x) $ ∨-comm (∨ t1 (h2 ∷ t2)) t3 (∨-free t1 (h2 ∷ t2) ft1 f2) ft3  ⟩
+         h1 ∷ ∨ t3 (∨ t1 (h2 ∷ t2)) ≡⟨ ∨-push h1 t3 (∨ t1 (h2 ∷ t2)) min3 incomp3 min incomp  ⟩
+         ∨ (h1 ∷ t3) (∨ t1 (h2 ∷ t2)) ≡⟨ ∨-comm (h1 ∷ t3) (∨ t1 (h2 ∷ t2)) f3 (∨-free t1 (h2 ∷ t2) ft1 f2) ⟩
+         ∨ (∨ t1 (h2 ∷ t2)) (h1 ∷ t3)
+        ∎
+       where
+         open PE.≡-Reasoning
+         transitive : Transitive _<_
+         transitive = IsStrictTotalOrder.trans isStrictTotalOrder
+         
+         min12 : All (h1 <_) (h2 ∷ t2)
+         min12 = h1<h2 ∷ (LA.map (λ h2<x → transitive h1<h2 h2<x) min2)
+
+         min : All (h1 <_) (∨ t1 (h2 ∷ t2))
+         min = ∨-All t1 (h2 ∷ t2) min1 min12
+         
+         incomp12 : ¬ (Any (h1 ∦_) (h2 ∷ t2))
+         incomp12 (here h1∦h2) = (∥-sym h2∥h1) h1∦h2
+         incomp12 (there rest) = anyEliminate t2 eliminator rest 
+           where
+             eliminator : AnyEliminator Carrier ⊥ (h1 ∦_) t2
+             eliminator a f h1∦a a∈t2 = (unimodality h1<h2 (LA.lookup min2 a∈t2) (inj₁ $ reflexive PE.refl) (∥-sym h2∥h1)) h1∦a
+
+         incomp : ¬ (Any (h1 ∦_) (∨ t1 (h2 ∷ t2)))
+         incomp = ∨-Any t1 (h2 ∷ t2) incomp1 incomp12  
+         
+         -- min13 = min3 
+
+     ∨-assoc (h1 ∷ t1) (h2 ∷ t2) (h3 ∷ t3) f1@(∷-Free .h1 .t1 min1 incomp1 ft1) f2@(∷-Free .h2 .t2 min2 incomp2 ft2) f3@(∷-Free .h3 .t3 min3 incomp3 ft3) | l⊑r h1⊑h2 ¬h2⊑h1 | l∥r h2∥h3 | no ¬h2<h3 | h3<h2 | DeltaPoset0.l∥r h1∥h3 | no ¬h1<h3 | tri> _ _ h3<h1 =
+       begin
+         h3 ∷ ∨ (h1 ∷ t1) (∨ (h2 ∷ t2) t3) ≡⟨ PE.cong (λ x → h3 ∷ x) $ ∨-assoc (h1 ∷ t1) (h2 ∷ t2) t3 f1 f2 ft3 ⟩
+         h3 ∷ ∨ (∨ (h1 ∷ t1) (h2 ∷ t2)) t3 ≡⟨ PE.cong (λ x → h3 ∷ ∨ x t3) $ ∨-discardˡ h1 h2 t1 t2 h1⊑h2 ⟩
+         h3 ∷ ∨ (∨ t1 (h2 ∷ t2)) t3 ≡⟨ PE.cong (λ x → h3 ∷ x) $ ∨-comm (∨ t1 (h2 ∷ t2)) t3 (∨-free t1 (h2 ∷ t2) ft1 f2) ft3  ⟩
+         h3 ∷ ∨ t3 (∨ t1 (h2 ∷ t2)) ≡⟨ ∨-push h3 t3 (∨ t1 (h2 ∷ t2)) min3 incomp3 min incomp ⟩
+         ∨ (h3 ∷ t3) (∨ t1 (h2 ∷ t2)) ≡⟨ ∨-comm (h3 ∷ t3) (∨ t1 (h2 ∷ t2)) f3 (∨-free t1 (h2 ∷ t2) ft1 f2) ⟩
+         ∨ (∨ t1 (h2 ∷ t2)) (h3 ∷ t3)
+        ∎     
+       where 
+         open PE.≡-Reasoning
+         transitive : Transitive _<_
+         transitive = IsStrictTotalOrder.trans isStrictTotalOrder
+         
+         min31 : All (h3 <_) t1
+         min31 = LA.map (λ h1<x → transitive h3<h1 h1<x) min1
+         
+         incomp31 : ¬ (Any (h3 ∦_) t1)
+         incomp31 h3∦x = anyEliminate t1 eliminator h3∦x
+           where
+             eliminator : AnyEliminator Carrier ⊥ (h3 ∦_) t1
+             eliminator a f h3∦a a∈t1 = (unimodality h3<h1 (LA.lookup min1 a∈t1) (∦-refl h3) (∥-sym h1∥h3)) h3∦a
+
+         min32 : All (h3 <_) (h2 ∷ t2)
+         min32 = h3<h2 ∷ (LA.map (λ h2<x → transitive h3<h2 h2<x) min2)
+
+         min : All (h3 <_) (∨ t1 (h2 ∷ t2))
+         min = ∨-All t1 (h2 ∷ t2) min31 min32
+         
+         incomp32 : ¬ (Any (h3 ∦_) (h2 ∷ t2))
+         incomp32 (here h3∦h2) = (∥-sym h2∥h3) h3∦h2
+         incomp32 (there rest) = anyEliminate t2 eliminator rest 
+           where
+             eliminator : AnyEliminator Carrier ⊥ (h3 ∦_) t2
+             eliminator a f h3∦a a∈t2 = (unimodality h3<h2 (LA.lookup min2 a∈t2) (inj₁ $ reflexive PE.refl) (∥-sym h2∥h3)) h3∦a
+
+         incomp : ¬ (Any (h3 ∦_) (∨ t1 (h2 ∷ t2)))
+         incomp = ∨-Any t1 (h2 ∷ t2) incomp31 incomp32       
+     ∨-assoc (h1 ∷ t1) (h2 ∷ t2) (h3 ∷ t3) f1 f2 f3 | r⊑l x x₁ | q = {!!}
      ∨-assoc (h1 ∷ t1) (h2 ∷ t2) (h3 ∷ t3) f1@(∷-Free _ _ _ _ ft1) f2@(∷-Free _ _ _ _ ft2) f3 | l≡r PE.refl | l⊑r h2⊑h3 ¬h3⊑h2 =
        begin
          ∨ (h1 ∷ t1) (∨ t2 (h3 ∷ t3)) ≡⟨ PE.cong (λ x → ∨ (h1 ∷ t1) x) $ ∨-comm t2 (h3 ∷ t3) ft2 f3 ⟩
          ∨ (h1 ∷ t1) (∨ (h3 ∷ t3) t2) ≡⟨ ∨-assoc (h1 ∷ t1) (h3 ∷ t3) t2 f1 f3 ft2 ⟩
-         ∨ (∨ (h1 ∷ t1) (h3 ∷ t3)) t2 ≡⟨ PE.cong (λ x → ∨ x t2) $ ∨-discard h1 h3 t1 t3 h2⊑h3 ⟩
+         ∨ (∨ (h1 ∷ t1) (h3 ∷ t3)) t2 ≡⟨ PE.cong (λ x → ∨ x t2) $ ∨-discardˡ h1 h3 t1 t3 h2⊑h3 ⟩
          ∨ (∨ t1 (h3 ∷ t3)) t2 ≡⟨ PE.sym $ ∨-assoc t1 (h3 ∷ t3) t2 ft1 f3 ft2 ⟩
          ∨ t1 (∨ (h3 ∷ t3) t2) ≡⟨ PE.cong (λ x → ∨ t1 x) $ ∨-comm (h3 ∷ t3) t2 f3 ft2 ⟩
-         ∨ t1 (∨ t2 (h3 ∷ t3)) ≡⟨ PE.cong (λ x → ∨ t1 x) $ PE.sym (∨-discard h1 h3 t2 t3 h2⊑h3) ⟩
+         ∨ t1 (∨ t2 (h3 ∷ t3)) ≡⟨ PE.cong (λ x → ∨ t1 x) $ PE.sym (∨-discardˡ h1 h3 t2 t3 h2⊑h3) ⟩
          ∨ t1 (∨ (h1 ∷ t2) (h3 ∷ t3)) ≡⟨ ∨-assoc t1 (h1 ∷ t2) (h3 ∷ t3) ft1 f2 f3 ⟩
          ∨ (∨ t1 (h1 ∷ t2)) (h3 ∷ t3) 
         ∎
@@ -412,10 +596,10 @@ F⟨ P ⟩ = {!!}
      ∨-assoc (h1 ∷ t1) (h2 ∷ t2) (h3 ∷ t3) f1@(∷-Free _ _ _ _ ft1) f2 f3@(∷-Free _ _ _ _ ft3) | l≡r PE.refl | r⊑l ¬h2⊑h3 h3⊑h2 = 
        begin
          ∨ (h1 ∷ t1) (∨ (h1 ∷ t2) t3) ≡⟨ ∨-assoc (h1 ∷ t1) (h1 ∷ t2) t3 f1 f2 ft3 ⟩
-         ∨ (∨ (h1 ∷ t1) (h1 ∷ t2)) t3 ≡⟨ PE.cong (λ x → ∨ x t3) $ ∨-discard h1 h1 t1 t2 (reflexive PE.refl) ⟩
+         ∨ (∨ (h1 ∷ t1) (h1 ∷ t2)) t3 ≡⟨ PE.cong (λ x → ∨ x t3) $ ∨-discardˡ h1 h1 t1 t2 (reflexive PE.refl) ⟩
          ∨ (∨ t1 (h1 ∷ t2)) t3 ≡⟨ PE.sym $ ∨-assoc t1 (h1 ∷ t2) t3 ft1 f2 ft3 ⟩
          ∨ t1 (∨ (h1 ∷ t2) t3) ≡⟨ PE.cong (λ x → ∨ t1 x) $ ∨-comm (h1 ∷ t2) t3 f2 ft3  ⟩
-         ∨ t1 (∨ t3 (h1 ∷ t2)) ≡⟨ PE.cong (λ x → ∨ t1 x) $ PE.sym (∨-discard h3 h1 t3 t2 h3⊑h2) ⟩
+         ∨ t1 (∨ t3 (h1 ∷ t2)) ≡⟨ PE.cong (λ x → ∨ t1 x) $ PE.sym (∨-discardˡ h3 h1 t3 t2 h3⊑h2) ⟩
          ∨ t1 (∨ (h3 ∷ t3) (h1 ∷ t2)) ≡⟨ PE.cong (λ x → ∨ t1 x) $ ∨-comm (h3 ∷ t3) (h1 ∷ t2) f3 f2 ⟩ 
          ∨ t1 (∨ (h1 ∷ t2) (h3 ∷ t3)) ≡⟨ ∨-assoc t1 (h1 ∷ t2) (h3 ∷ t3) ft1 f2 f3 ⟩ 
          ∨ (∨ t1 (h2 ∷ t2)) (h3 ∷ t3)
@@ -426,22 +610,20 @@ F⟨ P ⟩ = {!!}
        begin
          ∨ (h1 ∷ t1) (∨ t2 (h1 ∷ t3)) ≡⟨ PE.cong (λ x → ∨ (h1 ∷ t1) x) $ ∨-comm t2 (h1 ∷ t3) ft2 f3 ⟩
          ∨ (h1 ∷ t1) (∨ (h1 ∷ t3) t2) ≡⟨ ∨-assoc (h1 ∷ t1) (h1 ∷ t3) t2 f1 f3 ft2 ⟩
-         ∨ (∨ (h1 ∷ t1) (h1 ∷ t3)) t2 ≡⟨ PE.cong (λ x → ∨ x t2) $ ∨-discard h1 h1 t1 t3 (reflexive PE.refl) ⟩
+         ∨ (∨ (h1 ∷ t1) (h1 ∷ t3)) t2 ≡⟨ PE.cong (λ x → ∨ x t2) $ ∨-discardˡ h1 h1 t1 t3 (reflexive PE.refl) ⟩
          ∨ (∨ t1 (h1 ∷ t3)) t2 ≡⟨ PE.sym $ ∨-assoc t1 (h1 ∷ t3) t2 ft1 f3 ft2 ⟩
          ∨ t1 (∨ (h1 ∷ t3) t2) ≡⟨ PE.cong (λ x → ∨ t1 x) $ ∨-comm (h1 ∷ t3) t2 f3 ft2 ⟩
-         ∨ t1 (∨ t2 (h1 ∷ t3)) ≡⟨ PE.cong (λ x → ∨ t1 x) $ PE.sym (∨-discard h1 h1 t2 t3 (reflexive PE.refl)) ⟩
+         ∨ t1 (∨ t2 (h1 ∷ t3)) ≡⟨ PE.cong (λ x → ∨ t1 x) $ PE.sym (∨-discardˡ h1 h1 t2 t3 (reflexive PE.refl)) ⟩
          ∨ t1 (∨ (h1 ∷ t2) (h1 ∷ t3)) ≡⟨ ∨-assoc t1 (h1 ∷ t2) (h1 ∷ t3) ft1 f2 f3 ⟩
          ∨ (∨ t1 (h1 ∷ t2)) (h1 ∷ t3) 
         ∎
        where
          open PE.≡-Reasoning
      ∨-assoc (h1 ∷ t1) (h2 ∷ t2) (h3 ∷ t3) f1 f2 f3 | l≡r PE.refl | l∥r h2∥h3 with h1 <? h3
-     ∨-assoc (h1 ∷ t1) (h2 ∷ t2) (h3 ∷ t3) f1@(∷-Free _ _ _ _ ft1) f2@(∷-Free _ _ min2 incomp2 ft2) f3@(∷-Free _ _ min3 _ _) | l≡r PE.refl | l∥r h2∥h3 | yes h1<h3 =
+     ∨-assoc (h1 ∷ t1) (.h1 ∷ t2) (h3 ∷ t3) f1@(∷-Free _ _ _ _ ft1) f2@(∷-Free .h1 t2 min2 incomp2 ft2) f3@(∷-Free _ _ min3 incomp3 _) | l≡r h1≡h2@PE.refl | l∥r h1∥h3 | yes h1<h3 =
        begin
-          ∨ (h1 ∷ t1) (h1 ∷ ∨ t2 (h3 ∷ t3)) ≡⟨ ∨-discard h1 h1 t1 (∨ t2 (h3 ∷ t3)) (reflexive PE.refl) ⟩
-          ∨ t1 (h1 ∷ ∨ t2 (h3 ∷ t3)) ≡⟨ PE.cong (λ x → ∨ t1 x) $ h∷t≡h∨t h1 (∨ t2 (h3 ∷ t3)) p1 p2 ⟩
-          ∨ t1 (∨ (h1 ∷ []) (∨ t2 (h3 ∷ t3))) ≡⟨ PE.cong (λ x → ∨ t1 x) $ ∨-assoc (h1 ∷ []) t2 (h3 ∷ t3) (∷-Free h1 [] [] (λ ()) []-Free) ft2 f3 ⟩
-          ∨ t1 (∨ (∨ (h1 ∷ []) t2) (h3 ∷ t3)) ≡⟨ PE.cong (λ x → ∨ t1 (∨ x (h3 ∷ t3))) $ PE.sym (h∷t≡h∨t h1 t2 min2 incomp2) ⟩
+          ∨ (h1 ∷ t1) (h1 ∷ ∨ t2 (h3 ∷ t3)) ≡⟨ ∨-discardˡ h1 h1 t1 (∨ t2 (h3 ∷ t3)) (reflexive PE.refl) ⟩
+          ∨ t1 (h1 ∷ ∨ t2 (h3 ∷ t3)) ≡⟨ PE.cong (λ x → ∨ t1 x) $ ∨-push h1 t2 (h3 ∷ t3) min2 incomp2 min13 h1∥l3  ⟩
           ∨ t1 (∨ (h1 ∷ t2) (h3 ∷ t3)) ≡⟨ ∨-assoc t1 (h1 ∷ t2) (h3 ∷ t3) ft1 f2 f3 ⟩
           ∨ (∨ t1 (h1 ∷ t2)) (h3 ∷ t3)
         ∎
@@ -450,56 +632,222 @@ F⟨ P ⟩ = {!!}
          transitive : Transitive _<_
          transitive = IsStrictTotalOrder.trans isStrictTotalOrder
          
-         p0 : All (h1 <_) (h3 ∷ t3)
-         p0 = h1<h3 ∷ (LA.map (λ h3<x → (transitive h1<h3 h3<x)) min3)
-
-         p1 : All (h1 <_) (∨ t2 (h3 ∷ t3))
-         p1 = ∨-All t2 (h3 ∷ t3) min2 p0
+         min13 : All (h1 <_) (h3 ∷ t3)
+         min13 = h1<h3 ∷ (LA.map (λ h3<x → (transitive h1<h3 h3<x)) min3)
 
          h1∥l3 : ¬ (Any (h1 ∦_) (h3 ∷ t3))
-         h1∥l3 (here h1∦h3) = h2∥h3 h1∦h3
+         h1∥l3 (here h1∦h3) = h1∥h3 h1∦h3
          h1∥l3 (there h1∦t3) = anyEliminate t3 eliminator h1∦t3
            where
              eliminator : AnyEliminator Carrier ⊥ (h1 ∦_) t3
-             eliminator a f h1∦a a∈t3 = (unimodality h1<h3 (LA.lookup min3 a∈t3) (∦-refl h1) h2∥h3) h1∦a
-         
-         p2 : ¬ (Any (h1 ∦_) (∨ t2 (h3 ∷ t3)))
-         p2 = ∨-Any t2 (h3 ∷ t3) incomp2 h1∥l3 
-     ∨-assoc (h1 ∷ t1) (h2 ∷ t2) (h3 ∷ t3) f1 f2 f3 | l≡r h1≡h2@PE.refl | l∥r h2∥h3 | no ¬h1<h3 = {!!}
-     ∨-assoc (h1 ∷ t1) (h2 ∷ t2) (h3 ∷ t3) f1 f2 f3 | DeltaPoset0.l∥r x | q = {!!}
-{-
-     ∨-assoc (h1 ∷ t1) (h2 ∷ t2) [] f1 f2 f3 | yes (inj₁ h1⊑h2) rewrite (∨-idem $ ∨ t1 (h2 ∷ t2)) = PE.refl
-     ∨-assoc (h1 ∷ t1) (h2 ∷ t2) [] f1 f2 f3 | yes (inj₂ h2⊑h1) rewrite (∨-idem $ ∨ (h1 ∷ t1) t2) = PE.refl
-     ∨-assoc (h1 ∷ t1) (h2 ∷ t2) (h3 ∷ t3) f1@(∷-Free .h1 .t1 min1 incomp1 ft1) f2@(∷-Free .h2 .t2 min2 incomp2 ft2) f3@(∷-Free .h3 .t3 min3 incomp3 ft3) with h1 ∦? h2 | h2 ∦? h3
-     ... | yes (inj₁ h1⊑h2) | yes (inj₁ h2⊑h3) = {!!} -- with p | keep (h1 ∦? h3)
+             eliminator a f h1∦a a∈t3 = (unimodality h1<h3 (LA.lookup min3 a∈t3) (∦-refl h1) h1∥h3) h1∦a
+   
+     ∨-assoc (h1 ∷ t1) (.h1 ∷ t2) (h3 ∷ t3) f1 f2 f3 | l≡r h1≡h2@PE.refl | l∥r h1∥h3 | no ¬h1<h3 with h3<h1 | h1 ∦? h3
        where
-         open ≡-Reasoning
-         transitive : Transitive _⊑_
-         transitive = IsDecPartialOrder.trans isDecPartialOrder 
+         open PE.≡-Reasoning
+         transitive : Transitive _<_
+         transitive = IsStrictTotalOrder.trans isStrictTotalOrder
+     
+         h3<h1 : h3 < h1
+         h3<h1 with (compare h3 h1)
+         h3<h1 | tri< goal _ _ = goal
+         h3<h1 | tri≈ _ h3≡h1@PE.refl _ = ⊥-elim $ h1∥h3 (inj₁ (reflexive PE.refl)) 
+         h3<h1 | tri> _ _ h1<h3 = ⊥-elim $ ¬h1<h3 h1<h3
+     ∨-assoc (h1 ∷ t1) (h2 ∷ t2) (h3 ∷ t3) f1@(∷-Free .h1 .t1 _ _ ft1) f2@(∷-Free .h2 .t2 min2 incomp2 ft2) f3@(∷-Free .h3 .t3 min3 incomp3 ft3) | l≡r h1≡h2@PE.refl | l∥r h1∥h3 | no ¬h1<h3 | h3<h1 | l⊑r h1⊑h3 ¬h3⊑h1 = 
+       begin
+         ∨ t1 (h3 ∷ ∨ (h1 ∷ t2) t3) ≡⟨ PE.cong (λ x → ∨ t1 (h3 ∷ x)) $ ∨-comm (h1 ∷ t2) t3 f2 ft3 ⟩
+         ∨ t1 (h3 ∷ ∨ t3 (h1 ∷ t2)) ≡⟨ PE.cong (λ x → ∨ t1 x) $ ∨-push h3 t3 (h1 ∷ t2) min3 incomp3 min32 h3∥l2 ⟩
+         ∨ t1 (∨ (h3 ∷ t3) (h1 ∷ t2)) ≡⟨ PE.cong (λ x → ∨ t1 x) $ ∨-comm (h3 ∷ t3) (h2 ∷ t2) f3 f2 ⟩
+         ∨ t1 (∨ (h1 ∷ t2) (h3 ∷ t3)) ≡⟨ ∨-assoc t1 (h2 ∷ t2) (h3 ∷ t3) ft1 f2 f3 ⟩
+         ∨ (∨ t1 (h1 ∷ t2)) (h3 ∷ t3)
+        ∎
+       where
+         open PE.≡-Reasoning
+         transitive : Transitive _<_
+         transitive = IsStrictTotalOrder.trans isStrictTotalOrder
          
-         p1 : (∨ (h1 ∷ t1) (h3 ∷ t3)) ≡ (∨ t1 (h3 ∷ t3))
-         p1 with h1 ∦? h3
-         p1 | yes (inj₁ h1⊑h3) = PE.refl  
-         p1 | yes (inj₂ h3⊑h1) with h1≡h3
+         min32 : All (h3 <_) (h1 ∷ t2)
+         min32 = h3<h1 ∷ (LA.map (λ h1<x → (transitive h3<h1 h1<x)) min2)
+
+         h3∥l2 : ¬ (Any (h3 ∦_) (h1 ∷ t2))
+         h3∥l2 (here h3∦h1) = (∥-sym h1∥h3) h3∦h1
+         h3∥l2 (there h3∦t2) = anyEliminate t2 eliminator h3∦t2
            where
-             h1≡h3 : h1 ≡ h3
-             h1≡h3 = antisym (transitive h1⊑h2 h2⊑h3) h3⊑h1
-         ... | PE.refl = {!!} 
-         p : ∨ (h1 ∷ t1) (∨ t2 (h3 ∷ t3)) ≡ ∨ (∨ (h1 ∷ t1) (h3 ∷ t3)) t2
-         p = begin
-               ∨ (h1 ∷ t1) (∨ t2 (h3 ∷ t3)) ≡⟨ PE.cong (λ x → ∨ (h1 ∷ t1) x) $ ∨-comm t2 (h3 ∷ t3) ft2 f3 ⟩
-               ∨ (h1 ∷ t1) (∨ (h3 ∷ t3) t2) ≡⟨ ∨-assoc (h1 ∷ t1) (h3 ∷ t3) t2 f1 f3 ft2 ⟩
-               ∨ (∨ (h1 ∷ t1) (h3 ∷ t3)) t2
-              ∎
-        
+             eliminator : AnyEliminator Carrier ⊥ (h3 ∦_) t2
+             eliminator a f h3∦a a∈t2 = (unimodality h3<h1 (LA.lookup min2 a∈t2) (∦-refl h3) (∥-sym h1∥h3)) h3∦a
+         
+         p2 : ¬ (Any (h3 ∦_) (∨ (h1 ∷ t2) t3))
+         p2 = ∨-Any (h2 ∷ t2) t3 h3∥l2 incomp3 
+     ∨-assoc (h1 ∷ t1) (.h1 ∷ t2) (h3 ∷ t3) (∷-Free .h1 .t1 _ _ ft1) (∷-Free .h1 .t2 min2 incomp2 ft2) (∷-Free .h3 .t3 min3 incomp3 _) | l≡r h1≡h2@PE.refl | l∥r h1∥h3 | no ¬h1<h3 | h3<h1 | r⊑l ¬h1⊑h3 h3⊑h1 =
+       ⊥-elim $ h1∥h3 (inj₂ h3⊑h1) 
+     ∨-assoc (h1 ∷ t1) (.h1 ∷ t2) (h3 ∷ t3) (∷-Free .h1 .t1 _ _ ft1) f2@(∷-Free .h1 .t2 min2 incomp2 ft2) f3@(∷-Free .h3 .t3 min3 incomp3 ft3) | l≡r h1≡h2@PE.refl | l∥r h1∥h3 | no ¬h1<h3 | h3<h1 | l≡r h1≡h3@PE.refl =  
+       begin
+         ∨ t1 (h3 ∷ ∨ (h1 ∷ t2) t3) ≡⟨ PE.cong (λ x → ∨ t1 x) $ h∷t≡h∨t h3 (∨ (h1 ∷ t2) t3) p1 p2 ⟩
+         ∨ t1 (∨ (h3 ∷ []) (∨ (h1 ∷ t2) t3)) ≡⟨ PE.cong (λ x → ∨ t1 (∨ (h3 ∷ []) x)) $ ∨-comm (h1 ∷ t2) t3 f2 ft3 ⟩
+         ∨ t1 (∨ (h3 ∷ []) (∨ t3 (h1 ∷ t2))) ≡⟨ PE.cong (λ x → ∨ t1 x) $ ∨-assoc (h3 ∷ []) t3 (h1 ∷ t2) h3-free ft3 f2 ⟩
+         ∨ t1 (∨ (∨ (h3 ∷ []) t3) (h1 ∷ t2)) ≡⟨ PE.cong (λ x → ∨ t1 (∨ x (h1 ∷ t2))) $ (PE.sym (h∷t≡h∨t h3 t3 min3 incomp3)) ⟩
+         ∨ t1 (∨ (h3 ∷ t3) (h1 ∷ t2)) ≡⟨ PE.cong (λ x → ∨ t1 x) $ ∨-comm (h3 ∷ t3) (h1 ∷ t2) f3 f2 ⟩
+         ∨ t1 (∨ (h1 ∷ t2) (h3 ∷ t3)) ≡⟨ ∨-assoc t1 (h1 ∷ t2) (h3 ∷ t3) ft1 f2 f3 ⟩
+         ∨ (∨ t1 (h1 ∷ t2)) (h3 ∷ t3)
+        ∎
+       where
+         open PE.≡-Reasoning
+         transitive : Transitive _<_
+         transitive = IsStrictTotalOrder.trans isStrictTotalOrder
+         
+         h3-free : IsFreeList _<_ _⊑_ (h3 ∷ [])
+         h3-free = ∷-Free h3 [] [] (λ ()) []-Free
+
+         p0 : All (h3 <_) (h1 ∷ t2)
+         p0 = h3<h1 ∷ (LA.map (λ h1<x → (transitive h3<h1 h1<x)) min2)
+
+         p1 : All (h3 <_) (∨ (h1 ∷ t2) t3)
+         p1 = ∨-All (h1 ∷ t2) t3 p0 min3
+
+         h1∥l2 : ¬ (Any (h3 ∦_) (h1 ∷ t2))
+         h1∥l2 (here h3∦h1) = (∥-sym h1∥h3) h3∦h1
+         h1∥l2 (there h3∦t2) = anyEliminate t2 eliminator h3∦t2
+           where
+             eliminator : AnyEliminator Carrier ⊥ (h3 ∦_) t2
+             eliminator a f h3∦a a∈t2 = (unimodality h3<h1 (LA.lookup min2 a∈t2) (∦-refl h3) (∥-sym h1∥h3)) h3∦a
+         
+         p2 : ¬ (Any (h3 ∦_) (∨ (h1 ∷ t2) t3))
+         p2 = ∨-Any (h1 ∷ t2) t3 h1∥l2 incomp3       
+     ∨-assoc (h1 ∷ t1) (.h1 ∷ t2) (h3 ∷ t3) (∷-Free .h1 .t1 _ _ ft1) (∷-Free .h1 .t2 min2 incomp2 ft2) (∷-Free .h3 .t3 min3 incomp3 _) | l≡r h1≡h2@PE.refl | l∥r h1∥h3 | no ¬h1<h3 | h3<h1 | l∥r _ with h1 <? h3
+     ∨-assoc (h1 ∷ t1) (.h1 ∷ t2) (h3 ∷ t3) (∷-Free .h1 .t1 _ _ ft1) (∷-Free .h1 .t2 min2 incomp2 ft2) (∷-Free .h3 .t3 min3 incomp3 _) | l≡r h1≡h2@PE.refl | l∥r h1∥h3 | no ¬h1<h3 | h3<h1 | l∥r _ | yes h1<h3 = 
+       ⊥-elim $ ¬h1<h3 h1<h3
+     ∨-assoc (h1 ∷ t1) (.h1 ∷ t2) (h3 ∷ t3) f1@(∷-Free .h1 .t1 min1 _ ft1) f2@(∷-Free .h1 .t2 min2 incomp2 ft2) f3@(∷-Free .h3 .t3 min3 incomp3 ft3) | l≡r h1≡h2@PE.refl | l∥r h1∥h3 | no _ | h3<h1 | l∥r _ | no ¬h1<h3 =
+       begin
+         h3 ∷ ∨ (h1 ∷ t1) (∨ (h1 ∷ t2) t3) ≡⟨ PE.cong (λ x → h3 ∷ x) $ ∨-assoc (h1 ∷ t1) (h1 ∷ t2) t3 f1 f2 ft3 ⟩
+         h3 ∷ ∨ (∨ (h1 ∷ t1) (h1 ∷ t2)) t3 ≡⟨ PE.cong (λ x → h3 ∷ ∨ x t3) $ ∨-discardˡ h1 h1 t1 t2 (reflexive PE.refl) ⟩
+         h3 ∷ ∨ (∨ t1 (h1 ∷ t2)) t3 ≡⟨ PE.cong (λ x → h3 ∷ x) $ ∨-comm (∨ t1 (h1 ∷ t2)) t3 (∨-free t1 (h1 ∷ t2) ft1 f2) ft3  ⟩
+         h3 ∷ ∨ t3 (∨ t1 (h1 ∷ t2)) ≡⟨ ∨-push h3 t3 (∨ t1 (h1 ∷ t2)) min3 incomp3 min incomp ⟩
+         ∨ (h3 ∷ t3) (∨ t1 (h1 ∷ t2)) ≡⟨ ∨-comm (h3 ∷ t3) (∨ t1 (h1 ∷ t2)) f3 (∨-free t1 (h1 ∷ t2) ft1 f2) ⟩
+         ∨ (∨ t1 (h1 ∷ t2)) (h3 ∷ t3)
+        ∎     
+       where 
+         open PE.≡-Reasoning
+         transitive : Transitive _<_
+         transitive = IsStrictTotalOrder.trans isStrictTotalOrder
+         
+         min31 : All (h3 <_) t1
+         min31 = LA.map (λ h1<x → transitive h3<h1 h1<x) min1
+         
+         incomp31 : ¬ (Any (h3 ∦_) t1)
+         incomp31 h3∦x = anyEliminate t1 eliminator h3∦x
+           where
+             eliminator : AnyEliminator Carrier ⊥ (h3 ∦_) t1
+             eliminator a f h3∦a a∈t1 = (unimodality h3<h1 (LA.lookup min1 a∈t1) (∦-refl h3) (∥-sym h1∥h3)) h3∦a
+
+         min32 : All (h3 <_) (h1 ∷ t2)
+         min32 = h3<h1 ∷ (LA.map (λ h2<x → transitive h3<h1 h2<x) min2)
+
+         min : All (h3 <_) (∨ t1 (h1 ∷ t2))
+         min = ∨-All t1 (h1 ∷ t2) min31 min32
+         
+         incomp32 : ¬ (Any (h3 ∦_) (h1 ∷ t2))
+         incomp32 (here h3∦h1) = (∥-sym h1∥h3) h3∦h1
+         incomp32 (there rest) = anyEliminate t2 eliminator rest 
+           where
+             eliminator : AnyEliminator Carrier ⊥ (h3 ∦_) t2
+             eliminator a f h3∦a a∈t2 = (unimodality h3<h1 (LA.lookup min2 a∈t2) (inj₁ $ reflexive PE.refl) (∥-sym h1∥h3)) h3∦a
+
+         incomp : ¬ (Any (h3 ∦_) (∨ t1 (h1 ∷ t2)))
+         incomp = ∨-Any t1 (h1 ∷ t2) incomp31 incomp32       
+
+     ∨-assoc (h1 ∷ t1) (h2 ∷ t2) (h3 ∷ t3) f1 f2 f3 | l∥r h1∥h2 | l⊑r h2⊑h3 ¬h3⊑h2 with h1 <? h2 
+     ∨-assoc (h1 ∷ t1) (h2 ∷ t2) (h3 ∷ t3) f1 f2 f3 | l∥r h1∥h2 | p@(l⊑r h2⊑h3 ¬h3⊑h2) | yes h1<h2 with h1 ∦? h3
+     ∨-assoc (h1 ∷ t1) (h2 ∷ t2) (h3 ∷ t3) f1@(∷-Free _ _ _ _ ft1) f2@(∷-Free _ _ _ _ ft2) f3 | l∥r h1∥h2 | l⊑r h2⊑h3 ¬h3⊑h2 | yes h1<h2 | l⊑r h1⊑h3 ¬h3⊑h1 = 
+       begin
+         ∨ (h1 ∷ t1) (∨ t2 (h3 ∷ t3)) ≡⟨ PE.cong (λ x → ∨ (h1 ∷ t1) x) $ ∨-comm t2 (h3 ∷ t3) ft2 f3 ⟩
+         ∨ (h1 ∷ t1) (∨ (h3 ∷ t3) t2) ≡⟨ ∨-assoc (h1 ∷ t1) (h3 ∷ t3) t2 f1 f3 ft2 ⟩
+         ∨ (∨ (h1 ∷ t1) (h3 ∷ t3)) t2 ≡⟨ PE.cong (λ x → ∨ x t2) $ ∨-discardˡ h1 h3 t1 t3 h1⊑h3 ⟩
+         ∨ (∨ t1 (h3 ∷ t3)) t2 ≡⟨ PE.sym $ ∨-assoc t1 (h3 ∷ t3) t2 ft1 f3 ft2 ⟩
+         ∨ t1 (∨ (h3 ∷ t3) t2) ≡⟨ PE.cong (λ x → ∨ t1 x) $ ∨-comm (h3 ∷ t3) t2 f3 ft2 ⟩
+         ∨ t1 (∨ t2 (h3 ∷ t3)) ≡⟨ PE.cong (λ x → ∨ t1 x) $ PE.sym (∨-discardˡ h2 h3 t2 t3 h2⊑h3)  ⟩
+         ∨ t1 (∨ (h2 ∷ t2) (h3 ∷ t3)) ≡⟨ ∨-assoc t1 (h2 ∷ t2) (h3 ∷ t3) ft1 f2 f3 ⟩
+         ∨ (∨ t1 (h2 ∷ t2)) (h3 ∷ t3)
+        ∎
+       where
+         open PE.≡-Reasoning
+     ∨-assoc (h1 ∷ t1) (h2 ∷ t2) (h3 ∷ t3) f1 f2@(∷-Free _ _ min2 incomp2 ft2) f3 | l∥r h1∥h2 | l⊑r h2⊑h3 ¬h3⊑h2 | no ¬h1<h2 =
+       begin 
+         ∨ (h1 ∷ t1) (∨ t2 (h3 ∷ t3)) ≡⟨ ∨-assoc (h1 ∷ t1) t2 (h3 ∷ t3) f1 ft2 f3 ⟩
+         ∨ (∨ (h1 ∷ t1) t2) (h3 ∷ t3) ≡⟨ PE.sym $ ∨-discardˡ h2 h3 (∨ (h1 ∷ t1) t2) t3 h2⊑h3 ⟩
+         ∨ (h2 ∷ (∨ (h1 ∷ t1) t2)) (h3 ∷ t3)
+        ∎
+       where
+         open PE.≡-Reasoning
+     ∨-assoc (h1 ∷ t1) (h2 ∷ t2) (h3 ∷ t3) f1 f2 f3 | l∥r h1∥h2 | r⊑l ¬h2⊑h3 h3⊑h2 with h1 <? h2
+     ∨-assoc (h1 ∷ t1) (h2 ∷ t2) (h3 ∷ t3) f1 f2 f3@(∷-Free _ _ _ _ ft3) | l∥r h1∥h2 | r⊑l ¬h2⊑h3 h3⊑h2 | yes h1<h2 with h1 ∦? h3
+     ∨-assoc (h1 ∷ t1) (h2 ∷ t2) (h3 ∷ t3) f1@(∷-Free .h1 .t1 _ _ ft1) f2 f3@(∷-Free .h3 .t3 _ _ ft3) | DeltaPoset0.l∥r h1∥h2 | DeltaPoset0.r⊑l ¬h2⊑h3 h3⊑h2 | yes h1<h2 | l⊑r h1⊑h3 ¬h3⊑h1 =
+       begin 
+         ∨ (h1 ∷ t1) (∨ (h2 ∷ t2) t3) ≡⟨ ∨-assoc (h1 ∷ t1) (h2 ∷ t2) t3 f1 f2 ft3 ⟩
+         ∨ (∨ (h1 ∷ t1) (h2 ∷ t2)) t3 ≡⟨ PE.cong (λ x → (∨ x t3)) $ ∨-discardˡ h1 h2 t1 t2 (transitive⊑ h1⊑h3 h3⊑h2) ⟩
+         ∨ (∨ t1 (h2 ∷ t2)) t3 ≡⟨ PE.sym $ ∨-assoc t1 (h2 ∷ t2) t3 ft1 f2 ft3 ⟩
+         ∨ t1 (∨ (h2 ∷ t2) t3) ≡⟨ PE.cong (λ x → ∨ t1 x) $ ∨-comm (h2 ∷ t2) t3 f2 ft3 ⟩
+         ∨ t1 (∨ t3 (h2 ∷ t2)) ≡⟨ PE.cong (λ x → ∨ t1 x) $ PE.sym (∨-discardˡ h3 h2 t3 t2 h3⊑h2) ⟩
+         ∨ t1 (∨ (h3 ∷ t3) (h2 ∷ t2)) ≡⟨ PE.cong (λ x → ∨ t1 x) $ ∨-comm (h3 ∷ t3) (h2 ∷ t2) f3 f2 ⟩
+         ∨ t1 (∨ (h2 ∷ t2) (h3 ∷ t3)) ≡⟨ ∨-assoc t1 (h2 ∷ t2) (h3 ∷ t3) ft1 f2 f3 ⟩
+         ∨ (∨ t1 (h2 ∷ t2)) (h3 ∷ t3)
+        ∎
+       where
+         open PE.≡-Reasoning
+     ∨-assoc (h1 ∷ t1) (h2 ∷ t2) (h3 ∷ t3) f1@(∷-Free .h1 .t1 min1 incomp1 ft1) f2@(∷-Free .h2 .t2 min2 incomp2 ft2) (∷-Free .h3 .t3 _ _ ft3) | DeltaPoset0.l∥r h1∥h2 | DeltaPoset0.r⊑l ¬h2⊑h3 h3⊑h2 | yes h1<h2 | r⊑l ¬h1⊑h3 h3⊑h1 = 
+       begin
+         ∨ (h1 ∷ t1) (∨ (h2 ∷ t2) t3) ≡⟨ ∨-assoc (h1 ∷ t1) (h2 ∷ t2) t3 f1 f2 ft3 ⟩
+         ∨ (∨ (h1 ∷ t1) (h2 ∷ t2)) t3 ≡⟨ PE.cong (λ x → ∨ x t3) $ PE.sym (∨-push h1 t1 (h2 ∷ t2) min1 incomp1 min12 incomp12) ⟩  
+         ∨ (h1 ∷ ∨ t1 (h2 ∷ t2)) t3
+        ∎
+       where
+         open PE.≡-Reasoning
+         
+         min12 : (All (h1 <_) (h2 ∷ t2))
+         min12 = h1<h2 ∷ (LA.map (λ h2<x → transitive< h1<h2 h2<x) min2)
+
+         incomp12 : ¬ (Any (h1 ∦_) (h2 ∷ t2))
+         incomp12 (here h1∦h2) = h1∥h2 h1∦h2 
+         incomp12 (there h1∦t2) = anyEliminate t2 eliminator h1∦t2
+           where
+             eliminator : AnyEliminator Carrier ⊥ (h1 ∦_) t2
+             eliminator a f h1∦a a∈t2 = (unimodality h1<h2 (LA.lookup min2 a∈t2) (∦-refl h1) h1∥h2) h1∦a
+ 
+     ∨-assoc (h1 ∷ t1) (h2 ∷ t2) (.h1 ∷ t3) f1@(∷-Free .h1 .t1 min1 incomp1 ft1) f2@(∷-Free .h2 .t2 min2 incomp2 ft2) f3@(∷-Free .h1 .t3 _ _ ft3) | DeltaPoset0.l∥r h1∥h2 | DeltaPoset0.r⊑l ¬h2⊑h1 h1⊑h2 | yes h1<h2 | l≡r h1≡h3@PE.refl =
+       begin
+         ∨ (h1 ∷ t1) (∨ (h2 ∷ t2) t3) ≡⟨ ∨-assoc (h1 ∷ t1) (h2 ∷ t2) t3 f1 f2 ft3 ⟩
+         ∨ (∨ (h1 ∷ t1) (h2 ∷ t2)) t3 ≡⟨ PE.cong (λ x → ∨ x t3) $ ∨-discardˡ h1 h2 t1 t2 h1⊑h2 ⟩  
+         ∨ (∨ t1 (h2 ∷ t2)) t3 ≡⟨ PE.sym $ ∨-assoc t1 (h2 ∷ t2) t3 ft1 f2 ft3 ⟩
+         ∨ t1 (∨ (h2 ∷ t2) t3) ≡⟨ PE.cong (λ x → ∨ t1 x) $ ∨-comm (h2 ∷ t2) t3 f2 ft3 ⟩
+         ∨ t1 (∨ t3 (h2 ∷ t2)) ≡⟨ PE.cong (λ x → ∨ t1 x) $ PE.sym (∨-discardˡ h1 h2 t3 t2 h1⊑h2) ⟩
+         ∨ t1 (∨ (h1 ∷ t3) (h2 ∷ t2)) ≡⟨ PE.cong (λ x → ∨ t1 x) $ ∨-comm (h1 ∷ t3) (h2 ∷ t2) f3 f2 ⟩
+         ∨ t1 (∨ (h2 ∷ t2) (h1 ∷ t3)) ≡⟨ ∨-assoc t1 (h2 ∷ t2) (h1 ∷ t3) ft1 f2 f3 ⟩
+         ∨ (∨ t1 (h2 ∷ t2)) (h1 ∷ t3)
+        ∎
+       where
+         open PE.≡-Reasoning
+     ∨-assoc (h1 ∷ t1) (h2 ∷ t2) (h3 ∷ t3) f1 f2 (∷-Free .h3 .t3 _ _ ft3) | DeltaPoset0.l∥r h1∥h2 | DeltaPoset0.r⊑l ¬h2⊑h3 h3⊑h2 | yes h1<h2 | l∥r h1∥h3 with h1 <? h3
+     ∨-assoc (h1 ∷ t1) (h2 ∷ t2) (h3 ∷ t3) f1 f2 (∷-Free .h3 .t3 _ _ ft3) | DeltaPoset0.l∥r h1∥h2 | DeltaPoset0.r⊑l ¬h2⊑h3 h3⊑h2 | yes h1<h2 | l∥r h1∥h3 | yes h1<h3 = {!!}
+       {- begin
+         ∨ (h1 ∷ t1) (∨ (h2 ∷ t2) t3) ≡⟨ PE.sym $ ∨-push h1 t1 (∨ (h2 ∷ t2) t3) ⟩
+        ∎ -}
+     
+     ∨-assoc (h1 ∷ t1) (h2 ∷ t2) (h3 ∷ t3) f1 f2 (∷-Free .h3 .t3 _ _ ft3) | DeltaPoset0.l∥r h1∥h2 | DeltaPoset0.r⊑l ¬h2⊑h3 h3⊑h2 | yes h1<h2 | l∥r h1∥h3 | no ¬h1<h3 = {!!}
+
+       {- begin
+         ∨ (h1 ∷ t1) (∨ (h2 ∷ t2) t3) ≡⟨ ∨-assoc (h1 ∷ t1) (h2 ∷ t2) t3 f1 f2 ft3 ⟩
+         ∨ (∨ (h1 ∷ t1) (h2 ∷ t2)) t3 ≡⟨ PE.cong (λ x → (∨ x t3)) $ ∨-comm (h1 ∷ t1) (h2 ∷ t2) f1 f2 ⟩
+         ∨ (∨ (h2 ∷ t2) )
+         
+         -- (∨ (h1 ∷ ∨ t1 (h2 ∷ t2)) (h3 ∷ t3))
+        ∎ -}
+     ∨-assoc (h1 ∷ t1) (h2 ∷ t2) (h3 ∷ t3) f1 f2 f3 | DeltaPoset0.l∥r h1∥h2 | DeltaPoset0.r⊑l ¬h2⊑h3 h3⊑h2 | no ¬h1<h2 = {!!}
+     ∨-assoc (h1 ∷ t1) (h2 ∷ t2) (h3 ∷ t3) f1 f2 f3 | DeltaPoset0.l∥r h1∥h2 | DeltaPoset0.l≡r x = {!!}
+     ∨-assoc (h1 ∷ t1) (h2 ∷ t2) (h3 ∷ t3) f1 f2 f3 | DeltaPoset0.l∥r h1∥h2 | DeltaPoset0.l∥r x = {!!}
   
-        -- ∨ (∨ t1 (h3 ∷ t3)) t2 ≡⟨ ∨-assoc t1 (h3 ∷ t3) t2 f1 f3 ft2 ⟩
-        -- ∨ t1 (∨ (h3 ∷ t3) t2) ≡⟨ PE.cong (λ x → ∨ t1 x) $ ∨-comm (h3 ∷ t3) t2 f3 ft2 ⟩
-        -- ∨ t1 (∨ t2 (h3 ∷ t3))
-  -}
-     ∨-comm : (l1 l2 : List Carrier) → IsFreeList _<_ _⊑_ l1 → IsFreeList _<_ _⊑_ l2 → (∨ l1 l2) ≡ (∨ l2 l1)
-     ∨-comm [] k f1 f2 = PE.sym (∨-idem k)
-     ∨-comm (h1 ∷ t1) [] f1 f2 = PE.refl
+-}
+
+   
+
      {-
      ∨-comm (h1 ∷ t1) (h2 ∷ t2) f1 f2 with h1 ∦? h2 | h2 ∦? h1
      ∨-comm (h1 ∷ t1) (h2 ∷ t2) f1@(∷-Free .h1 .t1 min1 incomp1 ft1) f2@(∷-Free .h2 .t2 min2 incomp2 ft2) | yes (inj₁ h1⊑h2) | yes (inj₂ _) =

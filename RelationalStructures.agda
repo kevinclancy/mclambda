@@ -37,11 +37,15 @@ record DeltaPoset0 : Set l1 where
   open IsDecPartialOrder isDecPartialOrder public hiding (_≟_ ; module Eq) renaming (_≤?_ to _⊑?_)  
 
   module Eq = IsStrictTotalOrder.Eq isStrictTotalOrder
- 
-  -- comparable
+
+  transitive⊑ : Transitive _⊑_
+  transitive⊑ = IsDecPartialOrder.trans isDecPartialOrder
+
+  transitive< : Transitive _<_
+  transitive< = IsStrictTotalOrder.trans isStrictTotalOrder
+
   _∦_ : Rel Carrier l0
   a ∦ b = (a ⊑ b) ⊎ (b ⊑ a)
-
 
   -- incomparable
   _∥_ : Rel Carrier l0 
@@ -49,6 +53,13 @@ record DeltaPoset0 : Set l1 where
 
   field    
     unimodality : {a b c d : Carrier} → (a < b) → (b < c) → (d ∦ a) → (d ∥ b) → (d ∥ c) 
+
+  -- comparable
+  data Comparison : Carrier → Carrier → Set where
+    l⊑r : {l r : Carrier} → (l ⊑ r) → ¬ (r ⊑ l) → Comparison l r
+    r⊑l : {l r : Carrier} → ¬ (l ⊑ r) → (r ⊑ l) → Comparison l r
+    l≡r : {l r : Carrier} → (l ≡ r) → Comparison l r 
+    l∥r : {l r : Carrier} → (l ∥ r) → Comparison l r
 
   ∦-sym : {a b : Carrier} → (a ∦ b) → (b ∦ a)
   ∦-sym (inj₁ x) = inj₂ x
@@ -66,11 +77,12 @@ record DeltaPoset0 : Set l1 where
   ∦-refl : (x : Carrier) → x ∦ x
   ∦-refl x = inj₁ refl
 
-  _∦?_ : (x : Carrier) → (y : Carrier) → Dec (x ∦ y)
+  _∦?_ : (x : Carrier) → (y : Carrier) → Comparison x y
   x ∦? y with x ⊑? y | y ⊑? x
-  x ∦? y | yes x⊑y | _ = yes $ inj₁ x⊑y
-  x ∦? y | no ¬x⊑y | yes y⊑x = yes $ inj₂ y⊑x
-  x ∦? y | no ¬x⊑y | no ¬y⊑x = no z
+  x ∦? y | yes x⊑y | yes y⊑x = l≡r (antisym x⊑y y⊑x)
+  x ∦? y | yes x⊑y | no ¬y⊑x = l⊑r x⊑y ¬y⊑x
+  x ∦? y | no ¬x⊑y | yes y⊑x = r⊑l ¬x⊑y y⊑x
+  x ∦? y | no ¬x⊑y | no ¬y⊑x = l∥r z
     where
       z : ¬ ( x ⊑ y ⊎ y ⊑ x )
       z (inj₁ x⊑y) = ¬x⊑y x⊑y
