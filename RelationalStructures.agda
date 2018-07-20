@@ -25,7 +25,7 @@ StrictTotalOrder0 = StrictTotalOrder l0 l0 l0
 -- DeltaPoset = Σ[ x ∈  DecPoset0 ] Σ[ y ∈ StrictTotalOrder0 ] (DecPoset.Carrier x ≡ StrictTotalOrder.Carrier y)
 
 record DeltaPoset0 : Set l1 where
-  infix  4 _≈_ _<_ _⊑_
+  infix  4 _<_ _⊑_
   field
     Carrier                  : Set l0
     _⊑_                      : Rel Carrier l0  -- The partial order.
