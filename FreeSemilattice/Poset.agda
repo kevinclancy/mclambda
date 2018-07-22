@@ -84,6 +84,12 @@ sng-free {c} = ∷-Free c [] [] (λ ()) []-Free
 ≤-irrelʳ {h1 ∷ t1} {h2 ∷ t2} {f1} {f2} {f2'} (cmp-≤ ft1 .f1 .f2 h1⊑h2 t1≤l2) = cmp-≤ ft1 f1 f2' h1⊑h2 (≤-irrelʳ t1≤l2)
 ≤-irrelʳ {h1 ∷ t1} {h2 ∷ t2} {f1} {f2} {f2'} (skip-≤ .f1 ft2 .f2 h2<h1 h1∥h2 l1≤t2) = skip-≤ f1 ft2 f2' h2<h1 h1∥h2 l1≤t2
 
+≤-irrel : {l1 l2 : List Carrier} → {f1 : IsFreeList _<_ _⊑_ l1} → {f1' : IsFreeList _<_ _⊑_ l1} → 
+          {f2 : IsFreeList _<_ _⊑_ l2} → 
+          {f2' : IsFreeList _<_ _⊑_ l2} → (l1 , f1) ≤ (l2 , f2) → (l1 , f1') ≤ (l2 , f2')
+≤-irrel l1≤l2 = ≤-irrelˡ (≤-irrelʳ l1≤l2)
+
+
 ≤-push : {h2 : Carrier} → {l1 t2 : List Carrier} → {f1 : IsFreeList _<_ _⊑_ l1} → {ft2 : IsFreeList _<_ _⊑_ t2} → {f2 : IsFreeList _<_ _⊑_ (h2 ∷ t2)} → 
          (l1 , f1) ≤ (t2 , ft2) → (l1 , f1) ≤ ((h2 ∷ t2) , f2)
 ≤-push {h2} {.[]} {t2} {.[]-Free} {ft2} {f2} []-≤ = []-≤
