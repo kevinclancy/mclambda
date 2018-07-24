@@ -579,10 +579,7 @@ any-⊑-push {h1} {t1h ∷ t1t} {h2 ∷ t2} {f1} {ft1} {f2} (skip-≤ ft1 ft2 f2
 ∨'-monoʳ (h1 ∷ t1 , f1@(∷-Free _ _ min1 incomp1 ft1)) {h2 ∷ t2 , f2@(∷-Free .h2 .t2 min2 incomp2 ft2)} {s3@(h3 ∷ t3 , f3@(∷-Free _ _ min3 incomp3 ft3))} l2≤l3@(cmp-≤ _ _ _ h2⊑h3 t2≤l3) | l∥r h1∥h2 | l⊑r h1⊑h3 ¬h3⊑h1 | tri≈ _ h1≡h2 _ =
   ⊥-elim $ h1∥h2 (inj₁ $ reflexive h1≡h2) 
 ∨'-monoʳ (h1 ∷ t1 , f1@(∷-Free _ _ min1 incomp1 ft1)) {h2 ∷ t2 , f2@(∷-Free .h2 .t2 min2 incomp2 ft2)} {s3@(h3 ∷ t3 , f3@(∷-Free _ _ min3 incomp3 ft3))} l2≤l3@(cmp-≤ _ _ _ h2⊑h3 t2≤l3) | l∥r h1∥h2 | l⊑r h1⊑h3 ¬h3⊑h1 | tri> _ _ h2<h1 =
-  any-⊑-push p $ ∨-any-⊑ʳ ft1 f3 (here h2⊑h3)
-  where
-    open import Relation.Binary.PartialOrderReasoning FP-Poset0
-    
+  let 
     p : (h1 ∷ t1 , f1) ∨' (t2 , ft2) ≤ (t1 , ft1) ∨' (h3 ∷ t3 , f3)
     p = 
       begin
@@ -590,21 +587,161 @@ any-⊑-push {h1} {t1h ∷ t1t} {h2 ∷ t2} {f1} {ft1} {f2} (skip-≤ ft1 ft2 f2
         (h1 ∷ t1 , f1) ∨' (h3 ∷ t3 , f3) ≈⟨ ∨-discardˡ h1 h3 t1 t3 h1⊑h3 ⟩
         (t1 , ft1) ∨' (h3 ∷ t3 , f3)
        ∎
+  in
+   any-⊑-push p $ ∨-any-⊑ʳ ft1 f3 (here h2⊑h3)
+  where
+    open import Relation.Binary.PartialOrderReasoning FP-Poset0
 ∨'-monoʳ (h1 ∷ t1 , f1@(∷-Free _ _ min1 incomp1 ft1)) {h2 ∷ t2 , f2@(∷-Free .h2 .t2 min2 incomp2 ft2)} {s3@(h3 ∷ t3 , f3@(∷-Free _ _ min3 incomp3 ft3))} l2≤l3@(cmp-≤ _ _ _ h2⊑h3 t2≤l3) | l∥r h1∥h2 | r⊑l ¬h1⊑h3 h3⊑h1 =
   ⊥-elim $ h1∥h2 (inj₂ $ transitive⊑ h2⊑h3 h3⊑h1)
 ∨'-monoʳ (h1 ∷ t1 , f1@(∷-Free _ _ min1 incomp1 ft1)) {h2 ∷ t2 , f2@(∷-Free .h2 .t2 min2 incomp2 ft2)} {s3@(.h1 ∷ t3 , f3@(∷-Free _ _ min3 incomp3 ft3))} l2≤l3@(cmp-≤ _ _ _ h2⊑h1 t2≤l3) | l∥r h1∥h2 | l≡r h1≡h3@PE.refl =
   ⊥-elim $ h1∥h2 (inj₂ h2⊑h1)
 ∨'-monoʳ (h1 ∷ t1 , f1@(∷-Free _ _ min1 incomp1 ft1)) {h2 ∷ t2 , f2@(∷-Free .h2 .t2 min2 incomp2 ft2)} {s3@(h3 ∷ t3 , f3@(∷-Free _ _ min3 incomp3 ft3))} l2≤l3@(cmp-≤ _ _ _ h2⊑h3 t2≤l3) | l∥r h1∥h2 | l∥r h1∥h3 with compare h1 h2 | compare h1 h3
 ∨'-monoʳ (h1 ∷ t1 , f1@(∷-Free _ _ min1 incomp1 ft1)) {h2 ∷ t2 , f2@(∷-Free .h2 .t2 min2 incomp2 ft2)} {s3@(h3 ∷ t3 , f3@(∷-Free _ _ min3 incomp3 ft3))} l2≤l3@(cmp-≤ _ _ _ h2⊑h3 t2≤l3) | l∥r h1∥h2 | l∥r h1∥h3 | tri< h1<h2 _ _ | tri< h1<h3 _ _ =
+  let
+    min13 : All (h1 <_) (h3 ∷ t3)
+    min13 = h1<h3 ∷ LA.map (λ h3<x → transitive< h1<h3 h3<x) min3
+  
+    incomp13 : ¬ Any (h1 ∦_) (h3 ∷ t3)
+    incomp13 = incomp-lemma h1<h3 min3 h1∥h3
+
+    min13' : All (h1 <_) (t1 ∨ (h3 ∷ t3))
+    min13' = ∨-All t1 (h3 ∷ t3) min1 min13
+
+    incomp13' : ¬ (Any (h1 ∦_) (t1 ∨ (h3 ∷ t3)))
+    incomp13' = ∨-Any t1 (h3 ∷ t3) incomp1 incomp13
+
+    p : IsFreeList _<_ _⊑_ (h1 ∷ t1 ∨ (h3 ∷ t3))
+    p = ∷-Free h1 (t1 ∨ (h3 ∷ t3)) min13' incomp13' (∨-free ft1 f3) 
+ 
+    q : (t1 , ft1) ∨' (h2 ∷ t2 , f2) ≤ (t1 , ft1) ∨' (h3 ∷ t3 , f3)
+    q = ∨'-monoʳ (t1 , ft1) l2≤l3
+
+    r : (t1 ∨ (h2 ∷ t2) , ∨-free ft1 f2) ≤ (h1 ∷ t1 ∨ (h3 ∷ t3) , p)
+    r = ≤-push q
+
+    min12 : All (h1 <_) (h2 ∷ t2)
+    min12 = h1<h2 ∷ LA.map (λ h2<x → transitive< h1<h2 h2<x) min2
+  
+    incomp12 : ¬ Any (h1 ∦_) (h2 ∷ t2)
+    incomp12 = incomp-lemma h1<h2 min2 h1∥h2
+
+    min12' : All (h1 <_) (t1 ∨ (h2 ∷ t2))
+    min12' = ∨-All t1 (h2 ∷ t2) min1 min12
+
+    incomp12' : ¬ (Any (h1 ∦_) (t1 ∨ (h2 ∷ t2)))
+    incomp12' = ∨-Any t1 (h2 ∷ t2) incomp1 incomp12    
+
+    s : IsFreeList _<_ _⊑_ (h1 ∷ t1 ∨ (h2 ∷ t2))
+    s = ∷-Free h1 (t1 ∨ (h2 ∷ t2)) min12' incomp12' (∨-free ft1 f2) 
+
+    t : (h1 ∷ t1 ∨ (h2 ∷ t2) , s) ≤ (h1 ∷ t1 ∨ (h3 ∷ t3) , p)
+    t = any-⊑-push r (here (reflexive {h1} {h1} PE.refl))
+  in
+   ≤-irrel t
+∨'-monoʳ (h1 ∷ t1 , f1@(∷-Free _ _ min1 incomp1 ft1)) {h2 ∷ t2 , f2@(∷-Free .h2 .t2 min2 incomp2 ft2)} {s3@(h3 ∷ t3 , f3@(∷-Free _ _ min3 incomp3 ft3))} l2≤l3@(cmp-≤ _ _ _ h2⊑h3 t2≤l3) | l∥r h1∥h2 | l∥r h1∥h3 | tri< h1<h2 _ _ | tri≈ _ h1≡h3 _ =
+  ⊥-elim $ h1∥h3 (inj₁ $ reflexive h1≡h3)
+∨'-monoʳ (h1 ∷ t1 , f1@(∷-Free _ _ min1 incomp1 ft1)) {h2 ∷ t2 , f2@(∷-Free .h2 .t2 min2 incomp2 ft2)} {s3@(h3 ∷ t3 , f3@(∷-Free _ _ min3 incomp3 ft3))} l2≤l3@(cmp-≤ _ _ _ h2⊑h3 t2≤l3) | l∥r h1∥h2 | l∥r h1∥h3 | tri< h1<h2 _ _ | tri> _ _ h3<h1 =
+  let
+    t1≤l1 : (t1 , ft1) ≤ (h1 ∷ t1 , f1)
+    t1≤l1 = ≤-push (≤-refl {t1 , ft1} {t1 , ft1} PE.refl)
+
+    min : All (h3 <_) t1
+    min = LA.map (λ h1<x → transitive< h3<h1 h1<x) min1
+
+    min' : All (h3 <_) (t3 ∨ t1)
+    min' = ∨-All t3 t1 min3 min
+
+    incomp' : ¬ (Any (h3 ∦_) (t3 ∨ t1))
+    incomp' = ∨-Any t3 t1 incomp3 incomp
+
+    min31 : All (h3 <_) (h1 ∷ t1)
+    min31 = h3<h1 ∷ LA.map (λ h1<x → transitive< h3<h1 h1<x) min1
+  
+    incomp31 : ¬ Any (h3 ∦_) (h1 ∷ t1)
+    incomp31 = incomp-lemma h3<h1 min1 (∥-sym h1∥h3)
+
+    min12 : All (h1 <_) (h2 ∷ t2)
+    min12 = h1<h2 ∷ LA.map (λ h2<x → transitive< h1<h2 h2<x) min2
+
+    incomp12 : ¬ (Any (h1 ∦_) (h2 ∷ t2))
+    incomp12 = incomp-lemma h1<h2 min2 h1∥h2 
+
+    min12' : All (h1 <_) (t1 ∨ (h2 ∷ t2))
+    min12' = ∨-All t1 (h2 ∷ t2) min1 min12
+
+    incomp12' : ¬ (Any (h1 ∦_) (t1 ∨ (h2 ∷ t2)))
+    incomp12' = ∨-Any t1 (h2 ∷ t2) incomp1 incomp12
+
+    min31' : All (h3 <_) (t3 ∨ (h1 ∷ t1))
+    min31' = ∨-All t3 (h1 ∷ t1) min3 min31
+
+    min31'' : All (h3 <_) ((h1 ∷ t1) ∨ t3)
+    min31'' = ∨-All (h1 ∷ t1) t3 min31 min3
+
+    incomp31' : ¬ (Any (h3 ∦_) (t3 ∨ (h1 ∷ t1)))
+    incomp31' = ∨-Any t3 (h1 ∷ t1) incomp3 incomp31
+
+    incomp31'' : ¬ (Any (h3 ∦_) ((h1 ∷ t1) ∨ t3))
+    incomp31'' = ∨-Any (h1 ∷ t1) t3 incomp31 incomp3
+
+    f : IsFreeList _<_ _⊑_ (h1 ∷ (t1 ∨ (h2 ∷ t2)))
+    f = ∷-Free h1 (t1 ∨ (h2 ∷ t2)) min12' incomp12' (∨-free ft1 f2)
+
+    f' : IsFreeList _<_ _⊑_ (h3 ∷ (t3 ∨ (h1 ∷ t1)))
+    f' = ∷-Free h3 (t3 ∨ (h1 ∷ t1)) min31' incomp31' (∨-free ft3 f1)
+
+    f''' : IsFreeList _<_ _⊑_ (h3 ∷ t3 ∨ t1) 
+    f''' = ∷-Free h3 (t3 ∨ t1) min' incomp' (∨-free ft3 ft1)
+
+    f'''' : IsFreeList _<_ _⊑_ (h3 ∷ t3 ∨ (h1 ∷ t1)) 
+    f'''' = ∷-Free h3 (t3 ∨ (h1 ∷ t1)) min31' incomp31' (∨-free ft3 f1)
+
+    f''''' : IsFreeList _<_ _⊑_ (h3 ∷ (h1 ∷ t1) ∨ t3)
+    f''''' = ∷-Free h3 ((h1 ∷ t1) ∨ t3) min31'' incomp31'' (∨-free f1 ft3)
+
+    q : ((h3 ∷ t3) ∨ (h1 ∷ t1) , ∨-free f3 f1) ≈ (h3 ∷ t3 ∨ (h1 ∷ t1) , f')
+    q = PE.sym $ ∨-push min3 incomp3 min31 incomp31
+
+    p : (t1 ∨ (h2 ∷ t2) , ∨-free ft1 f2) ≤ (h3 ∷ (h1 ∷ t1) ∨ t3 , f''''')
+    p = 
+      begin
+        (t1 , ft1) ∨' (h2 ∷ t2 , f2) ≤⟨ ∨'-monoʳ (t1 , ft1) l2≤l3 ⟩  
+        (t1 , ft1) ∨' (h3 ∷ t3 , f3) ≈⟨ ∨-comm t1 (h3 ∷ t3) ft1 f3 ⟩
+        (h3 ∷ t3 , f3) ∨' (t1 , ft1) ≈⟨ PE.sym $ ∨-push min3 incomp3 min incomp   ⟩  
+        (h3 ∷ t3 ∨ t1 , f''') ≤⟨ ≤-cong h3 f''' f'''' $ ∨'-monoʳ (t3 , ft3) t1≤l1 ⟩ 
+        (h3 ∷ t3 ∨ (h1 ∷ t1) , f'''') ≈⟨ PE.cong (λ x → h3 ∷ x) $ ∨-comm t3 (h1 ∷ t1) ft3 f1 ⟩
+        (h3 ∷ (h1 ∷ t1) ∨ t3 , f''''') 
+       ∎
+       
+    r : Any (h1 ⊑_) (h3 ∷ (h1 ∷ t1) ∨ t3)
+    r = there (∨-any-⊑ˡ f1 ft3 $ here (reflexive PE.refl))
+  in
+   ≤-irrel {f1 = f} $ any-⊑-push p r
+  where
+    open import Relation.Binary.PartialOrderReasoning FP-Poset0
+
+    incomp : ¬ (Any (h3 ∦_) t1)
+    incomp h3∦x = anyEliminate t1 eliminator h3∦x 
+      where
+        eliminator : AnyEliminator Carrier ⊥ (h3 ∦_) t1
+        eliminator a f h3∦a a∈t1 = (unimodality h3<h1 (LA.lookup min1 a∈t1) (∦-refl h3) (∥-sym h1∥h3)) h3∦a
+∨'-monoʳ (h1 ∷ t1 , f1@(∷-Free _ _ min1 incomp1 ft1)) {h2 ∷ t2 , f2@(∷-Free .h2 .t2 min2 incomp2 ft2)} {s3@(h3 ∷ t3 , f3@(∷-Free _ _ min3 incomp3 ft3))} l2≤l3@(cmp-≤ _ _ _ h2⊑h3 t2≤l3) | l∥r h1∥h2 | l∥r h1∥h3 | tri≈ _ h1≡h2 _ | tri< _ _ _ =
+  ⊥-elim $ (h1∥h2 (inj₁ $ reflexive h1≡h2))
+∨'-monoʳ (h1 ∷ t1 , f1@(∷-Free _ _ min1 incomp1 ft1)) {h2 ∷ t2 , f2@(∷-Free .h2 .t2 min2 incomp2 ft2)} {s3@(h3 ∷ t3 , f3@(∷-Free _ _ min3 incomp3 ft3))} l2≤l3@(cmp-≤ _ _ _ h2⊑h3 t2≤l3) | l∥r h1∥h2 | l∥r h1∥h3 | tri≈ _ h1≡h2 _ | tri≈ _ _ _ =
+  ⊥-elim $ (h1∥h2 (inj₁ $ reflexive h1≡h2))
+∨'-monoʳ (h1 ∷ t1 , f1@(∷-Free _ _ min1 incomp1 ft1)) {h2 ∷ t2 , f2@(∷-Free .h2 .t2 min2 incomp2 ft2)} {s3@(h3 ∷ t3 , f3@(∷-Free _ _ min3 incomp3 ft3))} l2≤l3@(cmp-≤ _ _ _ h2⊑h3 t2≤l3) | l∥r h1∥h2 | l∥r h1∥h3 | tri≈ _ h1≡h2 _ | tri> _ _ _ =
+  ⊥-elim $ (h1∥h2 (inj₁ $ reflexive h1≡h2))
+∨'-monoʳ (h1 ∷ t1 , f1@(∷-Free _ _ min1 incomp1 ft1)) {h2 ∷ t2 , f2@(∷-Free .h2 .t2 min2 incomp2 ft2)} {s3@(h3 ∷ t3 , f3@(∷-Free _ _ min3 incomp3 ft3))} l2≤l3@(cmp-≤ _ _ _ h2⊑h3 t2≤l3) | l∥r h1∥h2 | l∥r h1∥h3 | tri> _ _ h2<h1 | tri< h1<h3 _ _ =
+  ⊥-elim $ (unimodality h2<h1 h1<h3 (inj₁ $ reflexive PE.refl) (∥-sym h1∥h2)) (inj₁ h2⊑h3)
+∨'-monoʳ (h1 ∷ t1 , f1@(∷-Free _ _ min1 incomp1 ft1)) {h2 ∷ t2 , f2@(∷-Free .h2 .t2 min2 incomp2 ft2)} {s3@(h3 ∷ t3 , f3@(∷-Free _ _ min3 incomp3 ft3))} l2≤l3@(cmp-≤ _ _ _ h2⊑h3 t2≤l3) | l∥r h1∥h2 | l∥r h1∥h3 | tri> _ _ h2<h1 | tri≈ _ h1≡h3 _ =
+  ⊥-elim $ h1∥h3 (inj₁ $ reflexive h1≡h3)
+∨'-monoʳ (h1 ∷ t1 , f1@(∷-Free _ _ min1 incomp1 ft1)) {h2 ∷ t2 , f2@(∷-Free .h2 .t2 min2 incomp2 ft2)} {s3@(h3 ∷ t3 , f3@(∷-Free _ _ min3 incomp3 ft3))} l2≤l3@(cmp-≤ _ _ _ h2⊑h3 t2≤l3) | l∥r h1∥h2 | l∥r h1∥h3 | tri> _ _ h2<h1 | tri> _ _ h3<h1 =
   {!!}
-
-
-
 ∨'-monoʳ ([] , f1@([]-Free)) {h2 ∷ t2 , f2@(∷-Free .h2 .t2 min2 incomp2 ft2)} {h3 ∷ t3 , f3@(∷-Free _ _ min3 incomp3 ft3)} s2≤s3@(skip-≤ .f2 _ .f3 h3<h2 h2∥h3 s2≤t3) = 
   s2≤s3
 
 ∨'-monoʳ (h1 ∷ t1 , f1@(∷-Free _ _ min1 incomp1 ft1)) {h2 ∷ t2 , f2@(∷-Free .h2 .t2 min2 incomp2 ft2)} {h3 ∷ t3 , f3@(∷-Free _ _ min3 incomp3 ft3)} (skip-≤ .f2 _ .f3 h3<h2 h2∥h3 s2≤t3) =
-  {!!} {- let 
+  let 
     t3≤h3t3 : (t3 , ft3) ≤ (h3 ∷ t3 , f3)
     t3≤h3t3 = ≤-push (≤-refl {t3 , ft3} {t3 , ft3} PE.refl)
   in
@@ -614,7 +751,7 @@ any-⊑-push {h1} {t1h ∷ t1t} {h2 ∷ t2} {f1} {ft1} {f2} (skip-≤ ft1 ft2 f2
      ((h1 ∷ t1) ∨ (h3 ∷ t3), ∨-free f1 f3)
     ∎
   where
-    open import Relation.Binary.PartialOrderReasoning FP-Poset0 -}
+    open import Relation.Binary.PartialOrderReasoning FP-Poset0
 
 ∨'-monoˡ : {s1 s2 : Carrier-FP} → (s3 : Carrier-FP) → (s1 ≤ s2) → (s1 ∨' s3 ≤ s2 ∨' s3)
 ∨'-monoˡ {s1} {s2} s3 s1≤s2 = 

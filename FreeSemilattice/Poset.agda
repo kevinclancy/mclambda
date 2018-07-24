@@ -46,6 +46,7 @@ _≈_ : Rel Carrier-FP l0
 ≤-resp-≈ʳ {(h1 ∷ t1 , f1)} {.(h3 ∷ t3) , f2} {(h3 ∷ t3) , f3} PE.refl (cmp-≤ ft1 f1 f2 h1⊑h2 t1≤l2) = cmp-≤ ft1 f1 f3 h1⊑h2 (≤-resp-≈ʳ PE.refl t1≤l2) 
 ≤-resp-≈ʳ {(h1 ∷ t1 , f1)} {.(h3 ∷ t3) , f2} {(h3 ∷ t3) , f3} PE.refl (skip-≤ f1 ft2 f2 h2<h1 h1∥h2 l1≤t2) = skip-≤ f1 ft2 f3 h2<h1 h1∥h2 (≤-resp-≈ʳ PE.refl l1≤t2)
 
+
 mutual
  t≤h∷t : {h : Carrier} → {t : List Carrier} → (f : IsFreeList _<_ _⊑_ (h ∷ t)) → (ft : IsFreeList _<_ _⊑_ t) → 
           (t , ft) ≤ (h ∷ t , f)
@@ -201,6 +202,13 @@ sng-free {c} = ∷-Free c [] [] (λ ()) []-Free
 
 ≤-antisym : {s1 s2 : Carrier-FP} → (s1 ≤ s2) → (s2 ≤ s1) → s1 ≈ s2
 ≤-antisym {l1 , f1} {l2 , f2} s1≤s2 s2≤s1 = ≤-antisym-lemma s1≤s2 s2≤s1 
+
+
+≤-cong : (h : Carrier) → {l1 l2 : List Carrier} → {f1 : IsFreeList _<_ _⊑_ l1} → {f2 : IsFreeList _<_ _⊑_ l2} →
+         (f1' : IsFreeList _<_ _⊑_ (h ∷ l1)) → (f2' : IsFreeList _<_ _⊑_ (h ∷ l2)) → (l1 , f1) ≤ (l2 , f2) → 
+         (h ∷ l1 , f1') ≤ (h ∷ l2 , f2')
+
+≤-cong h {l1} {l2} {f1} {f2} f1' f2' l1≤l2 = cmp-≤ f1 f1' f2' (reflexive PE.refl) (≤-push {h} l1≤l2)
 
 FP-Poset0 : Poset l1 l0 l1
 FP-Poset0 = record 
