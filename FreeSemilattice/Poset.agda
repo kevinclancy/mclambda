@@ -91,26 +91,26 @@ sng-free {c} = ∷-Free c [] [] (λ ()) []-Free
 ≤-irrel l1≤l2 = ≤-irrelˡ (≤-irrelʳ l1≤l2)
 
 
-≤-push : {h2 : Carrier} → {l1 t2 : List Carrier} → {f1 : IsFreeList _<_ _⊑_ l1} → {ft2 : IsFreeList _<_ _⊑_ t2} → {f2 : IsFreeList _<_ _⊑_ (h2 ∷ t2)} → 
+≤-push : (h2 : Carrier) → {l1 t2 : List Carrier} → {f1 : IsFreeList _<_ _⊑_ l1} → {ft2 : IsFreeList _<_ _⊑_ t2} → {f2 : IsFreeList _<_ _⊑_ (h2 ∷ t2)} → 
          (l1 , f1) ≤ (t2 , ft2) → (l1 , f1) ≤ ((h2 ∷ t2) , f2)
-≤-push {h2} {.[]} {t2} {.[]-Free} {ft2} {f2} []-≤ = []-≤
-≤-push {h2} {h1 ∷ t1} {t2h ∷ t2t} {f1} {ft2} {f2} l1≤t2@(cmp-≤ ft1 .f1 ft2' h1⊑th2 t1≤t2) with t1≤l2 | h1 ∦? h2 
+≤-push h2 {.[]} {t2} {.[]-Free} {ft2} {f2} []-≤ = []-≤
+≤-push h2 {h1 ∷ t1} {t2h ∷ t2t} {f1} {ft2} {f2} l1≤t2@(cmp-≤ ft1 .f1 ft2' h1⊑th2 t1≤t2) with t1≤l2 | h1 ∦? h2 
   where 
     t1≤l2 : (t1 , ft1) ≤ (h2 ∷ t2h ∷ t2t , f2)
-    t1≤l2 = ≤-push t1≤t2
-≤-push {h2} {h1 ∷ t1} {t2h ∷ t2t} {f1} {ft2} {f2} (cmp-≤ ft1 .f1 ft2' h1⊑t2h t1≤t2) | t1≤l2 | l⊑r h1⊑h2 _ = cmp-≤ ft1 f1 f2 h1⊑h2 t1≤l2
-≤-push {h2} {h1 ∷ t1} {t2h ∷ t2t} {f1} {ft2} {f2@(∷-Free .h2 t2 _ incomp2 _)} (cmp-≤ ft1 .f1 _ h1⊑t2h t1≤t2) | t1≤l2 | r⊑l _ h2⊑h1 = ⊥-elim $ incomp2 (here (inj₁ (transitive⊑ h2⊑h1 h1⊑t2h)))
-≤-push {h2} {h1 ∷ t1} {t2h ∷ t2t} {f1} {ft2} {f2} (cmp-≤ ft1 .f1 ft2' h1⊑t2h t1≤t2) | t1≤l2 | l≡r h1≡h2 = cmp-≤ ft1 f1 f2 (reflexive h1≡h2) t1≤l2
-≤-push {h2} {h1 ∷ t1} {t2h ∷ t2t} {f1} {ft2} {f2@(∷-Free .h2 t2 min2 _ _)} l1≤t2@(cmp-≤ ft1 .f1 ft2' h1⊑t2h t1≤t2) | t1≤l2 | l∥r h1∥h2 with compare h1 h2
+    t1≤l2 = ≤-push h2 t1≤t2
+≤-push h2 {h1 ∷ t1} {t2h ∷ t2t} {f1} {ft2} {f2} (cmp-≤ ft1 .f1 ft2' h1⊑t2h t1≤t2) | t1≤l2 | l⊑r h1⊑h2 _ = cmp-≤ ft1 f1 f2 h1⊑h2 t1≤l2
+≤-push h2 {h1 ∷ t1} {t2h ∷ t2t} {f1} {ft2} {f2@(∷-Free .h2 t2 _ incomp2 _)} (cmp-≤ ft1 .f1 _ h1⊑t2h t1≤t2) | t1≤l2 | r⊑l _ h2⊑h1 = ⊥-elim $ incomp2 (here (inj₁ (transitive⊑ h2⊑h1 h1⊑t2h)))
+≤-push h2 {h1 ∷ t1} {t2h ∷ t2t} {f1} {ft2} {f2} (cmp-≤ ft1 .f1 ft2' h1⊑t2h t1≤t2) | t1≤l2 | l≡r h1≡h2 = cmp-≤ ft1 f1 f2 (reflexive h1≡h2) t1≤l2
+≤-push h2 {h1 ∷ t1} {t2h ∷ t2t} {f1} {ft2} {f2@(∷-Free .h2 t2 min2 _ _)} l1≤t2@(cmp-≤ ft1 .f1 ft2' h1⊑t2h t1≤t2) | t1≤l2 | l∥r h1∥h2 with compare h1 h2
 ... | tri< h1<h2 _ _ = ⊥-elim $ (unimodality h1<h2 (head min2) (∦-refl h1) h1∥h2) (inj₁ h1⊑t2h)
 ... | tri≈ _ h1≡h2 _ = ⊥-elim $ h1∥h2 (inj₁ (reflexive h1≡h2))
 ... | tri> _ _ h2<h1 = skip-≤ f1 ft2 f2 h2<h1 h1∥h2 l1≤t2 
-≤-push {h2} {h1 ∷ t1} {t2h ∷ t2t} {f1} {ft2} {f2} (skip-≤ .f1 ft2' _ t2h<h1 h1∥t2h l1≤t2) with compare h1 h2
-≤-push {h2} {h1 ∷ t1} {t2h ∷ t2t} {f1} {ft2} {f2@(∷-Free _ _ min2 _ _)} (skip-≤ .f1 ft2' _ t2h<h1 h1∥t2h l1≤t2t) | tri< h1<h2 _ _ = 
+≤-push h2 {h1 ∷ t1} {t2h ∷ t2t} {f1} {ft2} {f2} (skip-≤ .f1 ft2' _ t2h<h1 h1∥t2h l1≤t2) with compare h1 h2
+≤-push h2 {h1 ∷ t1} {t2h ∷ t2t} {f1} {ft2} {f2@(∷-Free _ _ min2 _ _)} (skip-≤ .f1 ft2' _ t2h<h1 h1∥t2h l1≤t2t) | tri< h1<h2 _ _ = 
   ⊥-elim $ irrefl PE.refl $ (transitive< (transitive< h1<h2 (head min2)) t2h<h1) 
-≤-push {.h1} {h1 ∷ t1} {t2h ∷ t2t} {f1} {ft2} {f2@(∷-Free _ _ min2 _ _)} (skip-≤ .f1 ft2' _ t2h<h1 h1∥t2h l1≤t2t) | tri≈ _ h1≡h2@PE.refl _ =
+≤-push .h1 {h1 ∷ t1} {t2h ∷ t2t} {f1} {ft2} {f2@(∷-Free _ _ min2 _ _)} (skip-≤ .f1 ft2' _ t2h<h1 h1∥t2h l1≤t2t) | tri≈ _ h1≡h2@PE.refl _ =
   ⊥-elim $ irrefl PE.refl $ (transitive< t2h<h1 (head min2))
-≤-push {h2} {h1 ∷ t1} {t2@(t2h ∷ t2t)} {f1} {ft2} {f2@(∷-Free _ _ min2 incomp2 _)} l1≤t2@(skip-≤ .f1 ft2' _ t2h<h1 h1∥t2h l1≤t2t) | tri> _ _ h2<h1 = 
+≤-push h2 {h1 ∷ t1} {t2@(t2h ∷ t2t)} {f1} {ft2} {f2@(∷-Free _ _ min2 incomp2 _)} l1≤t2@(skip-≤ .f1 ft2' _ t2h<h1 h1∥t2h l1≤t2t) | tri> _ _ h2<h1 = 
   skip-≤ f1 ft2 f2 h2<h1 (∥-sym h2∥h1) l1≤t2 
   where
     h2∥th2 : h2 ∥ t2h
@@ -128,7 +128,7 @@ sng-free {c} = ∷-Free c [] [] (λ ()) []-Free
     p = ≤-peel l1≤t2
 
     q : (t1 , ft1) ≤ (h2 ∷ t2 , f2)
-    q = ≤-push p
+    q = ≤-push h2 p
 
 ≤-discard : {h1 h2 : Carrier} → {t1 t2 : List Carrier} → (f1 : IsFreeList _<_ _⊑_ (h1 ∷ t1)) →
             (ft1 : IsFreeList _<_ _⊑_ t1) → (f2 : IsFreeList _<_ _⊑_ (h2 ∷ t2)) → 
@@ -208,7 +208,7 @@ sng-free {c} = ∷-Free c [] [] (λ ()) []-Free
          (f1' : IsFreeList _<_ _⊑_ (h ∷ l1)) → (f2' : IsFreeList _<_ _⊑_ (h ∷ l2)) → (l1 , f1) ≤ (l2 , f2) → 
          (h ∷ l1 , f1') ≤ (h ∷ l2 , f2')
 
-≤-cong h {l1} {l2} {f1} {f2} f1' f2' l1≤l2 = cmp-≤ f1 f1' f2' (reflexive PE.refl) (≤-push {h} l1≤l2)
+≤-cong h {l1} {l2} {f1} {f2} f1' f2' l1≤l2 = cmp-≤ f1 f1' f2' (reflexive PE.refl) (≤-push h l1≤l2)
 
 FP-Poset0 : Poset l1 l0 l1
 FP-Poset0 = record 
