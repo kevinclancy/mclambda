@@ -1,4 +1,6 @@
 open import Function using (_$_)
+open import Function.Equivalence
+open import Function.Equality using (_⟨$⟩_)
 open import Data.Empty
 open import Data.List
 open import Data.List.Properties as LP
@@ -19,10 +21,30 @@ module FreeSemilattice (P : DeltaPoset0) where
 
 open DeltaPoset0 P renaming (trans to tran)
 
+infix 4 _≈_ _≤_
+infixr 6 _∨'_
+infixr 6 _∨_
+
 data IsFreeList {A : Set l0} (_<_ : Rel A l0) (_⊑_ : Rel A l0) : List A → Set l1 where
   []-Free : IsFreeList _<_ _⊑_ []
   ∷-Free : (hd : A) → (tl : List A) → (All (hd <_) tl) → ¬ (Any (λ x → (hd ⊑ x) ⊎ (x ⊑ hd)) tl) → 
             (IsFreeList _<_ _⊑_ tl) → IsFreeList _<_ _⊑_ (hd ∷ tl) 
+
+free-incomp : {l : List Carrier} → {f : IsFreeList _<_ _⊑_ l} → {a b : Carrier} → a ∈ l → b ∈ l → a ∦ b → a ≡ b
+free-incomp {[]} {f} {a} {b} a∈l b∈l a∦b = ⊥-elim $ ¬Any[] a∈l
+free-incomp {h ∷ t} {f} {a} {b} (here a≡h) (here b≡h) a∦b = PE.trans a≡h (PE.sym b≡h) 
+free-incomp {.a ∷ t} {f@(∷-Free .a t min incomp ft)} {a} {b} (here a≡h@PE.refl) (there b∈t) a∦b =
+  ⊥-elim $ anyEliminate t eliminator b∈t 
+  where
+    eliminator : AnyEliminator Carrier ⊥ (b ≡_) t
+    eliminator x f b≡x@PE.refl x∈t = incomp (f (a ∦_) a∦b)
+free-incomp {.b ∷ t} {f@(∷-Free .b t min incomp ft)} {a} {b} (there a∈t) (here b≡h@PE.refl) a∦b =
+  ⊥-elim $ anyEliminate t eliminator a∈t 
+  where
+    eliminator : AnyEliminator Carrier ⊥ (a ≡_) t
+    eliminator x f a≡x@PE.refl x∈t = incomp (f (b ∦_) (∦-sym a∦b))
+free-incomp {h ∷ t} {f@(∷-Free h t min incomp ft)} {a} {b} (there a∈t) (there b∈t) a∦b =
+  free-incomp {f = ft} a∈t b∈t a∦b
 
 Carrier-FP : Set₁
 Carrier-FP = Σ[ x ∈ List Carrier ] (IsFreeList _<_ _⊑_ x)
@@ -48,9 +70,9 @@ _<=_ : (l1 l2 : Carrier-FP) → Set
 ≤→<= : {l1 l2 : Carrier-FP} → (l1 ≤ l2) → (l1 <= l2)
 ≤→<= {.([] , []-Free)} {l2} []-≤ = 
   []
-≤→<= {h1 ∷ t1 , f1} {h2 ∷ t2 , f2} (cmp-≤ ft1 .f1 .f2 h1⊑h2 t1≤l2) = 
+≤→<= {h1 ∷ t1 , f1} {h2 ∷ t2 , f2} (cmp-≤ _ _ _ h1⊑h2 t1≤l2) = 
   (here h1⊑h2) ∷ ≤→<= t1≤l2
-≤→<= {h1 ∷ t1 , f1} {h2 ∷ t2 , f2} (skip-≤ .f1 ft2 f2 h2<h1 h1∥h2 l1≤t2) = 
+≤→<= {h1 ∷ t1 , f1} {h2 ∷ t2 , f2} (skip-≤ _ _ _ h2<h1 h1∥h2 l1≤t2) = 
   LA.map (λ x⊑t2 → there x⊑t2) (≤→<= l1≤t2)
 
 <=→≤ : {l1 l2 : Carrier-FP} → (l1 <= l2) → (l1 ≤ l2)
@@ -97,7 +119,14 @@ _<=_ : (l1 l2 : Carrier-FP) → Set
 
     l1≤t2 : All (λ x → Any (x ⊑_) t2) (h1 ∷ t1)
     l1≤t2 = p ∷ (LA.tabulate q)
-  
+
+≤⇔<= : {a b : Carrier-FP} → (a ≤ b ⇔ a <= b)
+≤⇔<= =
+  record
+  { to = PE.→-to-⟶ ≤→<= 
+  ; from = PE.→-to-⟶ <=→≤
+  }
+
 _∨_ : List Carrier → List Carrier → List Carrier
 [] ∨ t2 = t2
 (h1 ∷ t1) ∨ [] = h1 ∷ t1
@@ -154,7 +183,6 @@ _∨_ : List Carrier → List Carrier → List Carrier
     goal : (h : Carrier) → (t1 t2 : List Carrier) → ¬ (P h) → ¬ (Any P t1) → ¬ (Any P t2) →  ¬ (Any P (h ∷ t1 ∨ t2))
     goal h t1 t2 a b c (here px) = a px --p2 (here px)
     goal h t1 t2 a b c (there z) = ∨-Any t1 t2 b c z  --∨-Any (h1 ∷ t1) t2 p1 ¬Any-t2 z
-
 
 ∨-free : {l1 l2 : List Carrier} → (f1 : IsFreeList _<_ _⊑_ l1) → (f2 : IsFreeList _<_ _⊑_ l2) → IsFreeList _<_ _⊑_ (l1 ∨ l2)
 ∨-free {[]} {l2} f1 f2 = f2
@@ -483,3 +511,68 @@ P∨→a∈∨ {h1 ∷ t1} {h2 ∷ t2} {.((h1 ∷ t1) ∨ (h2 ∷ t2))} f1 f2@(�
   here a≡h2
 P∨→a∈∨ {h1 ∷ t1} {h2 ∷ t2} {.((h1 ∷ t1) ∨ (h2 ∷ t2))} f1 f2@(∷-Free _ _ _ _ ft2) f3 PE.refl {a} (inj₂ (inj₂ (a∈l1 , there a∈t2))) | l∥r h1∥h2 | tri> _ _ h2<h1 = 
   there $ P∨→a∈∨ f1 ft2 (∨-free f1 ft2) (LP.∷-injectiveʳ {x = h2} {xs = (h1 ∷ t1) ∨ t2} PE.refl) (inj₂ $ inj₂ $ a∈l1 , a∈t2)
+
+
+a∈∨⇔P∨ : {l1 l2 l3 : List Carrier} → {f1 : IsFreeList _<_ _⊑_ l1} → {f2 : IsFreeList _<_ _⊑_ l2} → 
+            {f3 : IsFreeList _<_ _⊑_ l3} → {eq : l1 ∨ l2 ≡ l3} → {a : Carrier} → (a ∈ l3 ⇔ P∨ f1 f2 a)
+
+a∈∨⇔P∨ {l1} {l2} {l3} {f1} {f2} {f3} {eq} {a} = 
+  record
+  { to = PE.→-to-⟶ (a∈∨→P∨ {f1 = f1} {f2 = f2} {f3 = f3} eq)
+  ; from = PE.→-to-⟶ (P∨→a∈∨ f1 f2 f3 eq)    
+  }
+
+⊥' : Carrier-FP
+⊥' = ([] , []-Free)
+
+_∨'_ : Carrier-FP → Carrier-FP → Carrier-FP
+_∨'_ (l1 , f1) (l2 , f2) = (l1 ∨ l2 , ∨-free f1 f2) 
+
+_≈_ : Rel Carrier-FP l0
+(l1 , f1) ≈ (l2 , f2) = l1 ≡ l2
+
+≈-refl : Reflexive _≈_
+≈-refl {s} = PE.refl
+
+≈-sym : Symmetric _≈_
+≈-sym {l1 , f1} {l2 , f2} PE.refl = PE.refl 
+
+≈-trans : Transitive _≈_
+≈-trans {l1 , f1} {l2 , f2} {l3 , f3} PE.refl PE.refl = PE.refl
+
+≈-isEquiv : IsEquivalence _≈_
+≈-isEquiv = record 
+  {
+  refl = λ {s} → ≈-refl {s} ; 
+  sym = λ {s1} → λ {s2} → ≈-sym {s1} {s2} ;
+  trans = λ {s1} → λ {s2} → λ {s3} → ≈-trans {s1} {s2} {s3} 
+  } 
+
+connecting-lemma→ : {a b : Carrier-FP} → (a ≤ b) → (a ∨' b ≈ b)
+connecting-lemma→ {a@(l1 , f1)} {b@(l2 , f2)} a≤b = {!!}
+  where
+    open import Data.List.Membership.DecPropositional _≟_ using (_∈?_)
+
+    a<=b : a <= b
+    a<=b = to ⟨$⟩ a≤b
+      where 
+        open Equivalence ≤⇔<=
+
+    p : {x : Carrier} → (x ∈ l2) → P∨ f1 f2 x
+    p {x} x∈l2 with x ∈? l1
+      where
+        open DecSetoid ≡-decSetoid
+    p {x} x∈l2 | no ¬x∈l1 = ?
+      where
+        elim : AnyEliminator Carrier ⊥ (x ⊑_) l1
+        elim z f x⊑z z∈l1 = {!!}
+          where
+            elim' : AnyEliminator Carrier ⊥ (z ⊑_) l2
+            elim' w f z⊑w w∈l2 = {! (inj₁ $ transitive⊑ x⊑z z⊑w)!}
+
+        ¬x⊑l1 : ¬ Any (x ⊑_) l1
+        ¬x⊑l1 x⊑l1 = anyEliminate l1 elim x⊑l1
+    p {x} x∈l2 | yes x∈l1 = inj₂ $ inj₂ $ x∈l1 , x∈l2
+
+    q : {x : Carrier} → P∨ f1 f2 x → (x ∈ l2)
+    q {x} P∨12a = {!!}

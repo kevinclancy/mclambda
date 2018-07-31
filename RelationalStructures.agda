@@ -44,6 +44,17 @@ record DeltaPoset0 : Set l1 where
   transitive< : Transitive _<_
   transitive< = IsStrictTotalOrder.trans isStrictTotalOrder
 
+  -- isDecEquivalence : IsDecEquivalence _≡_
+  -- isDecEquivalence = IsStrictTotalOrder.isDecEquivalence isStrictTotalOrder
+
+  ≡-decSetoid : DecSetoid _ _
+  ≡-decSetoid =
+    record
+    { Carrier = Carrier
+    ; _≈_ = _≡_
+    ; isDecEquivalence = isDecEquivalence
+    }
+
   _∦_ : Rel Carrier l0
   a ∦ b = (a ⊑ b) ⊎ (b ⊑ a)
 
