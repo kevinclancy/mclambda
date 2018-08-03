@@ -18,7 +18,7 @@ open import Util
 
 module FreeSemilattice.Poset (P : DeltaPoset0) where
 
-open import FreeSemilattice P
+open import FreeSemilattice.Core P
 open DeltaPoset0 P
 
 infix 4 _≈_

@@ -9,6 +9,7 @@ open import Data.Product
 open import Data.Sum
 open import Relation.Binary.PropositionalEquality as PE using (_≡_)
 open import Relation.Binary.Lattice
+open import Relation.Binary.PartialOrderReasoning
 
 open import Level
 
@@ -98,7 +99,6 @@ record DeltaPoset0 : Set l1 where
       z : ¬ ( x ⊑ y ⊎ y ⊑ x )
       z (inj₁ x⊑y) = ¬x⊑y x⊑y
       z (inj₂ y⊑x) = ¬y⊑x y⊑x
-
  
 Semilat0 : Set₁
 Semilat0 = BoundedJoinSemilattice l0 l0 l0
