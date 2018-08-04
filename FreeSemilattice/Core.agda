@@ -608,6 +608,13 @@ _≈_ : Rel Carrier-FP l0
   trans = λ {s1} → λ {s2} → λ {s3} → ≈-trans {s1} {s2} {s3} 
   } 
 
+FP-Setoid : Setoid l1 l0
+FP-Setoid = record
+  { Carrier = Carrier-FP
+  ; _≈_ = _≈_
+  ; isEquivalence = ≈-isEquiv
+  }
+
 a≤b→a∨b≈b : (a b : Carrier-FP) → (a ≤ b) → (a ∨' b ≈ b)
 a≤b→a∨b≈b a@(l1 , f1) b@(l2 , f2) a≤b = free-eq (∨-free f1 f2) f2 x∈∨⇔x∈l2
   where
