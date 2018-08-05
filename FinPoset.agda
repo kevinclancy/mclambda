@@ -74,12 +74,6 @@ module FinPoset
             (N.suc $ depth A₂) ≤⟨ NP.≤′⇒≤ p₀ ⟩
             (depth A₀)
            ∎
-
-    ≤-preorder : Preorder _ _ _
-    ≤-preorder = SP.preorder _≺_
-
-    ≤-isPreorder : IsPreorder _≡_ _≤_
-    ≤-isPreorder = Preorder.isPreorder ≤-preorder
     
     private
       ≤-isAntisymmetric : Antisymmetric _≡_ _≤_
@@ -108,17 +102,6 @@ module FinPoset
           contr | tri≈ ¬dx<dy _ _ = ¬dx<dy dx<dy
           contr | tri> ¬dx<dy _ _ = ¬dx<dy dx<dy
           
-    ≤-isPartialOrder : IsPartialOrder _≡_ _≤_
-    ≤-isPartialOrder = record{ isPreorder = ≤-isPreorder ; antisym = ≤-isAntisymmetric }
-
-    ≤-poset : Poset l0 l0 l0
-    ≤-poset = 
-      record{
-        Carrier = A;
-        _≈_ = _≡_;
-        _≤_ = _≤_;
-        isPartialOrder = ≤-isPartialOrder
-       }
 
     private
      PathThrough :  (A₀ A₁ : A) → Pred (Cover A depth) ℓ₀
@@ -180,5 +163,36 @@ module FinPoset
         open import Induction.Nat using (<′-well-founded)
         d : ℕ 
         d = N.suc (depth A₀)
-        
-        
+    
+    ≤-preorder : Preorder _ _ _
+    ≤-preorder = SP.preorder _≺_
+
+    ≤-isPreorder : IsPreorder _≡_ _≤_
+    ≤-isPreorder = Preorder.isPreorder ≤-preorder
+
+    ≤-isPartialOrder : IsPartialOrder _≡_ _≤_
+    ≤-isPartialOrder = record{ isPreorder = ≤-isPreorder ; antisym = ≤-isAntisymmetric }
+
+    ≤-poset : Poset l0 l0 l0
+    ≤-poset = 
+      record{
+        Carrier = A;
+        _≈_ = _≡_;
+        _≤_ = _≤_;
+        isPartialOrder = ≤-isPartialOrder
+       }
+
+    ≤-isDecPartialOrder : IsDecPartialOrder _≡_ _≤_
+    ≤-isDecPartialOrder = record
+      { isPartialOrder = ≤-isPartialOrder
+      ; _≟_ = _A=_
+      ; _≤?_ = _≤?_
+      }
+
+    ≤-decPoset : DecPoset l0 l0 l0
+    ≤-decPoset = record
+      { Carrier = A
+      ; _≈_ = _≡_
+      ; _≤_ = _≤_
+      ; isDecPartialOrder = ≤-isDecPartialOrder
+      }

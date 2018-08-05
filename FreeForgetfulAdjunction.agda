@@ -33,12 +33,12 @@ module _ where
    where
      open import FreeSemilattice.Core P
 
--- the space of monotone functions between delta posets P and R 
-_→+_ : DeltaPoset0 → DeltaPoset0 → Set
+-- the space of monotone functions from delta poset P to semilattice R 
+_→+_ : DeltaPoset0 → BoundedJoinSemilattice0 → Set₁
 P →+ R = Σ[ f ∈ (|P| → |R|) ] ∀ {p1 p2 : |P|} → p1 ⊑ₚ p2 → f p1 ⊑ᵣ f p2     
   where
     open DeltaPoset0 P renaming (_⊑_ to _⊑ₚ_ ; Carrier to |P|)
-    open DeltaPoset0 R renaming (_⊑_ to _⊑ᵣ_ ; Carrier to |R|) 
+    open BoundedJoinSemilattice R renaming (_≤_ to _⊑ᵣ_ ; Carrier to |R|) 
 
 -- the space of bounded join semilattice homomorphisms between bounded join semilattices S and T
 _⇉_ : BoundedJoinSemilattice0 → BoundedJoinSemilattice0 → Set₁
@@ -53,6 +53,7 @@ FP P = FP-BJS
   where
     open import FreeSemilattice.Semilattice P
 
+{-
 Ff : (P R : DeltaPoset0) → (f : P →+ R) → (FP P) ⇉ (FP R)
 Ff P R (f , f+) = |Ff| , hom⊥ , hom∨   
   where
@@ -282,3 +283,4 @@ Ff P R (f , f+) = |Ff| , hom⊥ , hom∨
 
         t1' = |Ff| (t1 , ft1)
         t2' = |Ff| (t2 , ft2)
+-}

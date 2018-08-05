@@ -236,7 +236,7 @@ imagePreorder {ℓ₀} {ℓ₁} {ℓ₂} {ℓ₃} {A} {B} _B≤_ _B≈_ preorder
        reflexive = A≤-refl ;
        trans = A≤-trans
      }
-    
+
 ------------------- Strict total order for unit
 
 module UnitStrictTotal where

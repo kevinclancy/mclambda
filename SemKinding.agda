@@ -1,17 +1,23 @@
 module SemKinding where
 
+open import Function using (_$_)
 open import Syntax
 open import Kinding
 open import BoolPoset
+open import Relation.Nullary
 open import Relation.Binary
 open import Data.Product
+open import Data.Sum
+open import Data.Empty
 open import Level
 open import Util using (l0;l1;l2)
 open import Data.Unit renaming (preorder to unitPreorder ; decTotalOrder to unitToset )
-open import Data.Nat as N
+open import Data.Nat as N hiding (_<_)
 open import Data.Nat.Properties as NP
 open import Data.Bool
 open import Relation.Binary.PropositionalEquality as PE using (_≡_)
+
+open import FreeForgetfulAdjunction
 open import RelationalStructures
 open Util
 
@@ -97,39 +103,165 @@ open Preorder
          trans = (λ {i} → λ {j} → λ {k} → leqTransitive {i} {j} {k}) 
        }
 
-
 ⟦ UnitPoset ⁎⟧ = unitPreorder
 ⟦ BoolPoset ⁎⟧ = B≤-preorder
 ⟦ NatPoset ⁎⟧ = NP.≤-preorder
 
-
-
 -- agda-mode: ⁑ is \asterisk, second choice
-⟦_⁑⟧ : ∀ {τ : τ} → IsToset τ → StrictTotalOrder0
-⟦ UnitToset ⁑⟧ = UnitStrictTotal.⊤-strictTotalOrder
-⟦ NatToset ⁑⟧ = {!!}
-⟦ BoolToset ⁑⟧ = {!!}
-⟦ ProductToset isTosetL isTosetR ⁑⟧ = ×-strictTotalOrder ⟦ isTosetL ⁑⟧ ⟦ isTosetR ⁑⟧
+⟦_⁑⟧ : ∀ {τ : τ} → IsToset τ → DeltaPoset0
+⟦ UnitToset ⁑⟧ = record
+   { Carrier = ⊤ 
+   ; _⊑_ = _⊑_ 
+   ; _<_ = _<_
+   ; isStrictTotalOrder = UnitStrictTotal.⊤-IsStrictTotalOrder
+   ; isDecPartialOrder = ⊤≤-isDecPartialOrder
+   ; unimodality = unimodality
+   }
   where
-    open import Data.Product.Relation.Lex.Strict
-⟦ SumToset isTosetL isTosetR ⁑⟧ = tosetLR
+    open import UnitPoset
+    _⊑_ = _⊤≤_
+    _<_ = UnitStrictTotal._lt_
+
+    _∦_ : ⊤ → ⊤ → Set
+    x ∦ y = x ⊤≤ y ⊎ y ⊤≤ x
+    
+    _∥_ : ⊤ → ⊤ → Set
+    _∥_ x y = ¬ (x ∦ y)
+
+    unimodality : {a b c d : ⊤} → a < b → b < c → d ∦ a → d ∥ b → d ∥ c
+    unimodality () () _ _
+
+⟦ NatToset ⁑⟧ = record
+  { Carrier = ℕ 
+  ; _⊑_ = _⊑_
+  ; _<_ = _<_
+  ; isStrictTotalOrder = NP.<-isStrictTotalOrder
+  ; isDecPartialOrder = record
+    { isPartialOrder = natPartialOrder
+    ; _≟_ = IsDecEquivalence._≟_ ≡-isDecEquivalence
+    ; _≤?_ = N._≤?_
+    }
+  ; unimodality = {!unimodality!}
+  }
+  where
+    _⊑_ = N._≤_
+    _<_ = N._<_
+
+    _∦_ : ℕ → ℕ → Set
+    x ∦ y = x ⊑ y ⊎ y ⊑ x
+    
+    _∥_ : ℕ → ℕ → Set
+    _∥_ x y = ¬ (x ∦ y)
+
+    natPartialOrder : IsPartialOrder _≡_ _⊑_
+    natPartialOrder = 
+      let tot = IsDecTotalOrder.isTotalOrder NP.≤-isDecTotalOrder
+          part = IsTotalOrder.isPartialOrder tot
+      in 
+        part
+
+    unimodality : {a b c d : ℕ} → a < b → b < c → d ∦ a → d ∥ b → d ∥ c
+    unimodality {a} {b} {c} {d} _ _ _ d∥b = ⊥-elim $ d∥b (≤-total d b)
+      
+⟦ BoolToset ⁑⟧ = {!!}
+⟦ ProductToset isTosetL isTosetR ⁑⟧ =
+  {!!}
+  -- { Carrier =  ×-strictTotalOrder ⟦ isTosetL ⁑⟧ ⟦ isTosetR ⁑⟧
+  -- }
+  where
+    open import Data.Product.Relation.Lex.Strict as LS
+    open import Data.Product.Relation.Pointwise.NonDependent as PW
+
+    deltaL = ⟦ isTosetL ⁑⟧
+    deltaR = ⟦ isTosetR ⁑⟧
+    _L<_ = DeltaPoset0._<_ deltaL
+    compareL = DeltaPoset0.compare deltaL
+    _R<_ = DeltaPoset0._<_ deltaR
+    compareR = DeltaPoset0.compare deltaR
+    _L⊑_ = DeltaPoset0._⊑_ deltaL
+    _R⊑_ = DeltaPoset0._⊑_ deltaR    
+    
+    _<_ = ×-Lex _≡_ _L<_ _R<_
+    _⊑_ = Pointwise _L⊑_ _R⊑_
+
+    ⊑-decPartialOrder : IsDecPartialOrder _≡_ _⊑_
+    ⊑-decPartialOrder = {!!}
+
+    <-strict : IsStrictTotalOrder _≡_ _<_
+    <-strict = record
+      { isEquivalence = PE.isEquivalence
+      ; trans = IsStrictTotalOrder.trans p
+      ; compare = comp
+      }
+      where
+        p : IsStrictTotalOrder (Pointwise _≡_ _≡_) _<_
+        p = LS.×-isStrictTotalOrder (DeltaPoset0.isStrictTotalOrder deltaL) (DeltaPoset0.isStrictTotalOrder deltaR)
+
+        comp : Trichotomous _≡_ _<_
+        comp x@(xL , xR) y@(yL , yR) with compareL xL yL 
+        comp x@(xL , xR) y@(yL , yR) | tri< xL<yL ¬xL≡yL ¬yL<xL = 
+          tri< x<y ¬x≡y ¬y<x
+          where
+            x<y : x < y
+            x<y = inj₁ xL<yL
+
+            ¬x≡y : ¬ x ≡ y
+            ¬x≡y x≡y = ¬xL≡yL $ proj₁ (≡⇒≡×≡ x≡y) 
+
+            ¬y<x : ¬ y < x
+            ¬y<x (inj₁ yL<xL) = ¬yL<xL yL<xL
+            ¬y<x (inj₂ (yL≡xL , yR⊑xR)) = ¬xL≡yL (PE.sym yL≡xL) 
+        
+        comp x@(xL , xR) y@(yL , yR) | tri≈ ¬xL<yL xL≡yL ¬yL<xL with compareR xR yR
+        comp x@(xL , xR) y@(yL , yR) | tri≈ ¬xL<yL xL≡yL ¬yL<xL | tri< xR<yR ¬xR≡yR ¬yR<xR =
+          tri< (inj₂ $ xL≡yL , xR<yR) ¬x≡y ¬y<x
+          where
+            ¬x≡y : ¬ x ≡ y
+            ¬x≡y x≡y = ¬xR≡yR $ proj₂ (≡⇒≡×≡ x≡y) 
+
+            ¬y<x : ¬ y < x
+            ¬y<x (inj₁ yL<xL) = ¬yL<xL yL<xL
+            ¬y<x (inj₂ (yL≡xL , yR<xR)) = ¬yR<xR yR<xR 
+        comp x@(xL , xR) y@(yL , yR) | tri≈ ¬xL<yL xL≡yL ¬yL<xL | tri≈ ¬xR<yR xR≡yR ¬yR<xR =
+          tri≈ ¬x<y (≡×≡⇒≡ $ xL≡yL , xR≡yR) ¬y<x 
+          where
+            ¬x<y : ¬ x < y
+            ¬x<y (inj₁ xL<yL) = ¬xL<yL xL<yL
+            ¬x<y (inj₂ (xL≡yL , xR<yR)) = ¬xR<yR xR<yR
+
+            ¬y<x : ¬ y < x
+            ¬y<x (inj₁ yL<xL) = ¬yL<xL yL<xL
+            ¬y<x (inj₂ (yL≡xL , yR<xR)) = ¬yR<xR yR<xR
+
+        comp x@(xL , xR) y@(yL , yR) | tri≈ ¬xL<yL xL≡yL ¬yL<xL | tri> ¬xR<yR ¬xR≡yR yR<xR =
+          tri> ¬x<y ¬x≡y (inj₂ $ (PE.sym xL≡yL) , yR<xR)
+          where
+            ¬x<y : ¬ x < y
+            ¬x<y (inj₁ xL<yL) = ¬xL<yL xL<yL
+            ¬x<y (inj₂ (xL≡yL , xR<yR)) = ¬xR<yR xR<yR
+
+            ¬x≡y : ¬ x ≡ y
+            ¬x≡y x≡y = ¬xR≡yR (proj₂ $ ≡⇒≡×≡ x≡y)
+
+        comp x@(xL , xR) y@(yL , yR) | tri> ¬xL<yL ¬xL≡yL yL<xL =
+          tri> ¬x<y ¬x≡y (inj₁ yL<xL)
+          where
+            ¬x<y : ¬ x < y
+            ¬x<y (inj₁ xL<yL) = ¬xL<yL xL<yL
+            ¬x<y (inj₂ (xL≡yL , xR<yR)) = ¬xL≡yL xL≡yL
+          
+            ¬x≡y : ¬ x ≡ y
+            ¬x≡y x≡y = ¬xL≡yL (proj₁ $ ≡⇒≡×≡ x≡y)
+
+⟦ SumToset isTosetL isTosetR ⁑⟧ = {!!}
   where 
     open import Data.Sum.Relation.LeftOrder
-    tosetLR : StrictTotalOrder0
-    tosetLR = ⊎-<-strictTotalOrder {l0} {l0} {l0} {l0} {l0} {l0} ⟦ isTosetL ⁑⟧ ⟦ isTosetR ⁑⟧
+    --tosetLR : StrictTotalOrder0
+    --tosetLR = ⊎-<-strictTotalOrder {l0} {l0} {l0} {l0} {l0} {l0} ⟦ isTosetL ⁑⟧ ⟦ isTosetR ⁑⟧
 
 
 open import Relation.Binary.Lattice
 
--- wait, tho, bounded join semilattice is not enough since it doesn't account for delta types
--- I need a few things to make this work:
---  1.) A way to generate free semilattices generated by posets
---     a) Delta types are not just partially ordered, but totally ordered
---     b) For non-forrest-of-chains deltas such as -^⊤, we must require that the deltas of a free
---        semilattice value are incomparable 
---  2.) A way to express semilattice homomorphisms
-BoundedJoinSemilattice0 : Set₁
-BoundedJoinSemilattice0 = BoundedJoinSemilattice l0 l0 l0
 
 ⟦_⁂⟧ : ∀ {τ τ₀ : τ} → IsSemilat τ τ₀ → BoundedJoinSemilattice0 × DeltaPoset0
 ⟦ NatSemilat ⁂⟧ = {!!}
