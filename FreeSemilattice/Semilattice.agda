@@ -32,13 +32,6 @@ private
  _≤_ = _≤'_
  _≈_ = _≈'_
 
-↓ : (p : Carrier) → List Carrier
-↓ p = p ∷ []
-
--- unit of the free/forgetful adjunction
-η : (p : Carrier) → Carrier-FP
-η p = (↓ p , ∷-Free p [] [] (λ ()) []-Free)
-
 ∨-unitʳ : (l : List Carrier) → l ∨ [] ≡ l
 ∨-unitʳ [] = PE.refl
 ∨-unitʳ (x ∷ l) = PE.refl
