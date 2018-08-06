@@ -258,8 +258,52 @@ open Preorder
     open import Data.Sum.Relation.LeftOrder
     --tosetLR : StrictTotalOrder0
     --tosetLR = ⊎-<-strictTotalOrder {l0} {l0} {l0} {l0} {l0} {l0} ⟦ isTosetL ⁑⟧ ⟦ isTosetR ⁑⟧
+⟦ CapsuleToset isTosetContents ⁑⟧ = {!!}
+ 
+⟦ PartialToset isTosetContents ⁑⟧ = record  
+  { Carrier = |Cᵀ|
+  ; _⊑_ = _⊑ᵀ_
+  ; _<_ = _<ᵀ_
+  ; isStrictTotalOrder = <ᵀ-strict
+  ; isDecPartialOrder = record
+    { isPartialOrder = ⊑ᵀ-partial
+    ; _≟_ = IsDecEquivalence._≟_ ≡-isDecEquivalence
+    ; _≤?_ = N._≤?_
+    }
+  ; unimodality = {!unimodality!}
+  }
+  where
+    open import UnitPoset
+    open UnitStrictTotal
+    open import Data.Sum.Relation.LeftOrder
+
+    deltaContents = ⟦ isTosetContents ⁑⟧ 
+    |C| = DeltaPoset0.Carrier deltaContents
+    _<'_ = DeltaPoset0._<_ deltaContents
+    _⊑'_ = DeltaPoset0._⊑_ deltaContents
+    
+    -- -ᵀ Carrier
+    |Cᵀ| : Set
+    |Cᵀ| = |C| ⊎ ⊤
+
+    _<ᵀ_ : |Cᵀ| → |Cᵀ| → Set
+    _<ᵀ_ = (_<'_) ⊎-< (UnitStrictTotal._lt_)
+
+    <ᵀ-strict = ⊎-<-isStrictTotalOrder (DeltaPoset0.isStrictTotalOrder deltaContents) ⊤-IsStrictTotalOrder
 
 
+    _⊑ᵀ_ : |Cᵀ| → |Cᵀ| → Set
+    _⊑ᵀ_ = (_⊑'_) ⊎-< (_⊤≤_)  
+
+    ⊑ᵀ-partial = 
+      ⊎-<-isPartialOrder
+        (DeltaPoset0.isPartialOrder deltaContents) 
+        (IsDecPartialOrder.isPartialOrder ⊤≤-isDecPartialOrder)
+
+    ⊑ᵀ-decidable =
+      ⊎-<-decidable
+        (DeltaPoset0._⊑?_ deltaContents)
+        _⊤≤?_
 open import Relation.Binary.Lattice
 
 
