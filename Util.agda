@@ -9,7 +9,7 @@ open import Data.Product
 open import Data.Sum
 open import Agda.Builtin.Equality
 open import Data.Fin as F
-open import Data.Nat as N
+open import Data.Nat as N hiding (_⊔_)
 open import Data.Nat.Properties as NP
 open import Relation.Binary
 open import Relation.Nullary
@@ -53,10 +53,10 @@ decEquiv {ℓ} {A} {B} {R} {Q} imp1 imp2 d = decidableQ
 _≤′?_ : Decidable _≤′_
 _≤′?_ = decEquiv ≤⇒≤′ ≤′⇒≤ N._≤?_
 
-AnyEliminator : ∀ (A B : Set) → (P : Pred A ℓ₀) → (l : List A) → Set₁
-AnyEliminator A B P l = 
+AnyEliminator : ∀ {ℓQ ℓP ℓA ℓB} → (A : Set ℓA) → (B : Set ℓB) → (P : Pred A ℓP) → (l : List A) → Set _
+AnyEliminator {ℓQ} A B P l = 
   (a : A) → 
-  (f : (Q : Pred A ℓ₀) → Q a → LA.Any Q l) → 
+  (f : (Q : Pred A ℓQ) → Q a → LA.Any Q l) → 
   (p : P a) →
   (a∈l : a ∈ l) →
   B
@@ -73,13 +73,13 @@ shift {A = A} {l} prev rest' a p = ret
     ret : l ≡ reverse (a ∷ prev) ++ rest'
     ret rewrite rev | (assoc (reverse prev) [ a ] rest')  = p
 
-anyEliminate : ∀ {A B : Set} {P : Pred A ℓ₀}  → 
+anyEliminate : ∀ {ℓQ ℓP ℓA ℓB} → {A : Set ℓA} → {B : Set ℓB} → {P : Pred A ℓP}  → 
                   (l : List A) → 
-                  AnyEliminator A B P l →
+                  AnyEliminator {ℓQ} {ℓP} {ℓA} {ℓB} A B P l →
                   LA.Any P l →
                   B
 
-anyEliminate {A} {B} {P} l eliminator any-P-l = elimAux l any-P-l [] PE.refl
+anyEliminate {ℓQ} {ℓP} {ℓA} {ℓB} {A} {B} {P} l eliminator any-P-l = elimAux l any-P-l [] PE.refl
   where
     open import Algebra
     open Monoid (LP.++-monoid A)
@@ -89,7 +89,7 @@ anyEliminate {A} {B} {P} l eliminator any-P-l = elimAux l any-P-l [] PE.refl
       eliminator a f pa a∈l
       where
         open import Function.Inverse
-        f : (Q : Pred A ℓ₀) → Q a → LA.Any Q l
+        f : (Q : Pred A ℓQ) → Q a → LA.Any Q l
         f Q qa rewrite p = (Inverse.to equiv) ⟨$⟩ (inj₂ $ here qa) 
           where
             equiv : (LA.Any Q (reverse prev-as) ⊎ LA.Any Q (a ∷ as')) ↔ LA.Any Q ((reverse prev-as) ++ (a ∷ as'))

@@ -11,8 +11,8 @@ open import Data.Sum
 open import Data.Empty
 open import Level
 open import Util using (l0;l1;l2)
-open import Data.Unit renaming (preorder to unitPreorder ; decTotalOrder to unitToset )
-open import Data.Nat as N hiding (_<_)
+open import Data.Unit renaming (preorder to unitPreorder ; decTotalOrder to unitToset) hiding (_≤_)
+open import Data.Nat as N hiding (_<_ ; _⊔_)
 open import Data.Nat.Properties as NP
 open import Data.Bool
 open import Relation.Binary.PropositionalEquality as PE using (_≡_)
@@ -260,7 +260,9 @@ open Preorder
     --tosetLR = ⊎-<-strictTotalOrder {l0} {l0} {l0} {l0} {l0} {l0} ⟦ isTosetL ⁑⟧ ⟦ isTosetR ⁑⟧
 ⟦ CapsuleToset isTosetContents ⁑⟧ = {!!}
  
-⟦ PartialToset isTosetContents ⁑⟧ = record  
+⟦ PartialToset isTosetContents ⁑⟧ = {!!} 
+{-
+  record  
   { Carrier = |Cᵀ|
   ; _⊑_ = _⊑ᵀ_
   ; _<_ = _<ᵀ_
@@ -300,15 +302,69 @@ open Preorder
         (DeltaPoset0.isPartialOrder deltaContents) 
         (IsDecPartialOrder.isPartialOrder ⊤≤-isDecPartialOrder)
 
-    ⊑ᵀ-decidable =
-      ⊎-<-decidable
-        (DeltaPoset0._⊑?_ deltaContents)
-        _⊤≤?_
+    ⊑ᵀ-decidable = ?
+-}
+
 open import Relation.Binary.Lattice
 
+record semSemilat (c ℓ₁ ℓ₂ : Level) {τ τ₀ : τ} (isSemilat : IsSemilat τ τ₀) : Set (Level.suc $ c ⊔ ℓ₁ ⊔ ℓ₂) where
+  field
+    -- direct representation of semilattice
+    S : BoundedJoinSemilattice c ℓ₁ ℓ₂
+    -- delta poset (freely generates S up-to-isomorphism)
+    P : DeltaPoset0
+    -- injection of τ₀ deltaPoset interpretation into P
+    i : P ↣+ ⟦ delta-isToset isSemilat ⁑⟧ 
+    -- factorization into free semilattice
+    f : S ⇉ FP P
+    -- defactorization out of free semilattice
+    g : FP P ⇉ S
 
-⟦_⁂⟧ : ∀ {τ τ₀ : τ} → IsSemilat τ τ₀ → BoundedJoinSemilattice0 × DeltaPoset0
-⟦ NatSemilat ⁂⟧ = {!!}
+⟦_⁂⟧ : ∀ {c ℓ₁ ℓ₂} → {τ τ₀ : τ} → (isSemilat : IsSemilat τ τ₀) → semSemilat c ℓ₁ ℓ₂ isSemilat             
+
+-- BoundedJoinSemilattice0 × DeltaPoset0
+
+⟦_⁂⟧ {c} {ℓ₁} {ℓ₂} NatSemilat = {!!}
+  where
+    open import Data.Nat.Base as NB renaming (_⊔_ to _N⊔_)
+
+    least : ∀ {m n : ℕ} → (z : ℕ) → (m ≤ z) → (n ≤ z) → (m N⊔ n ≤ z) 
+    least {.0} {n} z z≤n n≤z = n≤z
+    least {.(N.suc _)} {.0} .(N.suc _) (s≤s pm≤pz) z≤n = s≤s pm≤pz
+    least {.(N.suc _)} {.(N.suc _)} .(N.suc _) (s≤s pm≤pz) (s≤s pn≤pz) = 
+      let
+        pm⊔pn≤pz = least _ pm≤pz pn≤pz 
+      in 
+        s≤s pm⊔pn≤pz
+ 
+    S : BoundedJoinSemilattice l0 l0 l0
+    S = record 
+      { Carrier = ℕ
+      ; _≈_ = _≡_
+      ; _≤_ = N._≤_
+      ; _∨_ = NB._⊔_
+      ; ⊥ = N.zero
+      ; isBoundedJoinSemilattice = record
+        { isJoinSemilattice = record
+          { isPartialOrder = ≤-isPartialOrder
+          ; supremum = λ x → λ y → (m≤m⊔n x y) , (n≤m⊔n x y) , least {x} {y}
+          }
+        ; minimum = λ n → N.z≤n {n} 
+        } 
+      }
+
+    P : DeltaPoset0 
+    P = record
+      { Carrier = Σ[ n ∈ ℕ ] ¬ (n ≡ 0)
+      ; _⊑_ = λ x → λ y → proj₁ x N.≤ proj₁ y 
+      ; _<_ = λ x → λ y → proj₁ x N.< proj₁ y
+      ; isStrictTotalOrder = {!!}
+      ; isDecPartialOrder = {!!}
+      ; unimodality = {!!}
+      }
+      where
+        deltaPosetℕ = ⟦ NatToset ⁑⟧ 
+    
 ⟦ BoolSemilat ⁂⟧ = {!!}
 ⟦ DictSemilat x x₁ ⁂⟧ = {!!}
 ⟦ ProductSemilat x x₁ ⁂⟧ = {!!}

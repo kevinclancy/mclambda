@@ -46,6 +46,18 @@ data IsSemilat where
   IVarSemilat : {τ : τ} → IsToset τ → IsSemilat (τIVar τ) (τCapsule qAny τ)
   PartialSemilat : {τ τ₀ : τ} → IsSemilat τ τ₀ → IsSemilat (τPartial τ) (τPartial τ₀)
 
+delta-isToset : {τ τ₀ : τ} → (p : IsSemilat τ τ₀) → IsToset τ₀
+delta-isToset NatSemilat = NatToset
+delta-isToset BoolSemilat = UnitToset
+delta-isToset (DictSemilat domIsToset codIsSemilat) = 
+  ProductToset (CapsuleToset domIsToset) (delta-isToset codIsSemilat) 
+delta-isToset (ProductSemilat isSemilatL isSemilatR) = 
+  SumToset (delta-isToset isSemilatL) (delta-isToset isSemilatR)
+delta-isToset (IVarSemilat contentIsToset) = 
+  CapsuleToset contentIsToset
+delta-isToset (PartialSemilat contentIsSemilat) = 
+  PartialToset (delta-isToset contentIsSemilat)
+
 -- kCheckPoset : 
 --   (σ : τ) → Dec( Σ[ S ∈ Set ] Σ[ refσ ∈ (S → Set) ] Σ[ ⊑ ∈ (S → S → Set) ] Σ[ ref⊑ ∈ (⊑ → Set) ] IsPoset σ )
 -- kCheckPoset = {!!}

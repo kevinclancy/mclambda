@@ -14,14 +14,15 @@ open import Relation.Nullary
 open import Relation.Binary
 open import Relation.Binary.Lattice
 open import Relation.Binary.PropositionalEquality as PE
+open import Level
 
 open import RelationalStructures
 open import Util
 
 module FreeForgetfulAdjunction where
 
-BoundedJoinSemilattice0 : Set₂
-BoundedJoinSemilattice0 = BoundedJoinSemilattice l1 l0 l0
+BoundedJoinSemilattice0 : Set₁
+BoundedJoinSemilattice0 = BoundedJoinSemilattice l0 l0 l0
 
 module _ where
  --anonymous module allows local import of FreeSemilattice.Semilattice
@@ -33,22 +34,39 @@ module _ where
    where
      open import FreeSemilattice.Core P
 
--- the space of monotone functions from delta poset P to semilattice R 
-_→+_ : DeltaPoset0 → BoundedJoinSemilattice0 → Set₁
-P →+ R = Σ[ f ∈ (|P| → |R|) ] ∀ {p1 p2 : |P|} → p1 ⊑ₚ p2 → f p1 ⊑ᵣ f p2     
+monotone : (P R : DeltaPoset0) → (DeltaPoset0.Carrier P → DeltaPoset0.Carrier R) → Set
+monotone P R f = ∀ {p p' : |P|} → p ⊑ₚ p' → (f p) ⊑ᵣ (f p')    
   where
     open DeltaPoset0 P renaming (_⊑_ to _⊑ₚ_ ; Carrier to |P|)
-    open BoundedJoinSemilattice R renaming (_≤_ to _⊑ᵣ_ ; Carrier to |R|) 
+    open DeltaPoset0 R renaming (_⊑_ to _⊑ᵣ_ ; Carrier to |R|) 
+
+monic : {A B : Set} → (A → B) → Set
+monic {A} {B} f = ∀ {a a' : A} → (f a) ≡ (f a') → a ≡ a' 
+
+-- the space of monotone functions from delta poset P to delta poset R 
+_→+_ : DeltaPoset0 → DeltaPoset0 → Set
+P →+ R = Σ[ f ∈ (|P| → |R|) ] monotone P R f     
+  where
+    open DeltaPoset0 P renaming (_⊑_ to _⊑ₚ_ ; Carrier to |P|)
+    open DeltaPoset0 R renaming (_⊑_ to _⊑ᵣ_ ; Carrier to |R|) 
+
+-- the space of injective monotone functions (order embeddings) between delta posets
+_↣+_ : DeltaPoset0 → DeltaPoset0 → Set
+P ↣+ R = Σ[ f ∈ (|P| → |R|) ] monotone P R f × monic f
+  where
+    open DeltaPoset0 P renaming (_⊑_ to _⊑ₚ_ ; Carrier to |P|)
+    open DeltaPoset0 R renaming (_⊑_ to _⊑ᵣ_ ; Carrier to |R|) 
+ 
 
 -- the space of bounded join semilattice homomorphisms between bounded join semilattices S and T
-_⇉_ : BoundedJoinSemilattice0 → BoundedJoinSemilattice0 → Set₁
+_⇉_ : ∀ {c ℓ₁ ℓ₂ c' ℓ₁' ℓ₂'} → BoundedJoinSemilattice c ℓ₁ ℓ₂ → BoundedJoinSemilattice c' ℓ₁' ℓ₂' → Set (c ⊔ c' ⊔ ℓ₁')
 S ⇉ T = Σ[ f ∈ (|S| → |T|)] (f ⊥ₛ ≈ₜ ⊥ₜ) × ∀ (s1 s2 : |S|) → f (s1 ∨ₛ s2) ≈ₜ (f s1) ∨ₜ (f s2) 
   where
     open BoundedJoinSemilattice S renaming (⊥ to ⊥ₛ ; _∨_ to _∨ₛ_ ; Carrier to |S|)
     open BoundedJoinSemilattice T renaming (_≈_ to _≈ₜ_ ; ⊥ to ⊥ₜ ; _∨_ to _∨ₜ_ ; Carrier to |T|)
 
 -- the free semilattice functor's action on delta poset objects
-FP : (P : DeltaPoset0) → BoundedJoinSemilattice0
+FP : (P : DeltaPoset0) → BoundedJoinSemilattice l1 l0 l0
 FP P = FP-BJS
   where
     open import FreeSemilattice.Semilattice P
