@@ -39,6 +39,9 @@ module FinPoset
     (_A=_ : RB.Decidable (_≡_ {A = A}))
  where
     private
+     _≈?_ : RB.Decidable _≡_
+     _≈?_ = _A=_
+ 
      CoverMatches : (A₀ A₁ : A) → Pred (Cover A depth) ℓ₀
      CoverMatches A₀ A₁ = (λ cov → (Cover.lo cov ≡ A₀) × (Cover.hi cov ≡ A₁))
     

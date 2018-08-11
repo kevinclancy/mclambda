@@ -29,33 +29,36 @@ module _ where
  open import FreeSemilattice.Semilattice
 
  -- unit of the free/forgetful adjunction
- η : (P : DeltaPoset0) → (p : DeltaPoset0.Carrier P) → (BoundedJoinSemilattice.Carrier (FP-BJS P))
+ η : {c ℓ⊑ ℓ< ℓ~ : Level} → (P : DeltaPoset {c} {ℓ⊑} {ℓ<} {ℓ~}) → (p : DeltaPoset.Carrier P) → (BoundedJoinSemilattice.Carrier (FP-BJS P))
  η P p = (p ∷ [] , ∷-Free p [] [] (λ ()) []-Free)
    where
      open import FreeSemilattice.Core P
 
-monotone : (P R : DeltaPoset0) → (DeltaPoset0.Carrier P → DeltaPoset0.Carrier R) → Set
+monotone : {cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ cᵣ ℓ⊑ᵣ ℓ<ᵣ ℓ~ᵣ : Level} → (P : DeltaPoset {cₚ} {ℓ⊑ₚ} {ℓ<ₚ} {ℓ~ₚ}) → 
+           (R : DeltaPoset {cᵣ} {ℓ⊑ᵣ} {ℓ<ᵣ} {ℓ~ᵣ})  → (DeltaPoset.Carrier P → DeltaPoset.Carrier R) → Set _
 monotone P R f = ∀ {p p' : |P|} → p ⊑ₚ p' → (f p) ⊑ᵣ (f p')    
   where
-    open DeltaPoset0 P renaming (_⊑_ to _⊑ₚ_ ; Carrier to |P|)
-    open DeltaPoset0 R renaming (_⊑_ to _⊑ᵣ_ ; Carrier to |R|) 
+    open DeltaPoset P renaming (_⊑_ to _⊑ₚ_ ; Carrier to |P|)
+    open DeltaPoset R renaming (_⊑_ to _⊑ᵣ_ ; Carrier to |R|) 
 
-monic : {A B : Set} → (A → B) → Set
-monic {A} {B} f = ∀ {a a' : A} → (f a) ≡ (f a') → a ≡ a' 
+monic : ∀ {ℓA ℓB} → {A : Set ℓA} → {B : Set ℓB} → (A → B) → Set _
+monic {ℓA} {ℓB} {A} {B} f = ∀ {a a' : A} → (f a) ≡ (f a') → a ≡ a' 
 
 -- the space of monotone functions from delta poset P to delta poset R 
-_→+_ : DeltaPoset0 → DeltaPoset0 → Set
+_→+_ : {cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ cᵣ ℓ⊑ᵣ ℓ<ᵣ ℓ~ᵣ : Level} → DeltaPoset {cₚ} {ℓ⊑ₚ} {ℓ<ₚ} {ℓ~ₚ} → 
+        DeltaPoset {cᵣ} {ℓ⊑ᵣ} {ℓ<ᵣ} {ℓ~ᵣ} → Set _
 P →+ R = Σ[ f ∈ (|P| → |R|) ] monotone P R f     
   where
-    open DeltaPoset0 P renaming (_⊑_ to _⊑ₚ_ ; Carrier to |P|)
-    open DeltaPoset0 R renaming (_⊑_ to _⊑ᵣ_ ; Carrier to |R|) 
+    open DeltaPoset P renaming (_⊑_ to _⊑ₚ_ ; Carrier to |P|)
+    open DeltaPoset R renaming (_⊑_ to _⊑ᵣ_ ; Carrier to |R|) 
 
 -- the space of injective monotone functions (order embeddings) between delta posets
-_↣+_ : DeltaPoset0 → DeltaPoset0 → Set
+_↣+_ : {cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ cᵣ ℓ⊑ᵣ ℓ<ᵣ ℓ~ᵣ : Level} → DeltaPoset {cₚ} {ℓ⊑ₚ} {ℓ<ₚ} {ℓ~ₚ} → 
+        DeltaPoset {cᵣ} {ℓ⊑ᵣ} {ℓ<ᵣ} {ℓ~ᵣ} → Set _
 P ↣+ R = Σ[ f ∈ (|P| → |R|) ] monotone P R f × monic f
   where
-    open DeltaPoset0 P renaming (_⊑_ to _⊑ₚ_ ; Carrier to |P|)
-    open DeltaPoset0 R renaming (_⊑_ to _⊑ᵣ_ ; Carrier to |R|) 
+    open DeltaPoset P renaming (_⊑_ to _⊑ₚ_ ; Carrier to |P|)
+    open DeltaPoset R renaming (_⊑_ to _⊑ᵣ_ ; Carrier to |R|) 
  
 
 -- the space of bounded join semilattice homomorphisms between bounded join semilattices S and T
@@ -66,7 +69,7 @@ S ⇉ T = Σ[ f ∈ (|S| → |T|)] (f ⊥ₛ ≈ₜ ⊥ₜ) × ∀ (s1 s2 : |S|)
     open BoundedJoinSemilattice T renaming (_≈_ to _≈ₜ_ ; ⊥ to ⊥ₜ ; _∨_ to _∨ₜ_ ; Carrier to |T|)
 
 -- the free semilattice functor's action on delta poset objects
-FP : (P : DeltaPoset0) → BoundedJoinSemilattice l1 l0 l0
+FP : ∀{c ℓ⊑ ℓ< ℓ~} (P : DeltaPoset {c} {ℓ⊑} {ℓ<} {ℓ~}) → BoundedJoinSemilattice _ _ _
 FP P = FP-BJS
   where
     open import FreeSemilattice.Semilattice P

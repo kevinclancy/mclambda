@@ -4,9 +4,10 @@ open import Function.Equality using (_⟨$⟩_)
 open import Data.Empty
 open import Data.List
 open import Data.List.All as LA
-open import Data.List.Any
+open import Data.List.Any as LAny
 open import Data.List.Any.Properties as LAP
-open import Data.List.Membership.Propositional
+import Data.List.Relation.Pointwise as PW
+open import Data.List.Relation.Pointwise using (_∷_ ; [])
 open import Data.Product
 open import Data.Sum
 open import Relation.Nullary
@@ -16,21 +17,30 @@ open import Relation.Binary.PropositionalEquality as PE
 open import RelationalStructures
 open import Util
 
-module FreeSemilattice.Poset (P : DeltaPoset0) where
+module FreeSemilattice.Poset {c ℓ⊑ ℓ< ℓ~} (P : DeltaPoset {c} {ℓ⊑} {ℓ<} {ℓ~}) where
 
 open import FreeSemilattice.Core P
-open DeltaPoset0 P
+open DeltaPoset P renaming (_≈_ to _~_ ; trans≈ to trans~ ; sym≈ to sym~ ; refl≈ to refl~ ;
+  ∦-respʳ-≈ to ∦-respʳ-~ ; ∦-respˡ-≈ to ∦-respˡ-~ ;
+  ∥-respʳ-≈ to ∥-respʳ-~ ; ∥-respˡ-≈ to ∥-respˡ-~ ;
+  <-respʳ-≈ to <-respʳ-~ ; <-respˡ-≈ to <-respˡ-~ ; 
+  ⊑-respʳ-≈ to ⊑-respʳ-~ ; ⊑-respˡ-≈ to ⊑-respˡ-~ ;
+  ≈-decSetoid to ~-decSetoid ; _≈?_ to _~?_)
+
+open import Data.List.Membership.DecSetoid ~-decSetoid
+open import Data.List.Membership.Propositional renaming (_∈_ to _∈≡_)
 
 infix 4 _≈_
 
 ⋜-resp-≈ʳ : {s1 s2 s3 : Carrier-FP} → (s2 ≈ s3) → s1 ⋜ s2 → s1 ⋜ s3
-⋜-resp-≈ʳ {.([] , []-Free)} {.(proj₁ s3) , snd} {s3} PE.refl []-⋜ = []-⋜
-⋜-resp-≈ʳ {(h1 ∷ t1 , f1)} {.(h3 ∷ t3) , f2} {(h3 ∷ t3) , f3} PE.refl (cmp-⋜ ft1 f1 f2 h1⊑h2 t1⋜l2) = cmp-⋜ ft1 f1 f3 h1⊑h2 (⋜-resp-≈ʳ PE.refl t1⋜l2) 
-⋜-resp-≈ʳ {(h1 ∷ t1 , f1)} {.(h3 ∷ t3) , f2} {(h3 ∷ t3) , f3} PE.refl (skip-⋜ f1 ft2 f2 h2<h1 h1∥h2 l1⋜t2) = skip-⋜ f1 ft2 f3 h2<h1 h1∥h2 (⋜-resp-≈ʳ PE.refl l1⋜t2)
-
+⋜-resp-≈ʳ {.([] , []-Free)} {l2 , snd} {s3} s2≈s3 []-⋜ = []-⋜
+⋜-resp-≈ʳ {(h1 ∷ t1 , f1)} {h2 ∷ t2 , f2} {(h3 ∷ t3) , f3} (h2~h3 ∷ t2≈t3) (cmp-⋜ ft1 f1 f2 h1⊑h2 t1⋜l2) = 
+  cmp-⋜ ft1 f1 f3 (⊑-respʳ-~ h2~h3 h1⊑h2) (⋜-resp-≈ʳ (h2~h3 ∷ t2≈t3) t1⋜l2) 
+⋜-resp-≈ʳ {(h1 ∷ t1 , f1)} {h2 ∷ t2 , f2} {(h3 ∷ t3) , f3@(∷-Free _ _ _ _ ft3)} (h2~h3 ∷ t2≈t3) (skip-⋜ f1 ft2 f2 h2<h1 h1∥h2 l1⋜t2) = 
+  skip-⋜ f1 ft3 f3 (<-respˡ-~ h2~h3 h2<h1) (∥-respʳ-~ h2~h3 h1∥h2) (⋜-resp-≈ʳ t2≈t3 l1⋜t2)
 
 mutual
- t⋜h∷t : {h : Carrier} → {t : List Carrier} → (f : IsFreeList _<_ _⊑_ (h ∷ t)) → (ft : IsFreeList _<_ _⊑_ t) → 
+ t⋜h∷t : {h : Carrier} → {t : List Carrier} → (f : IsFreeList (h ∷ t)) → (ft : IsFreeList t) → 
           (t , ft) ⋜ (h ∷ t , f)
  t⋜h∷t {h} {[]} f []-Free = []-⋜
  t⋜h∷t {h} {t@(h' ∷ t')} f@(∷-Free .h .t min incomp _) ft = skip-⋜ ft ft f h<h' (∥-sym h∥h') (⋜-refl-lemma t ft ft)   
@@ -41,156 +51,47 @@ mutual
      h∥h' : h ∥ h'
      h∥h' h∦h' = incomp $ here (h∦h') 
 
- ⋜-refl-lemma : (x : List Carrier) → (f1 f2 : IsFreeList _<_ _⊑_ x) → (x , f1) ⋜ (x , f2)
+ ⋜-refl-lemma : (x : List Carrier) → (f1 f2 : IsFreeList x) → (x , f1) ⋜ (x , f2)
  ⋜-refl-lemma []  []-Free []-Free = []-⋜
  ⋜-refl-lemma (h ∷ t) f@(∷-Free .h .t min incomp ft) f'@(∷-Free .h .t min' incomp' ft')  = 
-   cmp-⋜ ft f f' (reflexive PE.refl) (t⋜h∷t f' ft) 
+   cmp-⋜ ft f f' (reflexive refl~) (t⋜h∷t f' ft) 
 
-⋜-refl : {x y : Carrier-FP} → x ≈ y → x ⋜ y
-⋜-refl {l , f} {.l , f'} PE.refl = ⋜-refl-lemma l f f'
-
-sng-free : {c : Carrier} → (IsFreeList _<_ _⊑_ (c ∷ []))
-sng-free {c} = ∷-Free c [] [] (λ ()) []-Free
-
-⋜-irrelˡ : {l1 l2 : List Carrier} → {f1 : IsFreeList _<_ _⊑_ l1} → {f1' : IsFreeList _<_ _⊑_ l1} → 
-          {f2 : IsFreeList _<_ _⊑_ l2} → (l1 , f1) ⋜ (l2 , f2) → (l1 , f1') ⋜ (l2 , f2)
+⋜-irrelˡ : {l1 l2 : List Carrier} → {f1 : IsFreeList l1} → {f1' : IsFreeList l1} → 
+          {f2 : IsFreeList l2} → (l1 , f1) ⋜ (l2 , f2) → (l1 , f1') ⋜ (l2 , f2)
 ⋜-irrelˡ {.[]} {l2} {[]-Free} {[]-Free} {f2} l1⋜l2 = []-⋜ 
 ⋜-irrelˡ {h1 ∷ t1} {h2 ∷ t2} {∷-Free .h1 .t1 min1 incomp1 ft1} {f1'} {f2} (cmp-⋜ ft1' .(∷-Free h1 t1 min1 incomp1 ft1) .f2 h1⊑h2 l1⋜l2) = 
   cmp-⋜ ft1' f1' f2 h1⊑h2 l1⋜l2
 ⋜-irrelˡ {h1 ∷ t1} {h2 ∷ t2} {f1@(∷-Free .h1 .t1 _ _ _)} {f1'} {f2} (skip-⋜ .f1 ft2 .f2 h2<h1 h1∥h2 l1⋜t2) =
   skip-⋜ f1' ft2 f2 h2<h1 h1∥h2 (⋜-irrelˡ l1⋜t2) 
 
-⋜-irrelʳ : {l1 l2 : List Carrier} → {f1 : IsFreeList _<_ _⊑_ l1} → {f2 : IsFreeList _<_ _⊑_ l2} → 
-          {f2' : IsFreeList _<_ _⊑_ l2} → (l1 , f1) ⋜ (l2 , f2) → (l1 , f1) ⋜ (l2 , f2')
+⋜-irrelʳ : {l1 l2 : List Carrier} → {f1 : IsFreeList l1} → {f2 : IsFreeList l2} → 
+          {f2' : IsFreeList l2} → (l1 , f1) ⋜ (l2 , f2) → (l1 , f1) ⋜ (l2 , f2')
 
 ⋜-irrelʳ {.[]} {l2} {.[]-Free} {f2} {f2'} []-⋜ = []-⋜
 ⋜-irrelʳ {h1 ∷ t1} {h2 ∷ t2} {f1} {f2} {f2'} (cmp-⋜ ft1 .f1 .f2 h1⊑h2 t1⋜l2) = cmp-⋜ ft1 f1 f2' h1⊑h2 (⋜-irrelʳ t1⋜l2)
 ⋜-irrelʳ {h1 ∷ t1} {h2 ∷ t2} {f1} {f2} {f2'} (skip-⋜ .f1 ft2 .f2 h2<h1 h1∥h2 l1⋜t2) = skip-⋜ f1 ft2 f2' h2<h1 h1∥h2 l1⋜t2
 
-⋜-irrel : {l1 l2 : List Carrier} → {f1 : IsFreeList _<_ _⊑_ l1} → {f1' : IsFreeList _<_ _⊑_ l1} → 
-          {f2 : IsFreeList _<_ _⊑_ l2} → 
-          {f2' : IsFreeList _<_ _⊑_ l2} → (l1 , f1) ⋜ (l2 , f2) → (l1 , f1') ⋜ (l2 , f2')
+⋜-irrel : {l1 l2 : List Carrier} → {f1 : IsFreeList l1} → {f1' : IsFreeList l1} → 
+          {f2 : IsFreeList l2} → 
+          {f2' : IsFreeList l2} → (l1 , f1) ⋜ (l2 , f2) → (l1 , f1') ⋜ (l2 , f2')
 ⋜-irrel l1⋜l2 = ⋜-irrelˡ (⋜-irrelʳ l1⋜l2)
 
-
-⋜-push : (h2 : Carrier) → {l1 t2 : List Carrier} → {f1 : IsFreeList _<_ _⊑_ l1} → {ft2 : IsFreeList _<_ _⊑_ t2} → {f2 : IsFreeList _<_ _⊑_ (h2 ∷ t2)} → 
-         (l1 , f1) ⋜ (t2 , ft2) → (l1 , f1) ⋜ ((h2 ∷ t2) , f2)
-⋜-push h2 {.[]} {t2} {.[]-Free} {ft2} {f2} []-⋜ = []-⋜
-⋜-push h2 {h1 ∷ t1} {t2h ∷ t2t} {f1} {ft2} {f2} l1⋜t2@(cmp-⋜ ft1 .f1 ft2' h1⊑th2 t1⋜t2) with t1⋜l2 | h1 ∦? h2 
-  where 
-    t1⋜l2 : (t1 , ft1) ⋜ (h2 ∷ t2h ∷ t2t , f2)
-    t1⋜l2 = ⋜-push h2 t1⋜t2
-⋜-push h2 {h1 ∷ t1} {t2h ∷ t2t} {f1} {ft2} {f2} (cmp-⋜ ft1 .f1 ft2' h1⊑t2h t1⋜t2) | t1⋜l2 | l⊑r h1⊑h2 _ = cmp-⋜ ft1 f1 f2 h1⊑h2 t1⋜l2
-⋜-push h2 {h1 ∷ t1} {t2h ∷ t2t} {f1} {ft2} {f2@(∷-Free .h2 t2 _ incomp2 _)} (cmp-⋜ ft1 .f1 _ h1⊑t2h t1⋜t2) | t1⋜l2 | r⊑l _ h2⊑h1 = ⊥-elim $ incomp2 (here (inj₁ (transitive⊑ h2⊑h1 h1⊑t2h)))
-⋜-push h2 {h1 ∷ t1} {t2h ∷ t2t} {f1} {ft2} {f2} (cmp-⋜ ft1 .f1 ft2' h1⊑t2h t1⋜t2) | t1⋜l2 | l≡r h1≡h2 = cmp-⋜ ft1 f1 f2 (reflexive h1≡h2) t1⋜l2
-⋜-push h2 {h1 ∷ t1} {t2h ∷ t2t} {f1} {ft2} {f2@(∷-Free .h2 t2 min2 _ _)} l1⋜t2@(cmp-⋜ ft1 .f1 ft2' h1⊑t2h t1⋜t2) | t1⋜l2 | l∥r h1∥h2 with compare h1 h2
-... | tri< h1<h2 _ _ = ⊥-elim $ (unimodality h1<h2 (head min2) (∦-refl h1) h1∥h2) (inj₁ h1⊑t2h)
-... | tri≈ _ h1≡h2 _ = ⊥-elim $ h1∥h2 (inj₁ (reflexive h1≡h2))
-... | tri> _ _ h2<h1 = skip-⋜ f1 ft2 f2 h2<h1 h1∥h2 l1⋜t2 
-⋜-push h2 {h1 ∷ t1} {t2h ∷ t2t} {f1} {ft2} {f2} (skip-⋜ .f1 ft2' _ t2h<h1 h1∥t2h l1⋜t2) with compare h1 h2
-⋜-push h2 {h1 ∷ t1} {t2h ∷ t2t} {f1} {ft2} {f2@(∷-Free _ _ min2 _ _)} (skip-⋜ .f1 ft2' _ t2h<h1 h1∥t2h l1⋜t2t) | tri< h1<h2 _ _ = 
-  ⊥-elim $ irrefl PE.refl $ (transitive< (transitive< h1<h2 (head min2)) t2h<h1) 
-⋜-push .h1 {h1 ∷ t1} {t2h ∷ t2t} {f1} {ft2} {f2@(∷-Free _ _ min2 _ _)} (skip-⋜ .f1 ft2' _ t2h<h1 h1∥t2h l1⋜t2t) | tri≈ _ h1≡h2@PE.refl _ =
-  ⊥-elim $ irrefl PE.refl $ (transitive< t2h<h1 (head min2))
-⋜-push h2 {h1 ∷ t1} {t2@(t2h ∷ t2t)} {f1} {ft2} {f2@(∷-Free _ _ min2 incomp2 _)} l1⋜t2@(skip-⋜ .f1 ft2' _ t2h<h1 h1∥t2h l1⋜t2t) | tri> _ _ h2<h1 = 
-  skip-⋜ f1 ft2 f2 h2<h1 (∥-sym h2∥h1) l1⋜t2 
+⋜-refl : {x y : Carrier-FP} → x ≈ y → x ⋜ y
+⋜-refl {.[] , f1} {.[] , f2} [] =  ⋜-irrelˡ $ []-⋜
+⋜-refl {l1@(h1 ∷ t1) , f1@(∷-Free _ _ _ _ ft1)} {l2@(h2 ∷ t2) , f2@(∷-Free _ _ _ _ ft2)} (h1~h2 ∷ t1≈t2) = 
+  E-l1l2.from ⟨$⟩ l1≤l2
   where
-    h2∥th2 : h2 ∥ t2h
-    h2∥th2 h2∦t2h = incomp2 (here h2∦t2h)
+    module E-t1t2 = Equivalence (⋜⇔≤ {t1 , ft1} {t2 , ft2})
+    module E-l1l2 = Equivalence (⋜⇔≤ {l1 , f1} {l2 , f2})
 
-    h2∥h1 : h2 ∥ h1
-    h2∥h1 h2∦h1 = (unimodality (head min2) t2h<h1 (∦-refl h2) h2∥th2) h2∦h1 
+    t1≤t2 : (t1 , ft1) ≤ (t2 , ft2)
+    t1≤t2 = E-t1t2.to ⟨$⟩ (⋜-refl {t1 , ft1} {t2 , ft2} t1≈t2) 
 
-⋜-peel : {h1 : Carrier} → {t1 l2 : List Carrier} → {f1 : IsFreeList _<_ _⊑_ (h1 ∷ t1)} → {ft1 : IsFreeList _<_ _⊑_ t1} → {f2 : IsFreeList _<_ _⊑_ l2} → 
-            ((h1 ∷ t1) , f1) ⋜ (l2 , f2) → (t1 , ft1) ⋜ (l2 , f2)
-⋜-peel {h1} {t1} {h2 ∷ t2} {f1} {ft1} {f2} (cmp-⋜ ft1' .f1 .f2 h1⊑h2 t1⋜l2) = ⋜-irrelˡ t1⋜l2
-⋜-peel {h1} {t1} {h2 ∷ t2} {f1} {ft1} {f2} (skip-⋜ .f1 ft2 .f2 h2<h1 h1∥h2 l1⋜t2) = q
-  where 
-    p : (t1 , ft1) ⋜ (t2 , ft2)
-    p = ⋜-peel l1⋜t2
-
-    q : (t1 , ft1) ⋜ (h2 ∷ t2 , f2)
-    q = ⋜-push h2 p
-
-⋜-discard : {h1 h2 : Carrier} → {t1 t2 : List Carrier} → (f1 : IsFreeList _<_ _⊑_ (h1 ∷ t1)) →
-            (ft1 : IsFreeList _<_ _⊑_ t1) → (f2 : IsFreeList _<_ _⊑_ (h2 ∷ t2)) → 
-            (ft2 : IsFreeList _<_ _⊑_ t2) → (h1 ⊑ h2) → (t1 , ft1) ⋜ ((h2 ∷ t2) , f2) →
-            ((h1 ∷ t1) , f1) ⋜ ((h2 ∷ t2) , f2)  
-⋜-discard {h1} {h2} {.[]} {t2} f1 .[]-Free f2 ft2 h1⊑h2 []-⋜ = 
-    cmp-⋜ []-Free f1 f2 h1⊑h2 []-⋜
-⋜-discard {h1} {h2} {t1h ∷ t1t} {t2} f1 ft1@(∷-Free .t1h .t1t min-t1 incomp-t1 ftt1) f2 ft2 h1⊑h2 (cmp-⋜ ftt1' .ft1 .f2 t1h⊑h2 t1t⋜h2t2) = 
-    cmp-⋜ ft1 f1 f2 h1⊑h2 (⋜-discard ft1 ftt1 f2 ft2 t1h⊑h2 (⋜-irrelˡ t1t⋜h2t2))
-⋜-discard {h1} {h2} {t1h ∷ t1t} {t2} f1 ft1 f2 ft2 h1⊑h2 t1⋜h2t2@(skip-⋜ .ft1 ft2' .f2 h2<t1h t1h∥h2 t1⋜t2) = 
-    cmp-⋜ ft1 f1 f2 h1⊑h2 t1⋜h2t2
-
-⋜-tran-lemma : {l1 l2 l3 : List Carrier} → (f1 : IsFreeList _<_ _⊑_ l1) → (f2 : IsFreeList _<_ _⊑_ l2) → 
-            (f3 : IsFreeList _<_ _⊑_ l3) → ((l1 , f1) ⋜ (l2 , f2)) → ((l2 , f2) ⋜ (l3 , f3)) → ((l1 , f1) ⋜ (l3 , f3))
-
-⋜-tran-lemma {.[]} {l2} {l3} f1 f2 f3 []-⋜ l2⋜l3 = []-⋜ 
-⋜-tran-lemma {h1 ∷ t1} {h2 ∷ t2} {l3} f1@(∷-Free _ _ _ _ ft1) f2 f3 (cmp-⋜ ft1' .f1 .f2 h1⊑h2 t1⋜l2) l2⋜l3 with t1⋜l3 
-    where
-      t1⋜l3 : (t1 , ft1) ⋜ (l3 , f3)
-      t1⋜l3 = ⋜-tran-lemma ft1 f2 f3 (⋜-irrelˡ t1⋜l2) l2⋜l3 
-⋜-tran-lemma {h1 ∷ t1} {h2 ∷ t2} {h3 ∷ t3} f1@(∷-Free .h1 .t1 _ _ ft1) f2 f3@(∷-Free _ _ _ _ ft3) (cmp-⋜ ft1' .(∷-Free h1 t1 _ _ ft1) .f2 h1⊑h2 t1⋜l2) (cmp-⋜ c'-free .f2 .(∷-Free _ _ _ _ ft3) h2⊑h3 t2⋜l3) | t1⋜l3 = 
-    ⋜-discard f1 ft1 f3 ft3 h1⊑h3 t1⋜l3
-    where
-      h1⊑h3 : h1 ⊑ h3
-      h1⊑h3 = transitive⊑ h1⊑h2 h2⊑h3
-⋜-tran-lemma {h1 ∷ t1} {h2 ∷ t2} {h3 ∷ t3} f1@(∷-Free _ _ _ _ ft1) f2 f3@(∷-Free _ _ _ _ ft3) l1⋜l2@(cmp-⋜ ft1' .(∷-Free _ _ _ _ ft1) .f2 h1⊑h2 t1⋜l2) l2⋜l3@(skip-⋜ .f2 ft3' .(∷-Free _ _ _ _ ft3) h3<h2 h2∥h3 l2⋜t3) | t1⋜l3 with compare h1 h3
-⋜-tran-lemma {h1 ∷ t1} {h2 ∷ t2} {h3 ∷ t3} (∷-Free .h1 .t1 _ _ ft1) f2 (∷-Free .h3 .t3 _ _ ft3) (cmp-⋜ ft1' .(∷-Free h1 t1 _ _ ft1) .f2 h1⊑h2 t1⋜l2) (skip-⋜ .f2 ft3' .(∷-Free h3 t3 _ _ ft3) h3<h2 h2∥h3 l2⋜t3) | t1⋜l3 | tri< h1<h3 _ _ with h1 ∦? h3
-⋜-tran-lemma {h1 ∷ t1} {h2 ∷ t2} {h3 ∷ t3} f1@(∷-Free .h1 .t1 _ _ ft1) f2 f3@(∷-Free .h3 .t3 _ _ ft3) (cmp-⋜ ft1' .(∷-Free h1 t1 _ _ ft1) .f2 h1⊑h2 t1⋜l2) (skip-⋜ .f2 ft3' .(∷-Free h3 t3 _ _ ft3) h3<h2 h2∥h3 l2⋜t3) | t1⋜l3 | tri< h1<h3 _ _ | l⊑r h1⊑h3 ¬h3⊑h1 = ⋜-discard f1 ft1 f3 ft3 h1⊑h3 t1⋜l3 
-⋜-tran-lemma {h1 ∷ t1} {h2 ∷ t2} {h3 ∷ t3} (∷-Free .h1 .t1 _ _ ft1) f2 (∷-Free .h3 .t3 _ _ ft3) (cmp-⋜ ft1' .(∷-Free h1 t1 _ _ ft1) .f2 h1⊑h2 t1⋜l2) (skip-⋜ .f2 ft3' .(∷-Free h3 t3 _ _ ft3) h3<h2 h2∥h3 l2⋜t3) | t1⋜l3 | tri< h1<h3 _ _ | r⊑l ¬h1⊑h3 h3⊑h1 = ⊥-elim $ h2∥h3 (inj₂ (transitive⊑ h3⊑h1 h1⊑h2))
-⋜-tran-lemma {h1 ∷ t1} {h2 ∷ t2} {h3 ∷ t3} (∷-Free .h1 .t1 _ _ ft1) f2 (∷-Free .h3 .t3 _ _ ft3) (cmp-⋜ ft1' .(∷-Free h1 t1 _ _ ft1) .f2 h1⊑h2 t1⋜l2) (skip-⋜ .f2 ft3' .(∷-Free h3 t3 _ _ ft3) h3<h2 h2∥h3 l2⋜t3) | t1⋜l3 | tri< h1<h3 _ _ | l≡r h1≡h3@PE.refl = ⊥-elim $ h2∥h3 (inj₂ h1⊑h2)
-⋜-tran-lemma {h1 ∷ t1} {h2 ∷ t2} {h3 ∷ t3} (∷-Free .h1 .t1 _ _ ft1) f2 (∷-Free .h3 .t3 _ _ ft3) (cmp-⋜ ft1' .(∷-Free h1 t1 _ _ ft1) .f2 h1⊑h2 t1⋜l2) (skip-⋜ .f2 ft3' .(∷-Free h3 t3 _ _ ft3) h3<h2 h2∥h3 l2⋜t3) | t1⋜l3 | tri< h1<h3 _ _ | l∥r h1∥h3 = ⊥-elim $ (unimodality h1<h3 h3<h2 (inj₁ $ reflexive PE.refl) h1∥h3) (inj₁ h1⊑h2)
-
-⋜-tran-lemma {h1 ∷ t1} {h2 ∷ t2} {h3 ∷ t3} (∷-Free .h1 .t1 _ _ ft1) f2 (∷-Free .h3 .t3 _ _ ft3) (cmp-⋜ ft1' .(∷-Free h1 t1 _ _ ft1) .f2 h1⊑h2 t1⋜l2) (skip-⋜ .f2 ft3' .(∷-Free h3 t3 _ _ ft3) h3<h2 h2∥h3 l2⋜t3) | t1⋜l3 | tri≈ _ h1≡h3@PE.refl _ = 
-    ⊥-elim $ h2∥h3 (inj₂ h1⊑h2)
-⋜-tran-lemma {h1 ∷ t1} {h2 ∷ t2} {h3 ∷ t3} (∷-Free .h1 .t1 _ _ ft1) f2 (∷-Free .h3 .t3 _ _ ft3) (cmp-⋜ ft1' .(∷-Free h1 t1 _ _ ft1) .f2 h1⊑h2 t1⋜l2) (skip-⋜ .f2 ft3' .(∷-Free h3 t3 _ _ ft3) h3<h2 h2∥h3 l2⋜t3) | t1⋜l3 | tri> _ _ h3<h1 with h1 ∦? h3 
-⋜-tran-lemma {h1 ∷ t1} {h2 ∷ t2} {h3 ∷ t3} f1@(∷-Free .h1 .t1 _ _ ft1) f2 f3@(∷-Free .h3 .t3 _ _ ft3) (cmp-⋜ ft1' .(∷-Free h1 t1 _ _ ft1) .f2 h1⊑h2 t1⋜l2) (skip-⋜ .f2 ft3' .(∷-Free h3 t3 _ _ ft3) h3<h2 h2∥h3 l2⋜t3) | t1⋜l3 | tri> _ _ h3<h1 | l⊑r h1⊑h3 ¬h3⊑h1 = ⋜-discard f1 ft1 f3 ft3 h1⊑h3 t1⋜l3
-⋜-tran-lemma {h1 ∷ t1} {h2 ∷ t2} {h3 ∷ t3} (∷-Free .h1 .t1 _ _ ft1) f2 (∷-Free .h3 .t3 _ _ ft3) (cmp-⋜ ft1' .(∷-Free h1 t1 _ _ ft1) .f2 h1⊑h2 t1⋜l2) (skip-⋜ .f2 ft3' .(∷-Free h3 t3 _ _ ft3) h3<h2 h2∥h3 l2⋜t3) | t1⋜l3 | tri> _ _ h3<h1 | r⊑l ¬h1⊑h3 h3⊑h1 = ⊥-elim $ h2∥h3 (inj₂ (transitive⊑ h3⊑h1 h1⊑h2))
-⋜-tran-lemma {h1 ∷ t1} {h2 ∷ t2} {h3 ∷ t3} f1@(∷-Free .h1 .t1 _ _ ft1) f2 f3@(∷-Free .h3 .t3 _ _ ft3) (cmp-⋜ ft1' .(∷-Free h1 t1 _ _ ft1) .f2 h1⊑h2 t1⋜l2) (skip-⋜ .f2 ft3' .(∷-Free h3 t3 _ _ ft3) h3<h2 h2∥h3 l2⋜t3) | t1⋜l3 | tri> _ _ h3<h1 | l≡r h1≡h3 = ⋜-discard f1 ft1 f3 ft3 (reflexive h1≡h3) t1⋜l3
-⋜-tran-lemma {h1 ∷ t1} {h2 ∷ t2} {h3 ∷ t3} f1@(∷-Free .h1 .t1 _ _ ft1) f2 f3@(∷-Free .h3 .t3 _ _ ft3) l1⋜l2@(cmp-⋜ ft1' .(∷-Free h1 t1 _ _ ft1) .f2 h1⊑h2 t1⋜l2) (skip-⋜ .f2 ft3' .(∷-Free h3 t3 _ _ ft3) h3<h2 h2∥h3 l2⋜t3) | t1⋜l3 | tri> _ _ h3<h1 | l∥r h1∥h3 = skip-⋜ f1 ft3 f3 h3<h1 h1∥h3 ((⋜-tran-lemma f1 f2 ft3 l1⋜l2 (⋜-irrelʳ l2⋜t3)))
-⋜-tran-lemma {h1 ∷ t1} {h2 ∷ t2} {l3} f1 f2 f3 (skip-⋜ .f1 ft2 .f2 x x₁ l1⋜l2) l2⋜l3 =  ⋜-irrelʳ $ ⋜-tran-lemma f1 ft2 f3 l1⋜l2 (⋜-peel l2⋜l3)
-
-⋜-trans : {s1 s2 s3 : Carrier-FP} → s1 ⋜ s2 → s2 ⋜ s3 → s1 ⋜ s3
-⋜-trans {l1 , f1} {l2 , f2} {l3 , f3} s1⋜s2 s2⋜s3 = ⋜-tran-lemma f1 f2 f3 s1⋜s2 s2⋜s3   
-
-⋜-incomp-lemma : {h : Carrier} → {t1 t2 : List Carrier} → {ft1 : IsFreeList _<_ _⊑_ t1} → {ft2 : IsFreeList _<_ _⊑_ t2} → {fht2 : IsFreeList _<_ _⊑_ (h ∷ t2)} → 
-                    ¬ (Any (h ∦_) t1) → ¬ (Any (h ∦_) t2) → (t1 , ft1) ⋜ (h ∷ t2 , fht2) → (t1 , ft1) ⋜ (t2 , ft2)
-⋜-incomp-lemma {h} {.[]} {t2} {.[]-Free} {ft2} {fht2} incomp1 incomp2 []-⋜ = []-⋜ 
-⋜-incomp-lemma {h} {t1h ∷ t1t} {t2} {.ft1} {ft2} {.fht2} incomp1 incomp2 (cmp-⋜ ft1t ft1 fht2 t1h⊑h t1⋜h2t) = ⊥-elim $ incomp1 (here (inj₂ t1h⊑h))
-⋜-incomp-lemma {h} {t1h ∷ t1t} {t2} {.ft1} {ft2} {.fht2} incomp1 incomp2 (skip-⋜ ft1 _ fht2 h<t1h t1h∥h t1⋜h2t) = ⋜-irrelʳ t1⋜h2t
-
-⋜-antisym-lemma : {l1 l2 : List Carrier} → {f1 : IsFreeList _<_ _⊑_ l1} → {f2 : IsFreeList _<_ _⊑_ l2} → (l1 , f1) ⋜ (l2 , f2) → (l2 , f2) ⋜ (l1 , f1) → l1 ≡ l2
-⋜-antisym-lemma {.[]} {[]} {.[]-Free} {f2} []-⋜ _ = PE.refl
-⋜-antisym-lemma {.[]} {h2 ∷ l2} {.[]-Free} {f2} []-⋜ ()
-⋜-antisym-lemma {h1 ∷ t1} {h2 ∷ t2} {f1} {f2} l1⋜l2@(cmp-⋜ ft1 _ _ h1⊑h2 t1⋜l2) l2⋜l1@(cmp-⋜ ft2 _ _ h2⊑h1 t2⋜l1) with h1≡h2
-  where
-    h1≡h2 : h1 ≡ h2
-    h1≡h2 = antisym h1⊑h2 h2⊑h1
-⋜-antisym-lemma{h1 ∷ t1} {.h1 ∷ t2} {f1@(∷-Free .h1 .t1 min1 incomp1 _)} {f2@(∷-Free .h1 .t2 min2 incomp2 _)} (cmp-⋜ ft1 _ _ _ t1⋜l2) (cmp-⋜ ft2 _ _ h1⊑h1 t2⋜l1) | PE.refl with (⋜-antisym-lemma t1⋜t2 t2⋜t1) 
-  where
-    t1⋜t2 : (t1 , ft1) ⋜ (t2 , ft2)
-    t1⋜t2 = ⋜-incomp-lemma incomp1 incomp2 t1⋜l2
-
-    t2⋜t1 : (t2 , ft2) ⋜ (t1 , ft1)
-    t2⋜t1 = ⋜-incomp-lemma incomp2 incomp1 t2⋜l1
-⋜-antisym-lemma {h1 ∷ t1} {.h1 ∷ t2} {f1@(∷-Free .h1 .t1 min1 incomp1 _)} {f2@(∷-Free .h1 .t2 min2 incomp2 _)} (cmp-⋜ ft1 _ _ _ t1⋜l2) (cmp-⋜ ft2 _ _ h1⊑h1 t2⋜l1) | PE.refl | PE.refl = PE.refl
-⋜-antisym-lemma {h1 ∷ t1} {h2 ∷ t2} {f1@(∷-Free .h1 .t1 min1 incomp1 _)} {f2@(∷-Free .h2 .t2 min2 incomp2 _)} (skip-⋜ f1 _ f2 h2<h1 h1∥h2 l1⋜t2) (cmp-⋜ ft2 _ _ h1⊑h1 t2⋜l1) with (⋜-antisym-lemma l1⋜t2 (⋜-irrelˡ t2⋜l1))
-⋜-antisym-lemma {h1 ∷ t1} {h2 ∷ t2} {f1@(∷-Free .h1 .t1 min1 incomp1 _)} {f2@(∷-Free .h2 .t2 min2 incomp2 _)} (skip-⋜ f1 _ _ h2<h1 h1∥h2 l1⋜t2) (cmp-⋜ ft2 _ _ h2⊑h1 t2⋜l1) | PE.refl = ⊥-elim $ incomp2 (here (inj₁ h2⊑h1)) 
-⋜-antisym-lemma {h1 ∷ t1} {h2 ∷ t2} {f1@(∷-Free .h1 .t1 min1 incomp1 _)} {f2@(∷-Free .h2 .t2 min2 incomp2 _)} (cmp-⋜ _ _ _ h1⊑h2 t1⋜l2) (skip-⋜ _ _ _ h1<h2 h2∥h1 l2⋜t1) with (⋜-antisym-lemma l2⋜t1 (⋜-irrelˡ t1⋜l2))
-⋜-antisym-lemma {h1 ∷ t1} {h2 ∷ t2} {f1@(∷-Free .h1 .t1 min1 incomp1 _)} {f2@(∷-Free .h2 .t2 min2 incomp2 _)} (cmp-⋜ _ _ _ h1⊑h2 t1⋜l2) (skip-⋜ _ _ _ h1<h2 h2∥h1 l2⋜t1) | PE.refl = ⊥-elim $ incomp1 (here (inj₁ h1⊑h2)) 
-⋜-antisym-lemma {h1 ∷ t1} {h2 ∷ t2} {f1@(∷-Free .h1 .t1 min1 incomp1 _)} {f2@(∷-Free .h2 .t2 min2 incomp2 _)} (skip-⋜ _ _ _ h2<h1 h1∥h2 l1⋜t2) (skip-⋜ _ _ _ h1<h2 h2∥h1 l2⋜t1) = ⊥-elim $ irrefl PE.refl $ (transitive< h1<h2 h2<h1)
-
-⋜-antisym : {s1 s2 : Carrier-FP} → (s1 ⋜ s2) → (s2 ⋜ s1) → s1 ≈ s2
-⋜-antisym {l1 , f1} {l2 , f2} s1⋜s2 s2⋜s1 = ⋜-antisym-lemma s1⋜s2 s2⋜s1 
-
-
-⋜-cong : (h : Carrier) → {l1 l2 : List Carrier} → {f1 : IsFreeList _<_ _⊑_ l1} → {f2 : IsFreeList _<_ _⊑_ l2} →
-         (f1' : IsFreeList _<_ _⊑_ (h ∷ l1)) → (f2' : IsFreeList _<_ _⊑_ (h ∷ l2)) → (l1 , f1) ⋜ (l2 , f2) → 
-         (h ∷ l1 , f1') ⋜ (h ∷ l2 , f2')
-
-⋜-cong h {l1} {l2} {f1} {f2} f1' f2' l1⋜l2 = cmp-⋜ f1 f1' f2' (reflexive PE.refl) (⋜-push h l1⋜l2)
+    l1≤l2 : (h1 ∷ t1 , f1) ≤ (h2 ∷ t2 , f2) 
+    l1≤l2 = (here $ reflexive h1~h2) ∷ (LA.map there t1≤t2)
+ 
+sng-free : {c : Carrier} → (IsFreeList (c ∷ []))
+sng-free {c} = ∷-Free c [] [] (λ ()) []-Free
 
 ≤-refl : {x y : Carrier-FP} → x ≈ y → x ≤ y
 ≤-refl {x} {y} x≈y = to ⟨$⟩ ⋜-refl x≈y  
@@ -198,20 +99,98 @@ sng-free {c} = ∷-Free c [] [] (λ ()) []-Free
     open Equivalence (⋜⇔≤ {x} {y})
 
 ≤-trans : {s1 s2 s3 : Carrier-FP} → s1 ≤ s2 → s2 ≤ s3 → s1 ≤ s3
-≤-trans {s1} {s2} {s3} s1≤s2 s2≤s3 = E13.to ⟨$⟩ (⋜-trans (E12.from ⟨$⟩ s1≤s2) (E23.from ⟨$⟩ s2≤s3))  
+≤-trans {l1 , f1} {l2 , f2} {l3 , f3} s1≤s2 s2≤s3 = 
+  LA.tabulate tab
   where
-    module E12 = Equivalence (⋜⇔≤ {s1} {s2}) 
-    module E23 = Equivalence (⋜⇔≤ {s2} {s3}) 
-    module E13 = Equivalence (⋜⇔≤ {s1} {s3})
+    tab : {x : Carrier} → x ∈≡ l1 → Any (x ⊑_) l3
+    tab {x} x∈≡l1 = anyEliminate l2 elim (LA.lookup s1≤s2 x∈≡l1)
+      where
+        elim : AnyEliminator {ℓQ = l0} Carrier (Any (x ⊑_) l3) (x ⊑_) l2
+        elim a f x⊑a a∈≡l2 = LAny.map (λ a⊑· → trans⊑ x⊑a a⊑·) (LA.lookup s2≤s3 a∈≡l2)
 
 ≤-antisym : {s1 s2 : Carrier-FP} → (s1 ≤ s2) → (s2 ≤ s1) → s1 ≈ s2
-≤-antisym {s1} {s2} s1≤s2 s2≤s1 = ⋜-antisym (E12.from ⟨$⟩ s1≤s2) (E21.from ⟨$⟩ s2≤s1)
+≤-antisym {[] , f1} {[] , f2} s1≤s2 s2≤s1 = 
+  []
+≤-antisym {[] , f1} {h2 ∷ t2 , f2} s1≤s2 s2≤s1 = 
+  ⊥-elim $ ¬Any[] (LA.head s2≤s1)
+≤-antisym {h1 ∷ t1 , f1} {[] , f2} s1≤s2 s2≤s1 = 
+  ⊥-elim $ ¬Any[] (LA.head s1≤s2)
+≤-antisym {l1@(h1 ∷ t1) , f1@(∷-Free _ _ min1 incomp1 ft1)} {l2@(h2 ∷ t2) , f2@(∷-Free _ _ min2 incomp2 ft2)} (h1⊑l2 ∷ t1≤l2) (h2⊑l1 ∷ t2≤l1) = 
+  let 
+    t1≈t2 : (t1 , ft1) ≈ (t2 , ft2)
+    t1≈t2 = ≤-antisym {t1 , ft1} {t2 , ft2} t1≤t2 t2≤t1
+  in
+  h1~h2 ∷ t1≈t2
   where
-    module E12 = Equivalence (⋜⇔≤ {s1} {s2}) 
-    module E21 = Equivalence (⋜⇔≤ {s2} {s1}) 
+    elim : AnyEliminator {ℓQ = l0} Carrier (h1 ~ h2) (h1 ⊑_) l2
+    elim a f h1⊑a (here a≡h2@PE.refl) = anyEliminate l1 elim' h2⊑l1
+      where
+        elim' : AnyEliminator {ℓQ = ℓ⊑} Carrier (h1 ~ h2) (h2 ⊑_) l1
+        elim' x f h2⊑x (here x≡h1@PE.refl) = 
+          let
+            h2~h1 : h2 ~ h1
+            h2~h1 = antisym (trans⊑ h2⊑x (reflexive refl~)) h1⊑a  
+          in
+          sym~ h2~h1
+        elim' x f h2⊑x (there x∈≡t1) = 
+          let
+            h1⊑x : h1 ⊑ x 
+            h1⊑x = trans⊑ h1⊑a h2⊑x
+          in
+          ⊥-elim $ incomp1 $ LAny.map (λ x~· → inj₁ $ trans⊑ h1⊑x $ reflexive x~·) (a∈≡l→a∈l x∈≡t1)  
+    elim a f h1⊑a (there a∈≡t2) with a⊑l1
+      where
+        a⊑l1 : Any (a ⊑_) l1
+        a⊑l1 = LA.lookup t2≤l1 a∈≡t2  
+    elim a f h1⊑a (there a∈≡t2) | here a⊑h1 =
+      ⊥-elim $ anyEliminate l1 elim' h2⊑l1
+      where
+        a~h1 : a ~ h1
+        a~h1 = antisym a⊑h1 h1⊑a
 
-FP-Poset0 : Poset l1 l0 l0
-FP-Poset0 = record 
+        h2<h1 : h2 < h1
+        h2<h1 = <-respʳ-~ a~h1 (LA.lookup min2 a∈≡t2)
+        
+        h2∥h1 : h2 ∥ h1
+        h2∥h1 h2∦h1 = incomp2 $ LAny.map (λ a~· → (∦-respʳ-~ (trans~ (sym~ a~h1) a~·) h2∦h1)) (a∈≡l→a∈l a∈≡t2)
+
+        elim' : AnyEliminator {ℓQ = l0} Carrier ⊥ (h2 ⊑_) l1
+        elim' x f h2⊑x (here x≡h1@PE.refl) = 
+          h2∥h1 $ inj₁ (trans⊑ h2⊑x $ reflexive refl~) 
+        elim' x f h2⊑x (there x∈≡t1) = 
+          (unimodality h2<h1 (LA.lookup min1 x∈≡t1) (inj₁ $ reflexive refl~) h2∥h1) (inj₁ h2⊑x) 
+    elim a f h1⊑a (there a∈≡t2) | there a⊑t1 =
+      ⊥-elim $ incomp1 $ LAny.map (λ a⊑· → inj₁ $ trans⊑ h1⊑a a⊑·) a⊑t1
+
+    h1~h2 : h1 ~ h2
+    h1~h2 = anyEliminate l2 elim h1⊑l2
+
+    t1≤t2 : (t1 , ft1) ≤ (t2 , ft2)
+    t1≤t2 = LA.tabulate tab
+      where
+        tab : {x : Carrier} → x ∈≡ t1 → Any (x ⊑_) t2
+        tab {x} x∈≡t1 with (LA.lookup t1≤l2 x∈≡t1) 
+        tab {x} x∈≡t1 | here x⊑h2 = 
+          let 
+            x⊑h1 = ⊑-respʳ-~ (sym~ h1~h2) x⊑h2
+          in
+          ⊥-elim $ incomp1 $ LAny.map (λ x~· → inj₂ $ ⊑-respˡ-~ x~· x⊑h1) (a∈≡l→a∈l x∈≡t1) 
+        tab {x} x∈≡t1 | there x⊑t2 = x⊑t2
+
+    t2≤t1 : (t2 , ft2) ≤ (t1 , ft1)
+    t2≤t1 = LA.tabulate tab
+      where
+        tab : {x : Carrier} → x ∈≡ t2 → Any (x ⊑_) t1
+        tab {x} x∈≡t2 with (LA.lookup t2≤l1 x∈≡t2) 
+        tab {x} x∈≡t2 | here x⊑h1 = 
+          let 
+            x⊑h2 = ⊑-respʳ-~ h1~h2 x⊑h1
+          in
+          ⊥-elim $ incomp2 $ LAny.map (λ x~· → inj₂ $ ⊑-respˡ-~ x~· x⊑h2) (a∈≡l→a∈l x∈≡t2) 
+        tab {x} x∈≡t2 | there x⊑t1 = x⊑t1
+
+FP-Poset : Poset _ _ _
+FP-Poset = record 
     {
     Carrier = Carrier-FP ; 
     _≈_ = _≈_ ;

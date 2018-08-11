@@ -37,6 +37,14 @@ record DeltaPoset {c ℓ⊑ ℓ< ℓ≈ : Level} : Set (Level.suc $ c ⊔ ℓ⊑
 
   module Eq = IsStrictTotalOrder.Eq isStrictTotalOrder
 
+  strictTotalOrder : StrictTotalOrder c ℓ≈ ℓ<
+  strictTotalOrder = record
+    { Carrier = Carrier
+    ; _<_ = _<_
+    ; _≈_ = _≈_
+    ; isStrictTotalOrder = isStrictTotalOrder
+    }
+
   trans⊑ : Transitive _⊑_
   trans⊑ = IsDecPartialOrder.trans isDecPartialOrder
 
@@ -52,6 +60,9 @@ record DeltaPoset {c ℓ⊑ ℓ< ℓ≈ : Level} : Set (Level.suc $ c ⊔ ℓ⊑
   refl≈ : Reflexive _≈_
   refl≈ = IsDecEquivalence.refl isDecEquivalence
 
+  _≈?_ : Decidable _≈_
+  _≈?_ = IsDecEquivalence._≟_ isDecEquivalence 
+
   ≈-decSetoid : DecSetoid c ℓ≈
   ≈-decSetoid =
     record
@@ -59,8 +70,6 @@ record DeltaPoset {c ℓ⊑ ℓ< ℓ≈ : Level} : Set (Level.suc $ c ⊔ ℓ⊑
     ; _≈_ = _≈_
     ; isDecEquivalence = isDecEquivalence
     }
-
-  _≈?_ = _≟_
 
   _∦_ : Rel Carrier ℓ⊑
   a ∦ b = (a ⊑ b) ⊎ (b ⊑ a)
@@ -106,14 +115,20 @@ record DeltaPoset {c ℓ⊑ ℓ< ℓ≈ : Level} : Set (Level.suc $ c ⊔ ℓ⊑
       z (inj₁ x⊑y) = ¬x⊑y x⊑y
       z (inj₂ y⊑x) = ¬y⊑x y⊑x
   
-  ∦-resp-≈ˡ : {a b c : Carrier} → (a ∦ c) → (a ≈ b) → (b ∦ c)
-  ∦-resp-≈ˡ (inj₁ a⊑c) a≈b = inj₁ $ trans⊑ (reflexive $ sym≈ a≈b) a⊑c
-  ∦-resp-≈ˡ (inj₂ c⊑a) a≈b = inj₂ $ trans⊑ c⊑a (reflexive a≈b)
+  ∦-respˡ-≈ : {a b c : Carrier} → (a ≈ b) → (a ∦ c) → (b ∦ c)
+  ∦-respˡ-≈ a≈b (inj₁ a⊑c) = inj₁ $ trans⊑ (reflexive $ sym≈ a≈b) a⊑c
+  ∦-respˡ-≈ a≈b (inj₂ c⊑a) = inj₂ $ trans⊑ c⊑a (reflexive a≈b)
 
-  ∦-resp-≈ʳ : {a b c : Carrier} → (c ∦ a) → (a ≈ b) → (c ∦ b)
-  ∦-resp-≈ʳ (inj₁ c⊑a) a≈b = inj₁ $ trans⊑ c⊑a (reflexive a≈b)
-  ∦-resp-≈ʳ (inj₂ a⊑c) a≈b = inj₂ $ trans⊑ (reflexive $ sym≈ a≈b) a⊑c 
- 
+  ∦-respʳ-≈ : {a b c : Carrier} → (a ≈ b) → (c ∦ a) → (c ∦ b)
+  ∦-respʳ-≈ a≈b (inj₁ c⊑a) = inj₁ $ trans⊑ c⊑a (reflexive a≈b)
+  ∦-respʳ-≈ a≈b (inj₂ a⊑c) = inj₂ $ trans⊑ (reflexive $ sym≈ a≈b) a⊑c 
+
+  ∥-respˡ-≈ : {a b c : Carrier} → (a ≈ b) → (a ∥ c)  → (b ∥ c)
+  ∥-respˡ-≈ a≈b a∥c b∦c = a∥c (∦-respˡ-≈ (sym≈ a≈b) b∦c)
+
+  ∥-respʳ-≈ : {a b c : Carrier} → (a ≈ b) → (c ∥ a) → (c ∥ b)
+  ∥-respʳ-≈ a≈b c∥a c∦b = c∥a (∦-respʳ-≈ (sym≈ a≈b) c∦b)
+
   ⊑-respʳ-≈ = ≤-respʳ-≈ 
   ⊑-respˡ-≈ = ≤-respˡ-≈
 
