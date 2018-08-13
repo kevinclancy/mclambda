@@ -41,8 +41,14 @@ monotone P R f = ∀ {p p' : |P|} → p ⊑ₚ p' → (f p) ⊑ᵣ (f p')
     open DeltaPoset P renaming (_⊑_ to _⊑ₚ_ ; Carrier to |P|)
     open DeltaPoset R renaming (_⊑_ to _⊑ᵣ_ ; Carrier to |R|) 
 
-monic : ∀ {ℓA ℓB} → {A : Set ℓA} → {B : Set ℓB} → (A → B) → Set _
-monic {ℓA} {ℓB} {A} {B} f = ∀ {a a' : A} → (f a) ≡ (f a') → a ≡ a' 
+monic : ∀ {ℓA ℓA≈ ℓB ℓB≈} → (A : Setoid ℓA ℓA≈) → (B : Setoid ℓB ℓB≈) → (Setoid.Carrier A → Setoid.Carrier B) → 
+        Set _
+monic {ℓA} {ℓA≈} {ℓB} {ℓB≈} A B f = ∀ {a a' : |A|} → (f a) B≈ (f a') → a A≈ a' 
+  where
+    |A| = Setoid.Carrier A
+    |B| = Setoid.Carrier B
+    _A≈_ = Setoid._≈_ A
+    _B≈_ = Setoid._≈_ B 
 
 -- the space of monotone functions from delta poset P to delta poset R 
 _→+_ : {cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ cᵣ ℓ⊑ᵣ ℓ<ᵣ ℓ~ᵣ : Level} → DeltaPoset {cₚ} {ℓ⊑ₚ} {ℓ<ₚ} {ℓ~ₚ} → 
@@ -55,11 +61,12 @@ P →+ R = Σ[ f ∈ (|P| → |R|) ] monotone P R f
 -- the space of injective monotone functions (order embeddings) between delta posets
 _↣+_ : {cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ cᵣ ℓ⊑ᵣ ℓ<ᵣ ℓ~ᵣ : Level} → DeltaPoset {cₚ} {ℓ⊑ₚ} {ℓ<ₚ} {ℓ~ₚ} → 
         DeltaPoset {cᵣ} {ℓ⊑ᵣ} {ℓ<ᵣ} {ℓ~ᵣ} → Set _
-P ↣+ R = Σ[ f ∈ (|P| → |R|) ] monotone P R f × monic f
+P ↣+ R = Σ[ f ∈ (|P| → |R|) ] monotone P R f × monic P' R' f
   where
     open DeltaPoset P renaming (_⊑_ to _⊑ₚ_ ; Carrier to |P|)
     open DeltaPoset R renaming (_⊑_ to _⊑ᵣ_ ; Carrier to |R|) 
- 
+    P' = DeltaPoset.≈-setoid P
+    R' = DeltaPoset.≈-setoid R
 
 -- the space of bounded join semilattice homomorphisms between bounded join semilattices S and T
 _⇉_ : ∀ {c ℓ₁ ℓ₂ c' ℓ₁' ℓ₂'} → BoundedJoinSemilattice c ℓ₁ ℓ₂ → BoundedJoinSemilattice c' ℓ₁' ℓ₂' → Set (c ⊔ c' ⊔ ℓ₁')

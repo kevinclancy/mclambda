@@ -196,25 +196,33 @@ data _⋜_ : Carrier-FP → Carrier-FP → Set (Level.suc $ ℓ⊑ ⊔ ℓ< ⊔ 
   cmp-⋜ ft1 f1 f2 (reflexive h1~h2) t1⋜l2
 ≤→⋜ {h1 ∷ t1 , f1@(∷-Free _ _ _ _ ft1)} {h2 ∷ t2 , f2@(∷-Free _ _ _ _ _)} t1⋜l2@(there h1⊑t2 ∷ t1≤l2) | t1⋜l2 | l∥r h1∥h2 with compare h1 h2
 ≤→⋜ {h1 ∷ t1 , f1@(∷-Free _ _ _ _ ft1)} {h2 ∷ t2 , f2@(∷-Free _ _ min2 incomp2 _)} t1⋜l2@(there h1⊑t2 ∷ t1≤l2) | t1⋜l2 | l∥r h1∥h2 | tri< h1<h2 _ _ =
-  let
-    eliminator : AnyEliminator {ℓQ = l0} Carrier ⊥ (h1 ⊑_) t2
-    eliminator a f h1⊑a a∈t2 = (unimodality h1<h2 (LA.lookup min2 a∈t2) (∦-refl h1) h1∥h2) (inj₁ h1⊑a)
-  in
   ⊥-elim $ anyEliminate t2 eliminator h1⊑t2
+  where
+    eliminator : AnyEliminator {ℓQ = ℓ⊑} Carrier ⊥ (h1 ⊑_) t2
+    eliminator a f h1⊑a a∈t2 = 
+      let
+        h2∥a : h2 ∥ a
+        h2∥a h2∦a = incomp2 $ f (h2 ∦_) h2∦a
+      in
+      (unimodality h1<h2 (LA.lookup min2 a∈t2) h1∥h2 h2∥a) (inj₁ h1⊑a)
 ≤→⋜ {h1 ∷ t1 , f1@(∷-Free _ _ _ _ ft1)} {h2 ∷ t2 , f2@(∷-Free _ _ min2 incomp2 _)} t1⋜l2@(there h1⊑t2 ∷ t1≤l2) | t1⋜l2 | l∥r h1∥h2 | tri≈ _ h1~h2 _ =
   ⊥-elim $ h1∥h2 (inj₁ $ reflexive h1~h2) 
-≤→⋜ {h1 ∷ t1 , f1@(∷-Free _ _ min1 _ ft1)} {h2 ∷ t2 , f2@(∷-Free _ _ min2 incomp2 ft2)} l1⋜l2@(there h1⊑t2 ∷ t1≤l2) | t1⋜l2 | l∥r h1∥h2 | tri> _ _ h2<h1 =
+≤→⋜ {h1 ∷ t1 , f1@(∷-Free _ _ min1 incomp1 ft1)} {h2 ∷ t2 , f2@(∷-Free _ _ min2 incomp2 ft2)} l1⋜l2@(there h1⊑t2 ∷ t1≤l2) | t1⋜l2 | l∥r h1∥h2 | tri> _ _ h2<h1 =
   skip-⋜ f1 ft2 f2 h2<h1 h1∥h2 (≤→⋜ l1⋜t2)
   where
     p : Any (h1 ⊑_) t2
     p = h1⊑t2
 
     q : {x : Carrier} → x ∈≡ t1 → Any (x ⊑_) t2
-    q {x} x∈t1 with (LA.lookup l1⋜l2 (there x∈t1))
-    q {x} x∈t1 | (here x⊑h2) = ⊥-elim $ (unimodality h2<h1 h1<x (∦-refl h2) (∥-sym h1∥h2)) (inj₂ x⊑h2)
+    q {x} x∈≡t1 with (LA.lookup l1⋜l2 (there x∈≡t1))
+    q {x} x∈≡t1 | (here x⊑h2) = ⊥-elim $ (unimodality h2<h1 h1<x (∥-sym h1∥h2) h1∥x) (inj₂ x⊑h2)
       where
-        h1<x = LA.lookup min1 x∈t1
-    q {x} x∈t1 | (there x⊑t2) = x⊑t2
+        h1<x : h1 < x
+        h1<x = LA.lookup min1 x∈≡t1
+
+        h1∥x : h1 ∥ x 
+        h1∥x h1∦x = incomp1 $ LAny.map (λ x≡· → PE.subst (λ · → h1 ∦ ·) x≡· h1∦x) x∈≡t1 
+    q {x} x∈≡t1 | (there x⊑t2) = x⊑t2
 
     l1⋜t2 : All (λ x → Any (x ⊑_) t2) (h1 ∷ t1)
     l1⋜t2 = p ∷ (LA.tabulate q)
@@ -306,11 +314,13 @@ _∨_ : List Carrier → List Carrier → List Carrier
     incomp p = ∨-Any t1 (h2 ∷ t2) incomp1 h1∥h2t2 p
         where
         anyEliminator : AnyEliminator {ℓQ = l0} Carrier ⊥ (λ x → h1 ∦ x) t2
-        anyEliminator a f p a∈t2 = unimodality h1<h2 h2<a (∦-refl h1) h1∥h2 p
+        anyEliminator a f p a∈≡t2 = unimodality h1<h2 h2<a h1∥h2 h2∥a p
             where
             h2<a : h2 < a
-            h2<a = LA.lookup min2 a∈t2
-
+            h2<a = LA.lookup min2 a∈≡t2
+            
+            h2∥a : h2 ∥ a
+            h2∥a h2∦a = incomp2 $ LAny.map (λ a≡· → PE.subst (λ · → h2 ∦ ·) a≡· h2∦a) a∈≡t2
         h1∥t2 : ¬ (Any (λ x → h1 ∦ x) t2)
         h1∥t2 h1∦t2 = anyEliminate t2 anyEliminator h1∦t2
 
@@ -341,10 +351,13 @@ _∨_ : List Carrier → List Carrier → List Carrier
     incomp p = ∨-Any (h1 ∷ t1) t2 h2∥h1t1 incomp2 p
         where
         anyEliminator : AnyEliminator {ℓQ = l0} Carrier ⊥ (λ x → h2 ∦ x) t1
-        anyEliminator a f p a∈t1 = unimodality h2<h1 h1<a (∦-refl h2) (∥-sym h1∥h2) p
+        anyEliminator a f p a∈≡t1 = unimodality h2<h1 h1<a (∥-sym h1∥h2) h1∥a p
             where
             h1<a : h1 < a
-            h1<a = LA.lookup min1 a∈t1
+            h1<a = LA.lookup min1 a∈≡t1
+
+            h1∥a : h1 ∥ a
+            h1∥a h1∦a = incomp1 $ LAny.map (λ a≡· → PE.subst (λ · → h1 ∦ ·) a≡· h1∦a) a∈≡t1  
 
         h2∥t1 : ¬ (Any (λ x → h2 ∦ x) t1)
         h2∥t1 h2∦t1 = anyEliminate t1 anyEliminator h2∦t1
@@ -448,7 +461,7 @@ a∈∨→P∨ {l1@(h1 ∷ t1)} {l2@(h2 ∷ t2)} {_} f1@(∷-Free _ _ _ _ ft1) f
     c3 (a∈t1 , a∈l2) = inj₂ $ inj₂ $ (there a∈t1 , a∈l2) 
 
 a∈∨→P∨ {h1 ∷ t1} {h2 ∷ t2} {_} f1 f2 f3 l1∨l2~l3 {a} a∈l3 | l∥r h1∥h2 with compare h1 h2
-a∈∨→P∨ {h1 ∷ t1} {h2 ∷ t2} {h3 ∷ t3} f1 f2@(∷-Free _ _ min2 _ _) f3 (h1~h3 ∷ t1∨l2~t3) {a} (here a~h3) | l∥r h1∥h2 | tri< a<h2 _ _ =
+a∈∨→P∨ {h1 ∷ t1} {h2 ∷ t2} {h3 ∷ t3} f1 f2@(∷-Free _ _ min2 incomp2 _) f3 (h1~h3 ∷ t1∨l2~t3) {a} (here a~h3) | l∥r h1∥h2 | tri< a<h2 _ _ =
   inj₁ $ (here (trans~ a~h3 (sym~ h1~h3)) , ¬a⊑l2)
   where
     ¬a⊑l2 : ¬  Any (a ⊑_) (h2 ∷ t2)
@@ -456,8 +469,12 @@ a∈∨→P∨ {h1 ∷ t1} {h2 ∷ t2} {h3 ∷ t3} f1 f2@(∷-Free _ _ min2 _ _)
     ¬a⊑l2 (there a⊑t2) = anyEliminate t2 eliminator a⊑t2
       where
         eliminator : AnyEliminator {ℓQ = l0} Carrier ⊥ (a ⊑_) t2
-        eliminator x f a⊑x x∈t2 = (unimodality a<h2 (LA.lookup min2 x∈t2) (inj₁ $ reflexive refl~) h1∥h2) (inj₁ $ ⊑-respˡ-~ (trans~ a~h3 (sym~ h1~h3)) a⊑x)
-a∈∨→P∨ {l1@(h1 ∷ t1)} {l2@(h2 ∷ t2)} {l3@(h3 ∷ t3)} f1@(∷-Free _ _ _ _ ft1) f2@(∷-Free _ _ min2 _ _) f3 (h1~h3 ∷ t1∨l2~t3) {a} (there a∈t1∨l2) | l∥r h1∥h2 | tri< h1<h2 _ _ =
+        eliminator x f a⊑x x∈≡t2 = (unimodality a<h2 (LA.lookup min2 x∈≡t2) h1∥h2 h2∥x) (inj₁ $ ⊑-respˡ-~ (trans~ a~h3 (sym~ h1~h3)) a⊑x)
+          where
+            h2∥x : h2 ∥ x
+            h2∥x h2∦x = incomp2 $ LAny.map (λ x≡· → PE.subst (λ · → h2 ∦ ·) x≡· h2∦x) x∈≡t2
+
+a∈∨→P∨ {l1@(h1 ∷ t1)} {l2@(h2 ∷ t2)} {l3@(h3 ∷ t3)} f1@(∷-Free _ _ _ _ ft1) f2@(∷-Free _ _ min2 incomp2 _) f3 (h1~h3 ∷ t1∨l2~t3) {a} (there a∈t1∨l2) | l∥r h1∥h2 | tri< h1<h2 _ _ =
   let 
     p = a∈∨→P∨ ft1 f2 (∨-free ft1 f2) (PW.refl refl~) (a∈l1~l2 (PW.symmetric sym~ t1∨l2~t3) a∈t1∨l2)
   in
@@ -478,8 +495,11 @@ a∈∨→P∨ {l1@(h1 ∷ t1)} {l2@(h2 ∷ t2)} {l3@(h3 ∷ t3)} f1@(∷-Free _
       inj₂ $ inj₁ $ (there a∈t2 , ¬a⊑l1)
       where
         a∥h1 : a ∥ h1
-        a∥h1 = ∥-sym $ unimodality h1<h2 (anyEliminate t2 eliminator a∈t2) (inj₁ $ reflexive {h1} {h1} refl~) h1∥h2
+        a∥h1 = ∥-sym $ unimodality h1<h2 (anyEliminate t2 eliminator a∈t2) h1∥h2 h2∥a 
           where
+            h2∥a : h2 ∥ a
+            h2∥a h2∦a = incomp2 $ LAny.map (λ a~· → ∦-respʳ-~ a~· h2∦a) a∈t2
+
             eliminator : AnyEliminator {ℓQ = l0} Carrier (h2 < a) (a ~_) t2
             eliminator x f a~x x∈t2 = <-respʳ-~ (sym~ a~x) $ LA.lookup min2 x∈t2
 
@@ -491,7 +511,7 @@ a∈∨→P∨ {l1@(h1 ∷ t1)} {l2@(h2 ∷ t2)} {l3@(h3 ∷ t3)} f1@(∷-Free _
     c3 (a∈t1 , a∈l2) = inj₂ $ inj₂ $ (there a∈t1 , a∈l2)
 a∈∨→P∨ {h1 ∷ t1} {h2 ∷ t2} {_} f1 f2@(∷-Free _ _ min2 _ _) f3 l1∨l2~l3 {a} a∈l3 | l∥r h1∥h2 | tri≈ _ h1≡h2 _ =
   ⊥-elim $ h1∥h2 (inj₁ $ reflexive h1≡h2)
-a∈∨→P∨ {l1@(h1 ∷ t1)} {l2@(h2 ∷ t2)} {l3@(h3 ∷ t3)} f1@(∷-Free _ _ min1 _ _) f2 f3 h2∷l1∨t2~l3 {a} (here a~h3) | l∥r h1∥h2 | tri> _ _ h2<h1 =
+a∈∨→P∨ {l1@(h1 ∷ t1)} {l2@(h2 ∷ t2)} {l3@(h3 ∷ t3)} f1@(∷-Free _ _ min1 incomp1 _) f2 f3 h2∷l1∨t2~l3 {a} (here a~h3) | l∥r h1∥h2 | tri> _ _ h2<h1 =
   inj₂ $ inj₁ $ (here (trans~ a~h3 (sym~ $ PW.head h2∷l1∨t2~l3)) , ¬a⊑l1)
   where
     ¬a⊑l1 : ¬  Any (a ⊑_) (h1 ∷ t1)
@@ -499,8 +519,12 @@ a∈∨→P∨ {l1@(h1 ∷ t1)} {l2@(h2 ∷ t2)} {l3@(h3 ∷ t3)} f1@(∷-Free _
     ¬a⊑l1 (there a⊑t1) = anyEliminate t1 eliminator a⊑t1
       where
         eliminator : AnyEliminator {ℓQ = l0} Carrier ⊥ (a ⊑_) t1
-        eliminator x f a⊑x x∈t1 = (unimodality h2<h1 (LA.lookup min1 x∈t1) (inj₁ $ reflexive refl~) (∥-sym h1∥h2)) (inj₁ $ ⊑-respˡ-~ (trans~ a~h3 (sym~ $ PW.head h2∷l1∨t2~l3)) a⊑x)
-a∈∨→P∨ {l1@(h1 ∷ t1)} {l2@(h2 ∷ t2)} {l3@(h3 ∷ t3)} f1@(∷-Free _ _ min1 _ _) f2@(∷-Free _ _ _ _ ft2) f3 (h2~h3 ∷ l1∨t2~t3) {a} (there a∈t3) | l∥r h1∥h2 | tri> _ _ h2<h1 =
+        eliminator x f a⊑x x∈≡t1 = (unimodality h2<h1 (LA.lookup min1 x∈≡t1) (∥-sym h1∥h2) h1∥x) (inj₁ $ ⊑-respˡ-~ (trans~ a~h3 (sym~ $ PW.head h2∷l1∨t2~l3)) a⊑x)
+          where
+            h1∥x : h1 ∥ x
+            h1∥x h1∦x = incomp1 $ LAny.map (λ x≡· → PE.subst (λ · → h1 ∦ ·) x≡· h1∦x) x∈≡t1 
+
+a∈∨→P∨ {l1@(h1 ∷ t1)} {l2@(h2 ∷ t2)} {l3@(h3 ∷ t3)} f1@(∷-Free _ _ min1 incomp1 _) f2@(∷-Free _ _ _ _ ft2) f3 (h2~h3 ∷ l1∨t2~t3) {a} (there a∈t3) | l∥r h1∥h2 | tri> _ _ h2<h1 =
   let 
     p = a∈∨→P∨ f1 ft2 (∨-free f1 ft2) (PW.refl refl~) (a∈l1~l2 (PW.symmetric sym~ l1∨t2~t3) a∈t3)
   in
@@ -517,8 +541,11 @@ a∈∨→P∨ {l1@(h1 ∷ t1)} {l2@(h2 ∷ t2)} {l3@(h3 ∷ t3)} f1@(∷-Free _
       inj₁ (there a∈t1 , ¬a⊑l2)
       where
         a∥h2 : a ∥ h2
-        a∥h2 = ∥-sym $ unimodality h2<h1 (anyEliminate t1 eliminator a∈t1) (inj₁ $ reflexive {h2} {h2} refl~) (∥-sym h1∥h2)
+        a∥h2 = ∥-sym $ unimodality h2<h1 (anyEliminate t1 eliminator a∈t1) (∥-sym h1∥h2) h1∥a
           where
+            h1∥a : h1 ∥ a
+            h1∥a h1∦a = incomp1 $ LAny.map (λ a~· → ∦-respʳ-~ a~· h1∦a) a∈t1
+
             eliminator : AnyEliminator {ℓQ = l0} Carrier (h1 < a) (a ~_) t1
             eliminator x f a~x x∈t1 = <-respʳ-~ (sym~ a~x) (LA.lookup min1 x∈t1) 
 

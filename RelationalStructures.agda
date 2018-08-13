@@ -71,6 +71,9 @@ record DeltaPoset {c ℓ⊑ ℓ< ℓ≈ : Level} : Set (Level.suc $ c ⊔ ℓ⊑
     ; isDecEquivalence = isDecEquivalence
     }
 
+  ≈-setoid : Setoid c ℓ≈ 
+  ≈-setoid = DecSetoid.setoid ≈-decSetoid
+
   _∦_ : Rel Carrier ℓ⊑
   a ∦ b = (a ⊑ b) ⊎ (b ⊑ a)
 
@@ -79,7 +82,7 @@ record DeltaPoset {c ℓ⊑ ℓ< ℓ≈ : Level} : Set (Level.suc $ c ⊔ ℓ⊑
   a ∥ b = ¬ (a ∦ b)
 
   field    
-    unimodality : {a b c d : Carrier} → (a < b) → (b < c) → (d ∦ a) → (d ∥ b) → (d ∥ c) 
+    unimodality : {a b c : Carrier} → (a < b) → (b < c) → (a ∥ b) → (b ∥ c) → (a ∥ c)  
 
   -- comparable
   data Comparison : Carrier → Carrier → Set (ℓ⊑ ⊔ ℓ≈) where

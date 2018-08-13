@@ -118,7 +118,7 @@ open Preorder
     _∥_ : ⊤ → ⊤ → Set
     _∥_ x y = ¬ (x ∦ y)
 
-    unimodality : {a b c d : ⊤} → a < b → b < c → d ∦ a → d ∥ b → d ∥ c
+    unimodality : {a b c : ⊤} → a < b → b < c → a ∥ b → b ∥ c → a ∥ c
     unimodality () () _ _
 
 ⟦ NatToset ⁑⟧ = record
@@ -150,8 +150,8 @@ open Preorder
       in 
         part
 
-    unimodality : {a b c d : ℕ} → a < b → b < c → d ∦ a → d ∥ b → d ∥ c
-    unimodality {a} {b} {c} {d} _ _ _ d∥b = ⊥-elim $ d∥b (≤-total d b)
+    unimodality : {a b c : ℕ} → a < b → b < c → a ∥ b → b ∥ c → a ∥ c
+    unimodality {a} {b} {c} _ _ a∥b b∥c = ⊥-elim $ a∥b (≤-total a b)
       
 ⟦ BoolToset ⁑⟧ = {!!}
 ⟦ ProductToset isTosetL isTosetR ⁑⟧ = record
@@ -232,7 +232,7 @@ open Preorder
     ; _≟_ = ⊎-decidable (DeltaPoset._≈?_ deltaContents) (UnitPoset._⊤≟_)
     ; _≤?_ = ⊎-<-decidable (DeltaPoset._⊑?_ deltaContents) (IsDecPartialOrder._≤?_ ⊤≤-isDecPartialOrder) dec-aux
     }
-  ; unimodality = {!unimodality!}
+  ; unimodality = unimodality
   }
   where
     open import UnitPoset
@@ -276,22 +276,33 @@ open Preorder
         (DeltaPoset.isPartialOrder deltaContents) 
         (IsDecPartialOrder.isPartialOrder ⊤≤-isDecPartialOrder)
 
-    unimodality : {a b c d : |Cᵀ|} → a <ᵀ b → b <ᵀ c → d ∦ᵀ  a → d ∥ᵀ b → d ∥ᵀ c
-    unimodality {inj₁ a'} {inj₂ .tt} {inj₂ c'} {d} (₁∼₂ _) (₂∼₂ ()) d∦a d∥b 
-    unimodality {inj₁ a'} {inj₁ b'} {inj₂ _} {inj₁ d'} (₁∼₁ a'<b') (₁∼₂ _) (inj₁ (₁∼₁ d'⊑a')) d∥b d∦c = 
-      {!!}
-      where 
-        d'∥b' : d' ∥₀ b'
-        d'∥b' (inj₁ d'⊑b') = d∥b $ inj₁ $ LO.₁∼₁ d'⊑b' 
-        d'∥b' (inj₂ y) = {!!}
-    unimodality {inj₁ a'} {inj₁ b'} {inj₂ _} {inj₁ d'} (₁∼₁ a'<b') (₁∼₂ _) (inj₂ y) d∥b d∦c = {!!}
-    unimodality {inj₁ a'} {inj₁ b'} {inj₂ _} {inj₂ .tt} (₁∼₁ a'<b') (₁∼₂ _) d∦a d∥b d∦c = {!!}
-    unimodality {inj₁ a'} {inj₁ b'} {inj₁ c'} {d} (₁∼₁ a'<b') (₁∼₁ b'<c') d∦a d∥b d∦c = {!!}
-    unimodality {inj₂ a'} {inj₂ b'} {c} {d} (₂∼₂ ()) b<c d∦a d∥b
+    unimodality : {a b c : |Cᵀ|} → a <ᵀ b → b <ᵀ c → a ∥ᵀ b → b ∥ᵀ c → a ∥ᵀ c
+    unimodality {inj₁ a'} {inj₁ b'} {inj₁ c'} (₁∼₁ a'<b') (₁∼₁ b'<c') a∥b b∥c a∦c with a'∥c'        
+      where
+        a'∥b' : a' ∥₀ b'
+        a'∥b' (inj₁ a'⊑b') = a∥b $ inj₁ (₁∼₁ a'⊑b') 
+        a'∥b' (inj₂ b'⊑a') = a∥b $ inj₂ (₁∼₁ b'⊑a')
+
+        b'∥c' : b' ∥₀ c'
+        b'∥c' (inj₁ b'⊑c') = b∥c $ inj₁ (₁∼₁ b'⊑c') 
+        b'∥c' (inj₂ c'⊑b') = b∥c $ inj₂ (₁∼₁ c'⊑b')
+
+        a'∥c' : a' ∥₀ c'
+        a'∥c' = unim₀ a'<b' b'<c' a'∥b' b'∥c' 
+    unimodality {inj₁ a'} {inj₁ b'} {inj₁ c'} (₁∼₁ a'<b') (₁∼₁ b'<c') a∥b b∥c (inj₁ (₁∼₁ a'⊑c')) | a'∥c' = 
+       a'∥c' (inj₁ a'⊑c') 
+    unimodality {inj₁ a'} {inj₁ b'} {inj₁ c'} (₁∼₁ b'<c') (₁∼₁ x∼₁y) a∥b b∥c (inj₂ (₁∼₁ c'⊑a')) | a'∥c' = 
+      a'∥c' (inj₂ c'⊑a')
+    unimodality {inj₁ a'} {inj₁ b'} {inj₂ .tt} a<b b<c a∥b b∥c a∦c = 
+      b∥c $ inj₁ (₁∼₂ tt)
+    unimodality {inj₁ a'} {inj₂ .tt} {inj₁ c'} a<b () a∥b b∥c
+    unimodality {inj₁ a'} {inj₂ .tt} {inj₂ .tt} a<b (₂∼₂ ()) a∥b b∥c
+    unimodality {inj₂ .tt} {inj₁ b'} {c} () b<c a∥b b∥c
+    unimodality {inj₂ .tt} {inj₂ .tt} {c} (₂∼₂ ()) b<c a∥b b∥c
 
 open import Relation.Binary.Lattice
 
-record semSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Level) {τ τ₀ : τ} (isSemilat : IsSemilat τ τ₀)
+record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Level) {τ τ₀ : τ} (isSemilat : IsSemilat τ τ₀)
                    : Set (Level.suc $ cₛ ⊔ ℓₛ₁ ⊔ ℓₛ₂ ⊔ cₚ ⊔ ℓ⊑ₚ ⊔ ℓ<ₚ ⊔ ℓ~ₚ) where
   field
     -- direct representation of semilattice
@@ -305,9 +316,15 @@ record semSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
     -- defactorization out of free semilattice
     g : FP P ⇉ S
 
-⟦_⁂⟧ : ∀ {cₛ ℓ₁ ℓ₂ cₚ ℓ⊑ ℓ< ℓ~} → {τ τ₀ : τ} → (isSemilat : IsSemilat τ τ₀) → semSemilat cₛ ℓ₁ ℓ₂ cₚ ℓ⊑ ℓ< ℓ~ isSemilat             
+⟦_⁂⟧ : ∀ {τ τ₀ : τ} → (isSemilat : IsSemilat τ τ₀) → SemSemilat l0 l0 l0 l0 l0 l0 l0 isSemilat             
 
-⟦_⁂⟧ {c} {ℓ₁} {ℓ₂} NatSemilat = {!!}
+⟦_⁂⟧ NatSemilat = record
+  { S = S
+  ; P = P
+  ; i = i
+  ; f = {!!}
+  ; g = {!!}
+  }
   where
     open import Data.Nat.Base as NB renaming (_⊔_ to _N⊔_)
 
@@ -339,15 +356,79 @@ record semSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
     P : DeltaPoset {l0} {l0} {l0} {l0} 
     P = record
       { Carrier = Σ[ n ∈ ℕ ] ¬ (n ≡ 0)
-      ; _⊑_ = λ x → λ y → proj₁ x N.≤ proj₁ y 
-      ; _<_ = λ x → λ y → proj₁ x N.< proj₁ y
-      ; isStrictTotalOrder = {!!}
-      ; isDecPartialOrder = {!!}
-      ; unimodality = {!!}
+      ; _⊑_ = _⊑₀_
+      ; _<_ = _<₀_
+      ; _≈_ = _≈₀_
+      ; isStrictTotalOrder = isStrictTotalOrder₀
+      ; isDecPartialOrder = isDecPartialOrder₀
+      ; unimodality = DeltaPoset.unimodality deltaPosetℕ
       }
       where
         deltaPosetℕ = ⟦ NatToset ⁑⟧ 
-    
+        
+        C = Σ[ n ∈ ℕ ] ¬ (n ≡ 0)
+        
+        _⊑₀_ : C → C → Set _
+        (n1 , p1) ⊑₀ (n2 , p2) = n1 N.≤ n2
+
+        _<₀_ : C → C → Set _
+        (n1 , p1) <₀ (n2 , p2) = n1 N.< n2
+
+        _≈₀_ : C → C → Set _
+        (n1 , p1) ≈₀ (n2 , p2) = n1 ≡ n2
+        
+        <₀-compare : Trichotomous _≈₀_ _<₀_
+        <₀-compare (a , _) (b , _) = <-cmp a b
+
+        ⊑₀-reflexive : _≈₀_ ⇒ _⊑₀_
+        ⊑₀-reflexive {a , _} {b , _} a≈b = ≤-reflexive {a} {b} a≈b
+
+        isEquiv₀ : IsEquivalence _≈₀_
+        isEquiv₀ = record
+          { refl = PE.refl
+          ; sym = PE.sym
+          ; trans = PE.trans
+          }
+
+        _≟₀_ : Decidable _≈₀_
+        (a , _) ≟₀ (b , _) = a N.≟ b
+
+        _⊑₀?_ : Decidable _⊑₀_
+        (a , _) ⊑₀? (b , _) = a N.≤? b
+
+        isStrictTotalOrder₀ : IsStrictTotalOrder _≈₀_ _<₀_
+        isStrictTotalOrder₀ = record
+          { isEquivalence = isEquiv₀
+          ; trans = <-trans
+          ; compare = <₀-compare
+          }
+
+        isDecPartialOrder₀ : IsDecPartialOrder _≈₀_ _⊑₀_
+        isDecPartialOrder₀ = record
+          { isPartialOrder = record
+            { isPreorder = record
+                { isEquivalence = isEquiv₀
+                ; reflexive = λ {a} → λ {b} → ⊑₀-reflexive {a} {b}
+                ; trans = ≤-trans
+                }
+            ; antisym = ≤-antisym
+            }
+          ; _≟_ = _≟₀_
+          ; _≤?_ = _⊑₀?_
+          }
+
+    |i| : (DeltaPoset.Carrier P) → (DeltaPoset.Carrier ⟦ NatToset ⁑⟧)
+    |i| (n , p) = n
+
+    |i|-monotone : monotone P ⟦ NatToset ⁑⟧ |i|
+    |i|-monotone {n , _} {n' , _} n⊑n' = n⊑n'
+      
+    |i|-monic : monic (DeltaPoset.≈-setoid P) (DeltaPoset.≈-setoid ⟦ NatToset ⁑⟧) |i|
+    |i|-monic {a , _} {a' , _} fa≈fa' = fa≈fa' 
+
+    i : P ↣+ ⟦ NatToset ⁑⟧
+    i = (|i| , (λ {a} → λ {a'} → |i|-monotone {a} {a'}) , (λ {a} → λ {a'} → |i|-monic {a} {a'}))
+ 
 ⟦ BoolSemilat ⁂⟧ = {!!}
 ⟦ DictSemilat x x₁ ⁂⟧ = {!!}
 ⟦ ProductSemilat x x₁ ⁂⟧ = {!!}

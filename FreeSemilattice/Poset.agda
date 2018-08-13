@@ -158,7 +158,11 @@ sng-free {c} = ∷-Free c [] [] (λ ()) []-Free
         elim' x f h2⊑x (here x≡h1@PE.refl) = 
           h2∥h1 $ inj₁ (trans⊑ h2⊑x $ reflexive refl~) 
         elim' x f h2⊑x (there x∈≡t1) = 
-          (unimodality h2<h1 (LA.lookup min1 x∈≡t1) (inj₁ $ reflexive refl~) h2∥h1) (inj₁ h2⊑x) 
+          (unimodality h2<h1 (LA.lookup min1 x∈≡t1) h2∥h1 h1∥x) (inj₁ h2⊑x) 
+          where
+            h1∥x : h1 ∥ x
+            h1∥x h1∦x = incomp1 $ LAny.map (λ x≡· → PE.subst (λ · → h1 ∦ ·) x≡· h1∦x) x∈≡t1
+
     elim a f h1⊑a (there a∈≡t2) | there a⊑t1 =
       ⊥-elim $ incomp1 $ LAny.map (λ a⊑· → inj₁ $ trans⊑ h1⊑a a⊑·) a⊑t1
 
