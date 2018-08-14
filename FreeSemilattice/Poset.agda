@@ -90,9 +90,6 @@ mutual
     l1≤l2 : (h1 ∷ t1 , f1) ≤ (h2 ∷ t2 , f2) 
     l1≤l2 = (here $ reflexive h1~h2) ∷ (LA.map there t1≤t2)
  
-sng-free : {c : Carrier} → (IsFreeList (c ∷ []))
-sng-free {c} = ∷-Free c [] [] (λ ()) []-Free
-
 ≤-refl : {x y : Carrier-FP} → x ≈ y → x ≤ y
 ≤-refl {x} {y} x≈y = to ⟨$⟩ ⋜-refl x≈y  
   where

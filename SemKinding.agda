@@ -9,6 +9,8 @@ open import Relation.Binary
 open import Data.Product
 open import Data.Sum
 open import Data.Empty
+open import Data.List
+open import Data.List.Any as LAny
 open import Level
 open import Util using (l0;l1;l2)
 open import Data.Unit renaming (preorder to unitPreorder ; decTotalOrder to unitToset) hiding (_≤_)
@@ -97,9 +99,12 @@ open Preorder
 ⟦ BoolPoset ⁎⟧ = B≤-preorder
 ⟦ NatPoset ⁎⟧ = NP.≤-preorder
 
+⟦_T⟧ : ∀ {τ : τ} → IsToset τ → StrictTotalOrder l0 l0 l0
+⟦ x T⟧ = ?   
+
 -- agda-mode: ⁑ is \asterisk, second choice
-⟦_⁑⟧ : ∀ {τ : τ} → IsToset τ → DeltaPoset {l0} {l0} {l0} {l0}
-⟦ UnitToset ⁑⟧ = record
+⟦_⁑⟧ : ∀ {τ : τ} → IsDeltaPoset τ → DeltaPoset {l0} {l0} {l0} {l0}
+⟦ UnitDelta ⁑⟧ = record
    { Carrier = ⊤ 
    ; _⊑_ = _⊑_ 
    ; _<_ = _<_
@@ -121,7 +126,7 @@ open Preorder
     unimodality : {a b c : ⊤} → a < b → b < c → a ∥ b → b ∥ c → a ∥ c
     unimodality () () _ _
 
-⟦ NatToset ⁑⟧ = record
+⟦ NatDelta ⁑⟧ = record
   { Carrier = ℕ 
   ; _⊑_ = _⊑_
   ; _<_ = _<_
@@ -153,9 +158,8 @@ open Preorder
     unimodality : {a b c : ℕ} → a < b → b < c → a ∥ b → b ∥ c → a ∥ c
     unimodality {a} {b} {c} _ _ a∥b b∥c = ⊥-elim $ a∥b (≤-total a b)
       
-⟦ BoolToset ⁑⟧ = {!!}
-⟦ ProductToset isTosetL isTosetR ⁑⟧ = record
-  { Carrier = (DeltaPoset.Carrier deltaL) × (DeltaPoset.Carrier deltaR) 
+⟦ DiscreteProductDelta isTosetL isDeltaR ⁑⟧ = record
+  { Carrier = |L×R|
   ; _⊑_ = _⊑_
   ; _<_ = _<_
   ; isStrictTotalOrder = <-strict
@@ -171,22 +175,31 @@ open Preorder
   where
     open import Data.Product.Relation.Lex.Strict as LS
     open import Data.Product.Relation.Pointwise.NonDependent as PW
-
-    deltaL = ⟦ isTosetL ⁑⟧
-    deltaR = ⟦ isTosetR ⁑⟧
-    _L<_ = DeltaPoset._<_ deltaL
-    compareL = DeltaPoset.compare deltaL
+  
+    tosetL = ⟦ isTosetL T⟧
+    deltaR = ⟦ isDeltaR ⁑⟧
+    |L×R| = (StrictTotalOrder.Carrier tosetL) × (DeltaPoset.Carrier deltaR) 
+    _L<_ = DeltaPoset._<_  tosetL
+    compareL = DeltaPoset.compare tosetL
     _R<_ = DeltaPoset._<_ deltaR
     compareR = DeltaPoset.compare deltaR
-    _L⊑_ = DeltaPoset._⊑_ deltaL
+    _L⊑_ = DeltaPoset._⊑_  tosetL
     _R⊑_ = DeltaPoset._⊑_ deltaR    
-    _≈'_ = Pointwise (DeltaPoset._≈_ deltaL) (DeltaPoset._≈_ deltaR)
+    _L∥_ = DeltaPoset._∥_  tosetL
+    _R∥_ = DeltaPoset._∥_ deltaR
 
-    _<_ = ×-Lex (DeltaPoset._≈_ deltaL) _L<_ _R<_
+    _≈'_ = Pointwise (DeltaPoset._≈_  tosetL) (DeltaPoset._≈_ deltaR)
+    _<_ = ×-Lex (DeltaPoset._≈_ tosetL) _L<_ _R<_
     _⊑_ = Pointwise _L⊑_ _R⊑_
+    
+    _∦_ : Rel |L×R| _
+    a ∦ b = a ⊑ b ⊎ b ⊑ a 
+
+    _∥_ : Rel |L×R| _
+    a ∥ b = ¬ (a ∦ b)
 
     ⊑-decPartialOrder : IsPartialOrder _≈'_ _⊑_
-    ⊑-decPartialOrder = ×-isPartialOrder (DeltaPoset.isPartialOrder deltaL) (DeltaPoset.isPartialOrder deltaR)
+    ⊑-decPartialOrder = ×-isPartialOrder (DeltaPoset.isPartialOrder isTosetL) (DeltaPoset.isPartialOrder deltaR)
 
     ≈'-decidable : Decidable _≈'_
     ≈'-decidable = PW.×-decidable (DeltaPoset._≈?_ deltaL) (DeltaPoset._≈?_ deltaR)
@@ -196,6 +209,19 @@ open Preorder
 
     <-strict : IsStrictTotalOrder _≈'_ _<_
     <-strict = LS.×-isStrictTotalOrder (DeltaPoset.isStrictTotalOrder deltaL) (DeltaPoset.isStrictTotalOrder deltaR)
+
+    unimodality : {a b c : |L×R|} → a < b → b < c → a ∥ b → b ∥ c → a ∥ c
+    unimodality {aL , aR} {bL , bR} {cL , cR} (inj₁ aL<bL) (inj₁ bL<cL) a∥b b∥c (inj₁ (aL⊑cL , aR⊑cR)) = 
+      {!!}
+      where
+        unim-L = DeltaPoset.unimodality deltaL
+
+        aL∥bL : aL L∥ bL
+        aL∥bL aL∦bL = {!!}
+
+    unimodality {aL , aR} {bL , bR} {cL , cR} (inj₁ aL<bL) (inj₁ bL<cL) a∥b b∥c (inj₂ (cL⊑aL , cR⊑aR)) = {!!}
+    unimodality {aL , aR} {bL , bR} {cL , cR} (inj₁ aL<bL) (inj₂ (bL≈cL , bR<cR)) a∥b b∥c = {!!}
+    unimodality {aL , aR} {bL , bR} {cL , cR} (inj₂ (aL≈bL , aR<bR)) b<c a∥b b∥c = {!!}
 
 ⟦ SumToset isTosetL isTosetR ⁑⟧ = {!!}
   where 
@@ -322,8 +348,8 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
   { S = S
   ; P = P
   ; i = i
-  ; f = {!!}
-  ; g = {!!}
+  ; f = |f| , |f|-⊥ , |f|-∨
+  ; g = |g| , |g|-⊥ , |g|-∨
   }
   where
     open import Data.Nat.Base as NB renaming (_⊔_ to _N⊔_)
@@ -428,7 +454,57 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
 
     i : P ↣+ ⟦ NatToset ⁑⟧
     i = (|i| , (λ {a} → λ {a'} → |i|-monotone {a} {a'}) , (λ {a} → λ {a'} → |i|-monic {a} {a'}))
- 
+
+    open DeltaPoset P
+    open import Data.List.Relation.Pointwise as PW
+    open import FreeSemilattice P renaming (SemilatCarrier to FP-Carrier ; ⊥ to ⊥ₚ ; _≈_ to _≈ₚ_ ; _∨_ to _∨ₚ_ ; ∷-Free to ∷-Free)
+
+    |f| : ℕ → FP-Carrier 
+    |f| zero = [] , []-Free 
+    |f| n@(suc n') = [ (n , (λ ())) ] , sng-free
+
+    |f|-⊥ : |f| 0 ≈ₚ ⊥ₚ
+    |f|-⊥ = []
+
+    |f|-∨ : (n0 n1 : ℕ) → |f| (n0 N.⊔ n1) ≈ₚ (|f| n0 ∨ₚ |f| n1)
+    |f|-∨ N.zero N.zero = []
+    |f|-∨ N.zero (N.suc n1) = PE.refl ∷ [] 
+    |f|-∨ (N.suc n0') N.zero = PE.refl ∷ []
+    |f|-∨ (N.suc n0') (N.suc n1') with n0' N.≤? n1' | n1' N.≤? n0'
+    |f|-∨ (N.suc n0') (N.suc n1') | yes n0'≤n1' | yes n1'≤n0' with NP.≤-antisym n0'≤n1' n1'≤n0'
+    |f|-∨ (N.suc n0') (N.suc n1') | yes n0'≤n1' | yes n1'≤n0' | PE.refl rewrite NP.⊔-idem n0' = PE.refl ∷ []
+    |f|-∨ (N.suc n0') (N.suc n1') | yes n0'≤n1' | no ¬n1'≤n0' rewrite m≤n⇒m⊔n≡n n0'≤n1' = PE.refl ∷ []
+    |f|-∨ (N.suc n0') (N.suc n1') | no ¬n0'≤n1' | yes n1'≤n0' rewrite m≤n⇒n⊔m≡n n1'≤n0' = PE.refl ∷ []
+    |f|-∨ (N.suc n0') (N.suc n1') | no ¬n0'≤n1' | no ¬n1'≤n0' with ≤-total n0' n1'
+    |f|-∨ (N.suc n0') (N.suc n1') | no ¬n0'≤n1' | no ¬n1'≤n0' | inj₁ n0'≤n1' = ⊥-elim $ ¬n0'≤n1' n0'≤n1'
+    |f|-∨ (N.suc n0') (N.suc n1') | no ¬n0'≤n1' | no ¬n1'≤n0' | inj₂ n1'≤n0' = ⊥-elim $ ¬n1'≤n0' n1'≤n0' 
+
+    |g| : FP-Carrier → ℕ 
+    |g| ([] , _) = 0
+    |g| ((n , _) ∷ [] , _) = n
+    |g| ((n , _) ∷ (m , _) ∷ _ , ∷-Free _ _ _ incomp _) = ⊥-elim $ incomp (here $ ≤-total n m)
+
+    |g|-⊥ : |g| ⊥ₚ ≡ 0
+    |g|-⊥ = PE.refl
+
+    |g|-∨ : (s1 s2 : FP-Carrier) → |g| (s1 ∨ₚ s2) ≡ (|g| s1) N.⊔ (|g| s2)
+    |g|-∨ ([] , f1) ([] , f2) = PE.refl
+    |g|-∨ ([] , f1) (h2 ∷ t2 , f2) = PE.refl
+    |g|-∨ c1@(h1 ∷ [] , f1) ([] , f2) rewrite ⊔-identityʳ (|g| c1) = PE.refl
+    |g|-∨ (h1 ∷ [] , ∷-Free _ _ _ _ _) (h2 ∷ [] , ∷-Free _ _ _ _ _) with h1 ∦? h2
+    |g|-∨ (h1 ∷ [] , ∷-Free _ _ _ _ _) (h2 ∷ [] , ∷-Free _ _ _ _ _) | l⊑r h1⊑h2 ¬h2⊑h1 = 
+      PE.sym $ m≤n⇒m⊔n≡n h1⊑h2
+    |g|-∨ (h1 ∷ [] , ∷-Free _ _ _ _ _) (h2 ∷ [] , ∷-Free _ _ _ _ _) | r⊑l ¬h1⊑h2 h2⊑h1 = 
+      PE.sym $ m≤n⇒n⊔m≡n h2⊑h1
+    |g|-∨ (h1 ∷ [] , ∷-Free _ _ _ _ _) (h2 ∷ [] , ∷-Free _ _ _ _ _) | l≈r h1≈h2 = 
+      PE.sym $ m≤n⇒m⊔n≡n (refl⊑ {h1} {h2} h1≈h2)
+    |g|-∨ ((h1 , _) ∷ [] , ∷-Free _ _ _ _ _) ((h2 , _) ∷ [] , ∷-Free _ _ _ _ _) | l∥r h1∥h2 = 
+      ⊥-elim $ h1∥h2 (NP.≤-total h1 h2)
+    |g|-∨ ((h11 , _) ∷ (h12 , _) ∷ _ , ∷-Free _ _ _ incomp _) (_ , _) =
+      ⊥-elim $ incomp (here $ ≤-total h11 h12)
+    |g|-∨ (_ , _) ((h21 , _) ∷ (h22 , _) ∷ _ , ∷-Free _ _ _ incomp _) =
+      ⊥-elim $ incomp (here $ ≤-total h21 h22)
+
 ⟦ BoolSemilat ⁂⟧ = {!!}
 ⟦ DictSemilat x x₁ ⁂⟧ = {!!}
 ⟦ ProductSemilat x x₁ ⁂⟧ = {!!}

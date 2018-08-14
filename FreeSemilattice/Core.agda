@@ -38,6 +38,10 @@ data IsFreeList : List Carrier → Set (c ⊔ ℓ< ⊔ ℓ⊑) where
   ∷-Free : (hd : Carrier) → (tl : List Carrier) → (All (hd <_) tl) → ¬ (Any (λ x → (hd ⊑ x) ⊎ (x ⊑ hd)) tl) →
             (IsFreeList tl) → IsFreeList (hd ∷ tl) 
 
+
+sng-free : {c : Carrier} → (IsFreeList (c ∷ []))
+sng-free {c} = ∷-Free c [] [] (λ ()) []-Free
+
 _~'_ : Rel (List Carrier) _
 _~'_ = Pointwise _~_
 

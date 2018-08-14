@@ -14,8 +14,9 @@ open import Data.Vec
 
 data IsPoset : τ → Set
 data IsToset : τ → Set
+data IsDeltaPoset : τ → Set 
 data IsSemilat : τ → τ → Set
-  
+
 data IsPoset where
   FunPoset : {dom cod : τ} {q : q} → IsPoset dom → IsPoset cod → IsPoset (τFun dom q cod) 
   DictPoset : {dom cod dCod : τ} → IsToset dom → IsSemilat cod dCod → IsPoset (τDict dom cod)
@@ -37,6 +38,14 @@ data IsToset where
   CapsuleToset : {τ₀ : τ} {q : q} → IsToset τ₀ → IsToset (τCapsule q τ₀)
   PartialToset : {τ₀ : τ} → IsToset τ₀ → IsToset (τPartial τ₀)
 
+data IsDeltaPoset where
+  UnitDelta : IsDeltaPoset τUnit
+  NatDelta : IsDeltaPoset τNat
+  DiscreteProductDelta : {τL τR : τ} → IsToset τL → IsDeltaPoset τR → IsDeltaPoset (τProduct (τCapsule qAny τL) τR)
+  SumDelta : {τL τR : τ} → IsDeltaPoset τL → IsDeltaPoset τR → IsDeltaPoset (τSum τL τR)
+  DiscreteDelta : {τ₀ : τ} → IsToset τ₀ → IsDeltaPoset (τCapsule qAny τ₀) 
+  PartialDelta : {τ₀ : τ} → IsDeltaPoset τ₀ → IsDeltaPoset (τPartial τ₀)
+
 data IsSemilat where
   NatSemilat : IsSemilat τNat τNat
   BoolSemilat : IsSemilat τBool τUnit
@@ -46,17 +55,17 @@ data IsSemilat where
   IVarSemilat : {τ : τ} → IsToset τ → IsSemilat (τIVar τ) (τCapsule qAny τ)
   PartialSemilat : {τ τ₀ : τ} → IsSemilat τ τ₀ → IsSemilat (τPartial τ) (τPartial τ₀)
 
-delta-isToset : {τ τ₀ : τ} → (p : IsSemilat τ τ₀) → IsToset τ₀
-delta-isToset NatSemilat = NatToset
-delta-isToset BoolSemilat = UnitToset
+delta-isToset : {τ τ₀ : τ} → (p : IsSemilat τ τ₀) → IsDeltaPoset τ₀
+delta-isToset NatSemilat = NatDelta
+delta-isToset BoolSemilat = UnitDelta
 delta-isToset (DictSemilat domIsToset codIsSemilat) = 
-  ProductToset (CapsuleToset domIsToset) (delta-isToset codIsSemilat) 
+  DiscreteProductDelta domIsToset (delta-isToset codIsSemilat) 
 delta-isToset (ProductSemilat isSemilatL isSemilatR) = 
-  SumToset (delta-isToset isSemilatL) (delta-isToset isSemilatR)
+  SumDelta (delta-isToset isSemilatL) (delta-isToset isSemilatR)
 delta-isToset (IVarSemilat contentIsToset) = 
-  CapsuleToset contentIsToset
+  DiscreteDelta contentIsToset
 delta-isToset (PartialSemilat contentIsSemilat) = 
-  PartialToset (delta-isToset contentIsSemilat)
+  PartialDelta (delta-isToset contentIsSemilat)
 
 -- kCheckPoset : 
 --   (σ : τ) → Dec( Σ[ S ∈ Set ] Σ[ refσ ∈ (S → Set) ] Σ[ ⊑ ∈ (S → S → Set) ] Σ[ ref⊑ ∈ (⊑ → Set) ] IsPoset σ )
