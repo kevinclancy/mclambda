@@ -178,7 +178,7 @@ discreteDelta sto = deltaPoset
   where
     open import UnitPoset
     _⊑_ = _⊤≤_
-    _<_ = UnitStrictTotal._lt_
+    _<_ = UnitStrictTotal._⊤<_
 
     _∦_ : ⊤ → ⊤ → Set
     x ∦ y = x ⊤≤ y ⊎ y ⊤≤ x
@@ -438,7 +438,7 @@ discreteDelta sto = deltaPoset
     |Cᵀ| = |C| ⊎ ⊤
 
     _<ᵀ_ : |Cᵀ| → |Cᵀ| → Set
-    _<ᵀ_ = (_<₀_) ⊎-< (UnitStrictTotal._lt_)
+    _<ᵀ_ = (_<₀_) ⊎-< (UnitStrictTotal._⊤<_)
 
     <ᵀ-strict = ⊎-<-isStrictTotalOrder (DeltaPoset.isStrictTotalOrder deltaContents) ⊤-IsStrictTotalOrder
 
@@ -499,8 +499,6 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
     -- f and g are inverses
     inv-S→FP→S : (a : BoundedJoinSemilattice.Carrier S) → (BoundedJoinSemilattice._≈_ S (proj₁ g $ proj₁ f $ a) a) 
     inv-FP→S→FP : (a : BoundedJoinSemilattice.Carrier $ FP P) → (BoundedJoinSemilattice._≈_ (FP P) (proj₁ f $ proj₁ g $ a) a) 
-
-
 ⟦_⁂⟧ : ∀ {τ τ₀ : τ} → (isSemilat : IsSemilat τ τ₀) → SemSemilat l0 l0 l0 l0 l0 l0 l0 isSemilat             
 
 ⟦_⁂⟧ NatSemilat = record
@@ -692,8 +690,124 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
     inv-FP→S→FP ((a , ¬a≡0) ∷ (b , ¬b≡0) ∷ _ , ∷-Free _ _ _ incomp _) = 
       ⊥-elim $ incomp (here $ NP.≤-total a b) 
   
-⟦ BoolSemilat ⁂⟧ = {!!}
+⟦ BoolSemilat ⁂⟧ = record
+  { S = S
+  ; P = P
+  ; i = |i| , |i|-monotone , |i|-monic
+  ; f = |f| , |f|-⊥ , |f|-∨
+  ; g = |g| , |g|-⊥ , |g|-∨
+  ; inv-S→FP→S = inv-S→FP→S
+  ; inv-FP→S→FP = {!inv-FP→S→FP!} 
+  }
+  where
+    open import Data.Bool
+    open import BoolPoset
+    open import FinPoset
+    open import Relation.Binary.Closure.ReflexiveTransitive
+    open UnitStrictTotal
+    open import UnitPoset
 
+    lowerˡ : ∀ (a b : Bool) → a B≤ a B∨ b
+    lowerˡ false false = ε
+    lowerˡ false true = (here $ PE.refl , PE.refl) ◅ ε
+    lowerˡ true false = ε
+    lowerˡ true true = ε
+
+    lowerʳ : ∀ (a b : Bool) → b B≤ a B∨ b
+    lowerʳ false false = ε
+    lowerʳ false true = ε
+    lowerʳ true false = (here $ PE.refl , PE.refl) ◅ ε
+    lowerʳ true true = ε
+    
+    least : ∀ (a b : Bool) → (z : Bool) → (a B≤ z) → (b B≤ z) → (a B∨ b B≤ z) 
+    least false false false a≤z b≤z = ε
+    least false false true a≤z b≤z = (here $ PE.refl , PE.refl) ◅ ε
+    least false true false a≤z (here () ◅ _)
+    least false true false a≤z (there () ◅ _)
+    least false true true a≤z b≤z = ε
+    least true false false (here () ◅ _) b≤z
+    least true false false (there () ◅ _) b≤z
+    least true false true a≤z b≤z = ε
+    least true true false (here () ◅ _) b≤z
+    least true true false (there () ◅ _) b≤z
+    least true true true a≤z b≤z = ε
+
+    minimum : Minimum _B≤_ false
+    minimum false = ε
+    minimum true = (here $ PE.refl , PE.refl) ◅ ε
+
+    S : BoundedJoinSemilattice l0 l0 l0
+    S = record 
+      { Carrier = Bool
+      ; _≈_ = _≡_
+      ; _≤_ = _B≤_
+      ; _∨_ = _B∨_ 
+      ; ⊥ = false
+      ; isBoundedJoinSemilattice = record
+        { isJoinSemilattice = record
+          { isPartialOrder = B≤-isPartialOrder
+          ; supremum =  λ x → λ y → lowerˡ x y , lowerʳ x y , least x y
+          }
+        ; minimum = minimum 
+        } 
+      }
+
+    P : DeltaPoset {l0} {l0} {l0} {l0}
+    P = ⟦ UnitDelta ⁑⟧ 
+
+    |i| : (DeltaPoset.Carrier P) → (DeltaPoset.Carrier ⟦ UnitDelta ⁑⟧)
+    |i| tt = tt
+
+    |i|-monotone : monotone P ⟦ UnitDelta ⁑⟧ |i|
+    |i|-monotone {tt} {tt} tt⊑tt = ε
+      
+    |i|-monic : monic (DeltaPoset.≈-setoid P) (DeltaPoset.≈-setoid ⟦ UnitDelta ⁑⟧) |i|
+    |i|-monic {tt} {tt} _ = PE.refl 
+
+    open DeltaPoset P
+    open import Data.List.Relation.Pointwise as PW
+    open import FreeSemilattice P renaming (⊥ to F⊥ ; _∨_ to _F∨_ ; _≈_ to _F≈_ )
+    open import Data.List.Any.Properties
+    open import Data.List.All
+
+    |f| : Bool → Σ[ l ∈ List ⊤ ] (IsFreeList l)
+    |f| false = [] , []-Free
+    |f| true = tt ∷ [] , (∷-Free tt [] [] ¬Any[] []-Free) 
+    
+    |f|-⊥ : |f| false F≈ F⊥ 
+    |f|-⊥ = PW.refl PE.refl
+
+    |f|-∨ : (a b : Bool) → |f| (a B∨ b) F≈ (|f| a F∨ |f| b)
+    |f|-∨ false false = PW.refl PE.refl
+    |f|-∨ false true = PW.refl PE.refl
+    |f|-∨ true false = PW.refl PE.refl
+    |f|-∨ true true = PW.refl PE.refl
+
+    |g| : Σ[ l ∈ List ⊤ ] (IsFreeList l) → Bool
+    |g| ([] , []-Free) = false
+    |g| (tt ∷ [] , ∷-Free _ _ _ _ _) = true
+    |g| (tt ∷ tt ∷ _ , ∷-Free _ _ _ incomp _) = 
+      ⊥-elim $ incomp (here (inj₁ $ DeltaPoset.reflexive P PE.refl))
+
+    |g|-⊥ : |g| F⊥ ≡ false 
+    |g|-⊥ = PE.refl
+
+    |g|-∨ : (a b : Σ[ l ∈ List ⊤ ] IsFreeList l) → (|g| (a F∨ b) ≡ (|g| a) B∨ (|g| b))
+    |g|-∨ ([] , []-Free) ([] , []-Free) = PE.refl
+    |g|-∨ (tt ∷ [] , ∷-Free _ _ _ _ _) ([] , []-Free) = PE.refl 
+    |g|-∨ ([] , []-Free) (tt ∷ [] , ∷-Free _ _ _ _ _) = PE.refl
+    |g|-∨ (tt ∷ [] , ∷-Free _ _ _ _ _) (tt ∷ [] , ∷-Free _ _ _ _ _) = PE.refl
+    |g|-∨ (tt ∷ tt ∷ _ , ∷-Free _ _ _ incomp _) _ = ⊥-elim $ incomp $ here (inj₁ $ DeltaPoset.reflexive P PE.refl) 
+    |g|-∨ _ (tt ∷ tt ∷ _ , ∷-Free _ _ _ incomp _) = ⊥-elim $ incomp $ here (inj₁ $ DeltaPoset.reflexive P PE.refl)
+
+    inv-S→FP→S : (a : Bool) → (|g| $ |f| a) ≡ a
+    inv-S→FP→S true = PE.refl
+    inv-S→FP→S false = PE.refl
+
+    inv-FP→S→FP : (a : Σ[ l ∈ List ⊤ ] IsFreeList l) → (|f| $ |g| a) F≈ a 
+    inv-FP→S→FP ([] , []-Free) = PW.refl PE.refl
+    inv-FP→S→FP (tt ∷ [] , ∷-Free _ _ _ _ _) = PW.refl PE.refl
+    inv-FP→S→FP (tt ∷ tt ∷ _ , ∷-Free _ _ _ incomp _) = ⊥-elim $ incomp $ here (inj₁ $ DeltaPoset.reflexive P PE.refl)
 
 ⟦ DictSemilat x x₁ ⁂⟧ = {!!}
 ⟦ ProductSemilat x x₁ ⁂⟧ = {!!}
