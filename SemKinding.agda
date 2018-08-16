@@ -499,8 +499,9 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
     -- f and g are inverses
     inv-S→FP→S : (a : BoundedJoinSemilattice.Carrier S) → (BoundedJoinSemilattice._≈_ S (proj₁ g $ proj₁ f $ a) a) 
     inv-FP→S→FP : (a : BoundedJoinSemilattice.Carrier $ FP P) → (BoundedJoinSemilattice._≈_ (FP P) (proj₁ f $ proj₁ g $ a) a) 
-⟦_⁂⟧ : ∀ {τ τ₀ : τ} → (isSemilat : IsSemilat τ τ₀) → SemSemilat l0 l0 l0 l0 l0 l0 l0 isSemilat             
 
+⟦_⁂⟧ : ∀ {τ τ₀ : τ} → (isSemilat : IsSemilat τ τ₀) → SemSemilat l0 l0 l0 l0 l0 l0 l0 isSemilat       
+{-      
 ⟦_⁂⟧ NatSemilat = record
   { S = S
   ; P = P
@@ -697,7 +698,7 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
   ; f = |f| , |f|-⊥ , |f|-∨
   ; g = |g| , |g|-⊥ , |g|-∨
   ; inv-S→FP→S = inv-S→FP→S
-  ; inv-FP→S→FP = {!inv-FP→S→FP!} 
+  ; inv-FP→S→FP = inv-FP→S→FP 
   }
   where
     open import Data.Bool
@@ -809,7 +810,276 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
     inv-FP→S→FP (tt ∷ [] , ∷-Free _ _ _ _ _) = PW.refl PE.refl
     inv-FP→S→FP (tt ∷ tt ∷ _ , ∷-Free _ _ _ incomp _) = ⊥-elim $ incomp $ here (inj₁ $ DeltaPoset.reflexive P PE.refl)
 
-⟦ DictSemilat x x₁ ⁂⟧ = {!!}
-⟦ ProductSemilat x x₁ ⁂⟧ = {!!}
+⟦ DictSemilat domIsToset codIsSemilat ⁂⟧ = record
+  { S = {!!}
+  ; P = {!!}
+  ; i = {!!} , {!!} , {!!}
+  ; f = {!!} , {!!} , {!!}
+  ; g = {!!} , {!!} , {!!}
+  ; inv-S→FP→S = {!!}
+  ; inv-FP→S→FP = {!!} 
+  }
+  where
+    open import Data.List.Relation.Pointwise as LPW
+    open import Data.Product.Relation.Pointwise.NonDependent as PPW
+    open import Data.List.All as LAll
+    open import Data.List.Any as LAny
+    open import Data.Product
+ 
+    tosetDom = ⟦ domIsToset T⟧
+    semSemilatCod = ⟦ codIsSemilat ⁂⟧
+    bjsCod = SemSemilat.S semSemilatCod
+    |D| = StrictTotalOrder.Carrier tosetDom
+    |C| = BoundedJoinSemilattice.Carrier (SemSemilat.S semSemilatCod)
+
+    open StrictTotalOrder tosetDom renaming (_≈_ to _≈d_ ; _<_ to _<d_ ; compare to compare-d)
+    open BoundedJoinSemilattice bjsCod renaming (_≈_ to _≈c_ ; _≤_ to _≤c_ ; ⊥ to ⊥c )
+
+    Elem : Set
+    Elem = Σ[ d↦c ∈ |D| × |C| ] ¬ ((proj₂ d↦c) ≈c ⊥c) 
+
+    _≈Elem_ : Elem → Elem → Set
+    ((d1 , c1) , _) ≈Elem ((d2 , c2) , _) = (d1 ≈d d2) × (c1 ≈c c2) 
+
+    data Sorted : List Elem → Set where
+      []-Sorted : Sorted []
+      ∷-Sorted : {h : Elem} → (t : List Elem) → 
+                  (min : All {A = Elem} (λ e → ((proj₁ $ proj₁ h) <d (proj₁ $ proj₁ e))) t) →
+                  (s : Sorted t) → Sorted (h ∷ t)
+
+    Carrier' : Set
+    Carrier' = Σ[ l ∈ List Elem ] (Sorted l)
+    
+    _≈'_ : Carrier' → Carrier' → Set
+    (l1 , _) ≈' (l2 , _) =  LPW.Pointwise _≈Elem_ l1 l2  
+
+    infix 4 _≤'_ 
+
+    {-
+    data _≤'_ : Carrier' → Carrier' → Set where
+      ≤'-[] : [] ≤' []
+      ≤'-skip : (d1 d2 : |D|) → (c1 c2 : |C|) → (t1 t2 : Carrier') → (d2 < d1) → 
+                ((d1 , c1) ∷ t1 ≤' t2) → ((d1 , c1) ∷ t1 ≤' (d2 , c2) ∷ t2)
+      ≤'-cmp : (d1 d2 : |D|) → (c1 c2 : |C|) → (t1 t2 : Carrier') → (d1 ≈ d2) → 
+    -}
+
+    _≤'_ : Carrier' → Carrier' → Set
+    (l1 , _) ≤' (l2 , _)  = All (λ x → (Any (f x) l2)) l1
+      where
+        f : Elem → Elem → Set
+        f ((d1 , c1) , _) ((d2 , c2) , _) = (d1 ≈d d2) × (c1 ≤c c2)
+
+    _∨'_ : Carrier' → Carrier' → Carrier'
+    ([] , _) ∨' ([] , _) = [] , []-Sorted
+    ([] , _) ∨' ((h2 ∷ t2) , ∷-Sorted t2 min2 st2) = (h2 ∷ t2) , ∷-Sorted t2 min2 st2
+    (h1 ∷ t1 , ∷-Sorted t1 min1 st1) ∨' ([] , []-Sorted) = h1 ∷ t1 , ∷-Sorted t1 min1 st1
+    (((d1 , c1) , _) ∷ t1 , ∷-Sorted t1 min1 st1) ∨' (((d2 , c2) , _) ∷ t2 , ∷-Sorted t2 min2 st2) with compare-d d1 d2 
+    (((d1 , c1) , _) ∷ t1 , ∷-Sorted t1 min1 st1) ∨' b@(((d2 , c2) , _) ∷ t2 , ∷-Sorted t2 min2 st2) | tri< d1<d2 _ _ =
+      let 
+        rec : Carrier'
+        rec = (t1 , st1) ∨' b
+        
+        -- min12 : 
+      in
+      {!!}
+    (((d1 , c1) , _) ∷ t1 , ∷-Sorted t1 min1 st1) ∨' (((d2 , c2) , _) ∷ t2 , ∷-Sorted t2 min2 st2) | tri≈ _ d1≈d2 _ =
+      {!!}
+    (((d1 , c1) , _) ∷ t1 , ∷-Sorted t1 min1 st1) ∨' (((d2 , c2) , _) ∷ t2 , ∷-Sorted t2 min2 st2) | tri> _ _ d2<d1 =
+      {!!}
+
+    S : BoundedJoinSemilattice l0 l0 l0
+    S = record 
+      { Carrier = Carrier' 
+      ; _≈_ = _≈'_ 
+      ; _≤_ = _≤'_
+      ; _∨_ = {!!} 
+      ; ⊥ = {!!}
+      ; isBoundedJoinSemilattice = record
+        { isJoinSemilattice = record
+          { isPartialOrder = {!!}
+          ; supremum =  {!!}
+          }
+        ; minimum = {!!} 
+        } 
+      }
+-}
+⟦ ProductSemilat isSemilatL isSemilatR ⁂⟧ = record
+  { S = S
+  ; P = P
+  ; i = {!!} , {!!} , {!!}
+  ; f = {!!} , {!!} , {!!}
+  ; g = {!!} , {!!} , {!!}
+  ; inv-S→FP→S = {!!}
+  ; inv-FP→S→FP = {!!} 
+  }
+  where
+    open import Data.Product.Relation.Pointwise.NonDependent as PW
+
+    semSemilatL = ⟦ isSemilatL ⁂⟧
+    semSemilatR = ⟦ isSemilatR ⁂⟧
+
+    bjsL = SemSemilat.S semSemilatL
+    bjsR = SemSemilat.S semSemilatR
+
+    |L| = BoundedJoinSemilattice.Carrier bjsL
+    |R| = BoundedJoinSemilattice.Carrier bjsR
+
+    _≈L_ = BoundedJoinSemilattice._≈_ bjsL
+    _≈R_ = BoundedJoinSemilattice._≈_ bjsR
+
+    _≤L_ = BoundedJoinSemilattice._≤_ bjsL
+    _≤R_ = BoundedJoinSemilattice._≤_ bjsR
+
+    _∨L_ = BoundedJoinSemilattice._∨_ bjsL
+    _∨R_ = BoundedJoinSemilattice._∨_ bjsR
+
+    ⊥L = BoundedJoinSemilattice.⊥ bjsL
+    ⊥R = BoundedJoinSemilattice.⊥ bjsR
+
+    Carrier' : Set
+    Carrier' = |L| × |R| 
+
+    _≈'_ : Rel Carrier' _
+    _≈'_ = Pointwise _≈L_ _≈R_
+
+    _≤'_ : Rel Carrier' _
+    _≤'_ = Pointwise _≤L_ _≤R_
+
+    _∨'_ : Carrier' → Carrier' → Carrier'
+    (aL , aR) ∨' (bL , bR) = (aL ∨L bL) , (aR ∨R bR) 
+
+    ⊥' : Carrier'
+    ⊥' = (⊥L , ⊥R)
+
+    minimum' : (z : Carrier') → ⊥' ≤' z
+    minimum' (zL , zR) = BoundedJoinSemilattice.minimum bjsL zL , BoundedJoinSemilattice.minimum bjsR zR
+
+    lowerL : (a b : Carrier') → a ≤' (a ∨' b)
+    lowerL a@(aL , aR) b@(bL , bR) =
+      let
+        lowerL-L , _ , _ = BoundedJoinSemilattice.supremum bjsL aL bL 
+        lowerL-R , _ , _ = BoundedJoinSemilattice.supremum bjsR aR bR
+      in
+      lowerL-L , lowerL-R
+
+    lowerR : (a b : Carrier') → b ≤' (a ∨' b)
+    lowerR a@(aL , aR) b@(bL , bR) =
+      let
+        _ , lowerR-L , _ = BoundedJoinSemilattice.supremum bjsL aL bL 
+        _ , lowerR-R , _ = BoundedJoinSemilattice.supremum bjsR aR bR
+      in
+      lowerR-L , lowerR-R
+
+    upper : (a b z : Carrier') → (a ≤' z) → (b ≤' z) → ((a ∨' b) ≤' z)
+    upper a@(aL , aR) b@(bL , bR) z@(zL , zR) (aL≤zL ,  aR≤zR) (bL≤zL , bR≤zR) =
+      let
+        _ , _ , sup-L = BoundedJoinSemilattice.supremum bjsL aL bL 
+        _ , _ , sup-R = BoundedJoinSemilattice.supremum bjsR aR bR
+      in
+      sup-L zL aL≤zL bL≤zL , sup-R zR aR≤zR bR≤zR 
+
+    S : BoundedJoinSemilattice l0 l0 l0
+    S = record 
+      { Carrier = Carrier' 
+      ; _≈_ = _≈'_
+      ; _≤_ = _≤'_
+      ; _∨_ = _∨'_ 
+      ; ⊥ = ⊥'
+      ; isBoundedJoinSemilattice = record
+        { isJoinSemilattice = record
+          { isPartialOrder = ×-isPartialOrder (BoundedJoinSemilattice.isPartialOrder bjsL)
+                                              (BoundedJoinSemilattice.isPartialOrder bjsR)
+          ; supremum = λ x → λ y → lowerL x y , lowerR x y , upper x y
+          }
+        ; minimum = minimum' 
+        } 
+      }
+
+    
+    deltaL = SemSemilat.P semSemilatL
+    deltaR = SemSemilat.P semSemilatR
+
+    |L₀| = DeltaPoset.Carrier deltaL
+    |R₀| = DeltaPoset.Carrier deltaR
+  
+    Carrier₀ = |L₀| ⊎ |R₀|
+  
+    _≈L₀_ = DeltaPoset._≈_ deltaL
+    _≈R₀_ = DeltaPoset._≈_ deltaR
+    _⊑L₀_ = DeltaPoset._⊑_ deltaL
+    _⊑R₀_ = DeltaPoset._⊑_ deltaR
+    _∥L₀_ = DeltaPoset._∥_ deltaL
+    _∥R₀_ = DeltaPoset._∥_ deltaR
+    _∦L₀_ = DeltaPoset._∦_ deltaL
+    _∦R₀_ = DeltaPoset._∦_ deltaR
+    _<L₀_ = DeltaPoset._<_ deltaL
+    _<R₀_ = DeltaPoset._<_ deltaR
+    unimL = DeltaPoset.unimodality deltaL
+    unimR = DeltaPoset.unimodality deltaR
+
+    P : DeltaPoset {l0} {l0} {l0} {l0}
+    P = record
+      { Carrier = Carrier₀
+      ; _⊑_ = _⊑₀_
+      ; _<_ = _<₀_  
+      ; _≈_ = SPW.Pointwise _≈L₀_ _≈R₀_
+      ; isStrictTotalOrder = ⊎-<-isStrictTotalOrder (DeltaPoset.isStrictTotalOrder deltaL) 
+                                                    (DeltaPoset.isStrictTotalOrder deltaR)
+      ; isDecPartialOrder = record
+        { isPartialOrder = ⊎-isPartialOrder (DeltaPoset.isPartialOrder deltaL) (DeltaPoset.isPartialOrder deltaR)
+        ; _≟_ = ⊎-decidable (DeltaPoset._≈?_ deltaL) (DeltaPoset._≈?_ deltaR)
+        ; _≤?_ = ⊎-decidable (DeltaPoset._⊑?_ deltaL) (DeltaPoset._⊑?_ deltaR)
+        }
+      ; unimodality = unimodality
+      }
+      where
+        open import Data.Sum.Relation.Pointwise as SPW
+        open import Data.Sum.Relation.LeftOrder
+
+        _⊑₀_ : Carrier₀ → Carrier₀ → Set
+        _⊑₀_ = SPW.Pointwise _⊑L₀_ _⊑R₀_ 
+
+        _<₀_ : Carrier₀ → Carrier₀ → Set
+        _<₀_ = _<L₀_ ⊎-< _<R₀_
+
+        _∦₀_ : Carrier₀ → Carrier₀ → Set
+        a ∦₀ b = a ⊑₀ b ⊎ b ⊑₀ a
+
+        _∥₀_ : Carrier₀ → Carrier₀ → Set
+        a ∥₀ b = ¬ (a ∦₀ b)
+
+        unimodality : {a b c : Carrier₀} → a <₀ b → b <₀ c → a ∥₀ b → b ∥₀ c → a ∥₀ c
+        unimodality {inj₁ a'} {inj₂ b'} {inj₂ c'} (₁∼₂ tt) (₂∼₂ b'<c') a∥b b∥c (inj₁ (₁∼₂ ())) 
+        unimodality {inj₁ a'} {inj₂ b'} {inj₂ c'} (₁∼₂ tt) (₂∼₂ b'<c') a∥b b∥c (inj₂ ())
+        unimodality {inj₁ a'} {inj₁ b'} {inj₁ c'} (₁∼₁ a'<b') (₁∼₁ b'<c') a∥b b∥c a∦c with a'∥b' | b'∥c' 
+          where
+            a'∥b' : a' ∥L₀ b'
+            a'∥b' (inj₁ a'⊑b') = a∥b $ (inj₁ $ ₁∼₁ a'⊑b')
+            a'∥b' (inj₂ b'⊑a') = a∥b $ (inj₂ $ ₁∼₁ b'⊑a')   
+
+            b'∥c' : b' ∥L₀ c'
+            b'∥c' (inj₁ b'⊑c') = b∥c $ (inj₁ $ ₁∼₁ b'⊑c')
+            b'∥c' (inj₂ c'⊑b') = b∥c $ (inj₂ $ ₁∼₁ c'⊑b')
+        unimodality {inj₁ a'} {inj₁ b'} {inj₁ c'} (₁∼₁ a'<b') (₁∼₁ b'<c') a∥b b∥c (inj₁ (₁∼₁ a'⊑c')) | a'∥b' | b'∥c' =
+          (unimL a'<b' b'<c' a'∥b' b'∥c') (inj₁ a'⊑c')
+        unimodality {inj₁ a'} {inj₁ b'} {inj₁ c'} (₁∼₁ a'<b') (₁∼₁ b'<c') a∥b b∥c (inj₂ (₁∼₁ c'⊑a')) | a'∥b' | b'∥c' = 
+          (unimL a'<b' b'<c' a'∥b' b'∥c') (inj₂ c'⊑a')
+        unimodality {inj₁ a'} {inj₁ b'} {inj₂ c'} (₁∼₁ a'<b') (₁∼₂ tt) a∥b b∥c (inj₁ (₁∼₂ ()))
+        unimodality {inj₁ a'} {inj₁ b'} {inj₂ c'} (₁∼₁ a'<b') (₁∼₂ tt) a∥b b∥c (inj₂ ())
+        unimodality {inj₂ a'} {inj₂ b'} {inj₁ c'} (₂∼₂ a'<b') () a∥b b∥c a∦c
+        unimodality {inj₂ a'} {inj₂ b'} {inj₂ c'} (₂∼₂ a'<b') (₂∼₂ b'<c') a∥b b∥c a∦c with a'∥b' | b'∥c'
+          where
+            a'∥b' : a' ∥R₀ b'
+            a'∥b' (inj₁ a'⊑b') = a∥b $ (inj₁ $ ₂∼₂ a'⊑b')
+            a'∥b' (inj₂ b'⊑a') = a∥b $ (inj₂ $ ₂∼₂ b'⊑a')   
+
+            b'∥c' : b' ∥R₀ c'
+            b'∥c' (inj₁ b'⊑c') = b∥c $ (inj₁ $ ₂∼₂ b'⊑c')
+            b'∥c' (inj₂ c'⊑b') = b∥c $ (inj₂ $ ₂∼₂ c'⊑b')
+        unimodality {inj₂ a'} {inj₂ b'} {inj₂ c'} (₂∼₂ a'<b') (₂∼₂ b'<c') a∥b b∥c (inj₁ (₂∼₂ a'⊑c')) | a'∥b' | b'∥c' =
+          (unimR a'<b' b'<c' a'∥b' b'∥c') (inj₁ a'⊑c')
+        unimodality {inj₂ a'} {inj₂ b'} {inj₂ c'} (₂∼₂ a'<b') (₂∼₂ b'<c') a∥b b∥c (inj₂ (₂∼₂ c'⊑a')) | a'∥b' | b'∥c' =
+          (unimR a'<b' b'<c' a'∥b' b'∥c') (inj₂ c'⊑a')
+
 ⟦ IVarSemilat x ⁂⟧ = {!!}
 ⟦ PartialSemilat x ⁂⟧ = {!!}
