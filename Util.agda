@@ -25,8 +25,10 @@ open import Relation.Binary.PropositionalEquality as PE hiding ( [_] )
 open import Relation.Binary.PropositionalEquality.TrustMe
 open import Relation.Binary.PropositionalEquality.Core as PEC
 
+open import Data.List.Relation.Pointwise as LPW hiding (refl ; rec ; Rel)
 open import Data.List.All as LL
 open import Data.Vec.All as VL
+open import Data.Empty
 
 -- this is called the inspect idiom in the Agda stdlib
 keep : ∀{ℓ}{A : Set ℓ} → (x : A) → Σ A (λ y → x ≡ y)
@@ -244,23 +246,23 @@ module UnitStrictTotal where
   
   -- no pair of units is in the strict less-than relation
   -- hence no constructors
-  data _lt_ (x y : ⊤) : Set where
+  data _⊤<_ (x y : ⊤) : Set where
 
-  lt-isTransitive : Transitive _lt_
-  lt-isTransitive () () 
+  ⊤<-isTransitive : Transitive _⊤<_
+  ⊤<-isTransitive () () 
   
-  lt-trichotomous : Trichotomous _≡_ _lt_
-  lt-trichotomous x y = tri≈ (λ ()) refl (λ ())
+  ⊤<-trichotomous : Trichotomous _≡_ _⊤<_
+  ⊤<-trichotomous x y = tri≈ (λ ()) refl (λ ())
  
   ≡-isEquivalence : IsEquivalence {A = ⊤} _≡_
   ≡-isEquivalence = PE.isEquivalence
   
-  ⊤-IsStrictTotalOrder : IsStrictTotalOrder _≡_ _lt_
+  ⊤-IsStrictTotalOrder : IsStrictTotalOrder _≡_ _⊤<_
   ⊤-IsStrictTotalOrder = 
     record{ 
       isEquivalence = ≡-isEquivalence;
-      trans = lt-isTransitive;
-      compare = lt-trichotomous
+      trans = ⊤<-isTransitive;
+      compare = ⊤<-trichotomous
      }
 
   ⊤-strictTotalOrder : StrictTotalOrder l0 l0 l0
@@ -268,6 +270,31 @@ module UnitStrictTotal where
     record{
       Carrier = ⊤;
       _≈_ = _≡_;
-      _<_ = _lt_;
+      _<_ = _⊤<_;
       isStrictTotalOrder = ⊤-IsStrictTotalOrder
      }
+
+pointwiseRespAll : {ℓA ℓB ℓQ ℓP ℓR : Level} → {A : Set ℓA} → {B : Set ℓB} → {Q : REL A B ℓQ} → {P : A → Set ℓP} →
+                   {R : B → Set ℓR} → (imp : ∀ {a b} → P a → Q a b → R b) → (lA : List A) → (lB : List B) → 
+                   (AllP : LL.All P lA) → (Pointwise Q lA lB) → LL.All R lB
+ 
+pointwiseRespAll {A = A} {B} {Q} {P} {R} imp [] [] AllP pwQ = []
+pointwiseRespAll {A = A} {B} {Q} {P} {R} imp [] (hB ∷ tB) AllP ()
+pointwiseRespAll {A = A} {B} {Q} {P} {R} imp (hA ∷ tA) [] AllP ()
+pointwiseRespAll {A = A} {B} {Q} {P} {R} imp (hA ∷ tA) (hB ∷ tB) (hP ∷ tP) (hQ ∷ tQ) = 
+  (imp hP hQ) ∷ (pointwiseRespAll imp tA tB tP tQ)
+
+
+pointwiseRespAny : {ℓA ℓB ℓQ ℓP ℓR : Level} → {A : Set ℓA} → {B : Set ℓB} → {Q : REL A B ℓQ} → {P : A → Set ℓP} →
+                   {R : B → Set ℓR} → (imp : ∀ {a b} → P a → Q a b → R b) → (lA : List A) → (lB : List B) → 
+                   (anyP : LA.Any P lA) → (Pointwise Q lA lB) → LA.Any R lB
+
+pointwiseRespAny {A = A} {B} {Q} {P} {R} imp [] [] anyP pwQ = ⊥-elim $ LAP.¬Any[] anyP 
+pointwiseRespAny {A = A} {B} {Q} {P} {R} imp [] (hB ∷ tB) anyP ()
+pointwiseRespAny {A = A} {B} {Q} {P} {R} imp (hA ∷ tA) [] anyP ()
+pointwiseRespAny {A = A} {B} {Q} {P} {R} imp (hA ∷ tA) (hB ∷ tB) (here hP) (hQ ∷ tQ) = 
+  here (imp hP hQ)
+pointwiseRespAny {A = A} {B = B} {Q = Q} {P = P} {R = R} imp (hA ∷ tA) (hB ∷ tB) (there tP) (hQ ∷ tQ) = 
+  there $ pointwiseRespAny imp tA tB tP tQ 
+
+

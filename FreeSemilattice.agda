@@ -52,6 +52,9 @@ _⊔_ = Core._∨_
 _∨_ : SemilatCarrier → SemilatCarrier → SemilatCarrier
 _∨_ = BoundedJoinSemilattice._∨_ FP-BJS
 
+IsFreeList : List DeltaCarrier → Set _
+IsFreeList = Core.IsFreeList
+
 -- gives us the constructors []-Free and ∷-Free
 open Core.IsFreeList public
 

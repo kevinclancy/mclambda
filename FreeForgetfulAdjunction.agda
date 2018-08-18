@@ -34,16 +34,16 @@ module _ where
    where
      open import FreeSemilattice.Core P
 
-monotone : {cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ cᵣ ℓ⊑ᵣ ℓ<ᵣ ℓ~ᵣ : Level} → (P : DeltaPoset {cₚ} {ℓ⊑ₚ} {ℓ<ₚ} {ℓ~ₚ}) → 
+Monotone : {cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ cᵣ ℓ⊑ᵣ ℓ<ᵣ ℓ~ᵣ : Level} → (P : DeltaPoset {cₚ} {ℓ⊑ₚ} {ℓ<ₚ} {ℓ~ₚ}) → 
            (R : DeltaPoset {cᵣ} {ℓ⊑ᵣ} {ℓ<ᵣ} {ℓ~ᵣ})  → (DeltaPoset.Carrier P → DeltaPoset.Carrier R) → Set _
-monotone P R f = ∀ {p p' : |P|} → p ⊑ₚ p' → (f p) ⊑ᵣ (f p')    
+Monotone P R f = ∀ {p p' : |P|} → p ⊑ₚ p' → (f p) ⊑ᵣ (f p')    
   where
     open DeltaPoset P renaming (_⊑_ to _⊑ₚ_ ; Carrier to |P|)
     open DeltaPoset R renaming (_⊑_ to _⊑ᵣ_ ; Carrier to |R|) 
 
-monic : ∀ {ℓA ℓA≈ ℓB ℓB≈} → (A : Setoid ℓA ℓA≈) → (B : Setoid ℓB ℓB≈) → (Setoid.Carrier A → Setoid.Carrier B) → 
+Injective : ∀ {ℓA ℓA≈ ℓB ℓB≈} → (A : Setoid ℓA ℓA≈) → (B : Setoid ℓB ℓB≈) → (Setoid.Carrier A → Setoid.Carrier B) → 
         Set _
-monic {ℓA} {ℓA≈} {ℓB} {ℓB≈} A B f = ∀ {a a' : |A|} → (f a) B≈ (f a') → a A≈ a' 
+Injective {ℓA} {ℓA≈} {ℓB} {ℓB≈} A B f = ∀ {a a' : |A|} → (f a) B≈ (f a') → a A≈ a' 
   where
     |A| = Setoid.Carrier A
     |B| = Setoid.Carrier B
@@ -53,7 +53,7 @@ monic {ℓA} {ℓA≈} {ℓB} {ℓB≈} A B f = ∀ {a a' : |A|} → (f a) B≈ 
 -- the space of monotone functions from delta poset P to delta poset R 
 _→+_ : {cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ cᵣ ℓ⊑ᵣ ℓ<ᵣ ℓ~ᵣ : Level} → DeltaPoset {cₚ} {ℓ⊑ₚ} {ℓ<ₚ} {ℓ~ₚ} → 
         DeltaPoset {cᵣ} {ℓ⊑ᵣ} {ℓ<ᵣ} {ℓ~ᵣ} → Set _
-P →+ R = Σ[ f ∈ (|P| → |R|) ] monotone P R f     
+P →+ R = Σ[ f ∈ (|P| → |R|) ] Monotone P R f     
   where
     open DeltaPoset P renaming (_⊑_ to _⊑ₚ_ ; Carrier to |P|)
     open DeltaPoset R renaming (_⊑_ to _⊑ᵣ_ ; Carrier to |R|) 
@@ -61,7 +61,7 @@ P →+ R = Σ[ f ∈ (|P| → |R|) ] monotone P R f
 -- the space of injective monotone functions (order embeddings) between delta posets
 _↣+_ : {cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ cᵣ ℓ⊑ᵣ ℓ<ᵣ ℓ~ᵣ : Level} → DeltaPoset {cₚ} {ℓ⊑ₚ} {ℓ<ₚ} {ℓ~ₚ} → 
         DeltaPoset {cᵣ} {ℓ⊑ᵣ} {ℓ<ᵣ} {ℓ~ᵣ} → Set _
-P ↣+ R = Σ[ f ∈ (|P| → |R|) ] monotone P R f × monic P' R' f
+P ↣+ R = Σ[ f ∈ (|P| → |R|) ] Monotone P R f × Injective P' R' f
   where
     open DeltaPoset P renaming (_⊑_ to _⊑ₚ_ ; Carrier to |P|)
     open DeltaPoset R renaming (_⊑_ to _⊑ᵣ_ ; Carrier to |R|) 

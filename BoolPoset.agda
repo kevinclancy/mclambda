@@ -21,6 +21,9 @@ private
 
   module BP = FinPoset.FinPoset Bool boolDepth boolCovers _≟_
 
+infix 4 _B≤_
+infixr 6 _B∨_
+
 _B≤_ : Bool → Bool → Set
 _B≤_ = BP._≤_
 
@@ -30,6 +33,15 @@ B≤-isPreorder = BP.≤-isPreorder
 B≤-preorder : Preorder l0 l0 l0
 B≤-preorder = BP.≤-preorder
 
+B≤-isPartialOrder : IsPartialOrder _≡_ _B≤_
+B≤-isPartialOrder = BP.≤-isPartialOrder
+
 B≤-poset : Poset l0 l0 l0
 B≤-poset = BP.≤-poset
+
+_B∨_ : Bool → Bool → Bool
+true B∨ true = true
+true B∨ false = true
+false B∨ true = true
+false B∨ false = false
 
