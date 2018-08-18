@@ -529,7 +529,7 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
   { S = S
   ; P = P
   ; i = |i| , |i|-mono , |i|-injective
-  ; f = {!!} , {!!} , {!!}
+  ; f = |f| , {!!} , {!!}
   ; g = {!!} , {!!} , {!!}
   ; inv-S→FP→S = {!!}
   ; inv-FP→S→FP = {!!} 
@@ -713,70 +713,211 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
     |i|-injective {inj₂ a'} {inj₁ b'} ()
     |i|-injective {inj₂ a'} {inj₂ b'} (₂∼₂ ia'≈ib') = ₂∼₂ $ iR-injective ia'≈ib'
 
-    open import FreeSemilattice.Core P renaming (⊥' to ⊥F ; _∨'_ to _∨F_ )
+    open import FreeSemilattice.Core P renaming 
+      (⊥' to ⊥F ; _∨'_ to _∨F_ ; concat-FP to concat-FP-P ; _≈_ to _≈F_ ; Carrier-FP to Carrier-FP )
+    open import FreeSemilattice.Core deltaL renaming 
+      (IsFreeList to IsFreeListL ; []-Free to []-FreeL ; ∷-Free to ∷-FreeL ; _≈_ to _≈FL_ ; ⊥' to ⊥FL ; Carrier-FP to Carrier-FPL )
+    open import FreeSemilattice.Core deltaR renaming 
+      (IsFreeList to IsFreeListR ; []-Free to []-FreeR ; ∷-Free to ∷-FreeR ; _≈_ to _≈FR_ ; ⊥' to ⊥FR ; Carrier-FP to Carrier-FPR )
+
+    |fL| : |L| → Σ[ l ∈ List (DeltaPoset.Carrier deltaL) ] (IsFreeListL l)
+    |fL| = proj₁ $ SemSemilat.f semSemilatL
+
+    |fL|-⊥ : |fL| ⊥L ≈FL ⊥FL
+    |fL|-⊥ = proj₁ $ proj₂ $ SemSemilat.f semSemilatL
+
+    |fR| : |R| → Σ[ l ∈ List (DeltaPoset.Carrier deltaR) ] (IsFreeListR l)
+    |fR| = proj₁ $ SemSemilat.f semSemilatR
+
+    |fR|-⊥ : |fR| ⊥R ≈FR ⊥FR
+    |fR|-⊥ = proj₁ $ proj₂ $ SemSemilat.f semSemilatR
+
+    convL : (z : Σ[ l ∈ List |L₀| ] IsFreeListL l) → 
+            Σ[ l ∈ Carrier-FP ] (LPW.Pointwise (λ x → λ y → (y ≡ inj₁ x)) (proj₁ z) (proj₁ l))
+    convL ([] , []-FreeL) = ([] , []-Free) , []
+    convL (h ∷ t , ∷-FreeL h t min incomp ft) = 
+      ((inj₁ h) ∷ t' , ∷-Free (inj₁ h) t' min' incomp' ft') , (PE.refl ∷ eqt')
+      where
+        imp1 : ∀ {a : |L₀|} → {b : |P|} → (h <L₀ a) → (b ≡ inj₁ a) → (inj₁ h <P b)
+        imp1 {a} {b} h<a b≡injA@PE.refl = ₁∼₁ h<a  
+
+        r : Σ[ l ∈ Carrier-FP ] (LPW.Pointwise (λ x → λ y → (y ≡ inj₁ x)) t (proj₁ l))
+        r = convL (t , ft)
+
+        t' : List |P|
+        t' = proj₁ $ proj₁ r
+
+        ft' : IsFreeList t'
+        ft' = proj₂ $ proj₁ r
+
+        eqt' : LPW.Pointwise (λ x → λ y → (y ≡ inj₁ x)) t t'
+        eqt' = proj₂ r
+
+        min' : All (λ z → inj₁ h <P z) t'
+        min' = pointwiseRespAll imp1 t t' min eqt'
+
+        ⊑-resp-inj₁ : {a b : |L₀|} → inj₁ a ⊑P inj₁ b → a ⊑L₀ b
+        ⊑-resp-inj₁ {a} {b} (₁∼₁ a⊑b) = a⊑b
+
+        p : {a : |P|} → {b : |L₀|} → a ∈≡ t' → (a ≡ inj₁ b) → b ∈≡ t
+        p {a} {b} a∈≡t' a≡injb = pointwiseRespAny imp t' t a∈≡t' (LPW.symmetric PE.sym eqt')  
+          where
+            open import Data.Sum.Properties
+            imp : ∀ {x : |P|} → {y : |L₀|} → (a ≡ x) → (inj₁ y ≡ x) → (b ≡ y) 
+            imp {x} {y} PE.refl PE.refl = inj₁-injective (PE.sym a≡injb) 
+
+        incomp' : ¬ Any (λ z → inj₁ h ∦P z) t'
+        incomp' injh∦t' = anyEliminate t' eliminator injh∦t'
+          where
+            eliminator : AnyEliminator {ℓQ = l0} |P| ⊥ (inj₁ h ∦P_) t'
+            eliminator (inj₁ a') f (inj₂ injh⊑inja') inja'∈≡t' = incomp $ LAny.map (λ a'≡· → PE.subst (h ∦L₀_) a'≡· h∦a') (p inja'∈≡t' PE.refl)    
+              where
+                h∦a' : h ∦L₀ a'
+                h∦a' = inj₂ (⊑-resp-inj₁ injh⊑inja')
+            eliminator (inj₁ a') f (inj₁ inja'⊑injh) inja'∈≡t' = incomp $ LAny.map (λ a'≡· → PE.subst (h ∦L₀_) a'≡· h∦a') (p inja'∈≡t' PE.refl)    
+              where
+                h∦a' : h ∦L₀ a'
+                h∦a' = inj₁ (⊑-resp-inj₁ inja'⊑injh)
+
+            eliminator (inj₂ a') f (inj₁ (₁∼₂ ())) inja'∈≡t'
+            eliminator (inj₂ a') f (inj₂ ()) inja'∈≡t'
+
+    convR : (z : Σ[ l ∈ List |R₀| ] IsFreeListR l) → 
+            Σ[ l ∈ List |P| ] (IsFreeList l) × (LPW.Pointwise (λ x → λ y → (y ≡ inj₂ x)) (proj₁ z) l)
+    convR ([] , []-FreeR) = [] , []-Free , []
+    convR (h ∷ t , ∷-FreeR h t min incomp ft) = 
+      ((inj₂ h) ∷ t') , ∷-Free (inj₂ h) t' min' incomp' ft' , (PE.refl ∷ eqt')
+      where
+        imp1 : ∀ {a : |R₀|} → {b : |P|} → (h <R₀ a) → (b ≡ inj₂ a) → (inj₂ h <P b)
+        imp1 {a} {b} h<a b≡injA@PE.refl = ₂∼₂ h<a  
+
+        r : Σ[ l ∈ List |P| ] (IsFreeList l) × (LPW.Pointwise (λ x → λ y → (y ≡ inj₂ x)) t l)
+        r = convR (t , ft)
+
+        t' : List |P|
+        t' = proj₁ r
+
+        ft' : IsFreeList t'
+        ft' = proj₁ $ proj₂ r
+
+        eqt' : LPW.Pointwise (λ x → λ y → (y ≡ inj₂ x)) t t'
+        eqt' = proj₂ $ proj₂ r
+
+        min' : All (λ z → inj₂ h <P z) t'
+        min' = pointwiseRespAll imp1 t t' min eqt'
+
+        ⊑-resp-inj₂ : {a b : |R₀|} → inj₂ a ⊑P inj₂ b → a ⊑R₀ b
+        ⊑-resp-inj₂ {a} {b} (₂∼₂ a⊑b) = a⊑b
+
+        p : {a : |P|} → {b : |R₀|} → a ∈≡ t' → (a ≡ inj₂ b) → b ∈≡ t
+        p {a} {b} a∈≡t' a≡injb = pointwiseRespAny imp t' t a∈≡t' (LPW.symmetric PE.sym eqt')  
+          where
+            open import Data.Sum.Properties
+            imp : ∀ {x : |P|} → {y : |R₀|} → (a ≡ x) → (inj₂ y ≡ x) → (b ≡ y) 
+            imp {x} {y} PE.refl PE.refl = inj₂-injective (PE.sym a≡injb) 
+
+        incomp' : ¬ Any (λ z → inj₂ h ∦P z) t'
+        incomp' injh∦t' = anyEliminate t' eliminator injh∦t'
+          where
+            eliminator : AnyEliminator {ℓQ = l0} |P| ⊥ (inj₂ h ∦P_) t'
+            eliminator (inj₂ a') f (inj₂ injh⊑inja') inja'∈≡t' = incomp $ LAny.map (λ a'≡· → PE.subst (h ∦R₀_) a'≡· h∦a') (p inja'∈≡t' PE.refl)    
+              where
+                h∦a' : h ∦R₀ a'
+                h∦a' = inj₂ (⊑-resp-inj₂ injh⊑inja')
+            eliminator (inj₂ a') f (inj₁ inja'⊑injh) inja'∈≡t' = incomp $ LAny.map (λ a'≡· → PE.subst (h ∦R₀_) a'≡· h∦a') (p inja'∈≡t' PE.refl)    
+              where
+                h∦a' : h ∦R₀ a'
+                h∦a' = inj₁ (⊑-resp-inj₂ inja'⊑injh)
+
+            eliminator (inj₁ a') f (inj₁ ()) inja'∈≡t'
+            eliminator (inj₁ a') f (inj₂ (₁∼₂ ())) inja'∈≡t'
 
     |f| : Carrier' → Σ[ l ∈ List (DeltaPoset.Carrier P) ] (IsFreeList l)
-    |f| (aL , aR) = 
-      {!!}
+    |f| (aL , aR) =
+      let 
+        (conc , conc-f) , _ = concat-FP-P (resL-list , resL-free) (resR-list , resR-free) min incomp 
+      in
+        conc , conc-f
       where
-        open import FreeSemilattice.Core deltaL renaming (IsFreeList to IsFreeListL ; []-Free to []-FreeL ; ∷-Free to ∷-FreeL)
-        open import FreeSemilattice.Core deltaR renaming (IsFreeList to IsFreeListR ; []-Free to []-FreeR ; ∷-Free to ∷-FreeR)
 
-        |fL| : |L| → Σ[ l ∈ List (DeltaPoset.Carrier deltaL) ] (IsFreeListL l)
-        |fL| = proj₁ $ SemSemilat.f semSemilatL
+        factoredL : Σ[ l ∈ List |L₀| ] (IsFreeListL l)
+        factoredL = |fL| aL
 
-        |fR| : |R| → Σ[ l ∈ List (DeltaPoset.Carrier deltaR) ] (IsFreeListR l)
-        |fR| = proj₁ $ SemSemilat.f semSemilatR
+        factoredR : Σ[ l ∈ List |R₀| ] (IsFreeListR l)
+        factoredR = |fR| aR
 
-        convL : (z : Σ[ l ∈ List |L₀| ] IsFreeListL l) → 
-                Σ[ l ∈ List |P| ] (IsFreeList l) × (LPW.Pointwise (λ x → λ y → (y ≡ inj₁ x)) (proj₁ z) l)
-        convL ([] , []-FreeL) = [] , []-Free , []
-        convL (h ∷ t , ∷-FreeL h t min incomp ft) = 
-          ((inj₁ h) ∷ t') , ∷-Free (inj₁ h) t' min' incomp' ft' , (PE.refl ∷ eqt')
+        resL : Σ[ l ∈ Carrier-FP ] (LPW.Pointwise (λ x → λ y → (y ≡ inj₁ x)) (proj₁ factoredL) (proj₁ l))
+        resL = convL factoredL
+
+        resR : Σ[ l ∈ List |P| ] (IsFreeList l) × (LPW.Pointwise (λ x → λ y → (y ≡ inj₂ x)) (proj₁ factoredR) l)
+        resR = convR factoredR
+
+        resL-list : List |P|
+        resL-list = proj₁ $ proj₁ resL
+
+        resR-list : List |P|
+        resR-list = proj₁ resR
+
+        resL-free : IsFreeList resL-list
+        resL-free = proj₂ $ proj₁ resL
+
+        resR-free : IsFreeList resR-list
+        resR-free = proj₁ $ proj₂ resR
+
+        resL-eq : (LPW.Pointwise (λ x → λ y → (y ≡ inj₁ x)) (proj₁ factoredL) resL-list)
+        resL-eq = proj₂ resL
+
+        resR-eq : (LPW.Pointwise (λ x → λ y → (y ≡ inj₂ x)) (proj₁ factoredR) resR-list)
+        resR-eq = proj₂ $ proj₂ resR
+
+        min : All (λ x → All (x <P_) resR-list) resL-list
+        min = pointwiseRespAll imp (proj₁ factoredL) resL-list U-L resL-eq
           where
-            imp1 : ∀ {a : |L₀|} → {b : |P|} → (h <L₀ a) → (b ≡ inj₁ a) → (inj₁ h <P b)
-            imp1 {a} {b} h<a b≡injA@PE.refl = ₁∼₁ h<a  
+            open import Relation.Unary using (Universal ; U)
+            open import Relation.Unary.Properties
+            open import Data.List.All.Properties
 
-            r : Σ[ l ∈ List |P| ] (IsFreeList l) × (LPW.Pointwise (λ x → λ y → (y ≡ inj₁ x)) t l)
-            r = convL (t , ft)
+            U-L : All U (proj₁ factoredL)
+            U-L = All-universal U-Universal (proj₁ factoredL)
 
-            t' : List |P|
-            t' = proj₁ r
+            U-R : All U (proj₁ factoredR)
+            U-R = All-universal U-Universal (proj₁ factoredR)
 
-            ft' : IsFreeList t'
-            ft' = proj₁ $ proj₂ r
+            imp : ∀ {a b} → U a → (b ≡ inj₁ a) → All (b <P_) resR-list
+            imp {a} {b} _ b≡inj₁a = pointwiseRespAll imp' (proj₁ factoredR) resR-list U-R resR-eq
+              where 
+                imp' : ∀ {x y} → U x → (y ≡ inj₂ x) → b <P y
+                imp' {x} {y} _ y≡inj₂x rewrite b≡inj₁a | y≡inj₂x = ₁∼₂ tt 
 
-            eqt' : LPW.Pointwise (λ x → λ y → (y ≡ inj₁ x)) t t'
-            eqt' = proj₂ $ proj₂ r
+   
+        incomp : All (λ x → All (x ∥P_) resR-list) resL-list
+        incomp = pointwiseRespAll imp (proj₁ factoredL) resL-list U-L resL-eq
+          where
+            open import Relation.Unary using (Universal ; U)
+            open import Relation.Unary.Properties
+            open import Data.List.All.Properties
 
-            min' : All (λ z → inj₁ h <P z) t'
-            min' = pointwiseRespAll imp1 t t' min eqt'
+            U-L : All U (proj₁ factoredL)
+            U-L = All-universal U-Universal (proj₁ factoredL)
 
-            ⊑-resp-inj₁ : {a b : |L₀|} → inj₁ a ⊑P inj₁ b → a ⊑L₀ b
-            ⊑-resp-inj₁ {a} {b} (₁∼₁ a⊑b) = a⊑b
+            U-R : All U (proj₁ factoredR)
+            U-R = All-universal U-Universal (proj₁ factoredR)        
 
-            p : {a : |P|} → {b : |L₀|} → a ∈≡ t' → (a ≡ inj₁ b) → b ∈≡ t
-            p {a} {b} a∈≡t' a≡injb = pointwiseRespAny imp t' t a∈≡t' (LPW.symmetric PE.sym eqt')  
-              where
-                open import Data.Sum.Properties
-                imp : ∀ {x : |P|} → {y : |L₀|} → (a ≡ x) → (inj₁ y ≡ x) → (b ≡ y) 
-                imp {x} {y} PE.refl PE.refl = inj₁-injective (PE.sym a≡injb) 
-                   
-            incomp' : ¬ Any (λ z → inj₁ h ∦P z) t'
-            incomp' injh∦t' = anyEliminate t' eliminator injh∦t'
-              where
-                eliminator : AnyEliminator {ℓQ = l0} |P| ⊥ (inj₁ h ∦P_) t'
-                eliminator (inj₁ a') f (inj₁ injh⊑inja') inja'∈≡t' = incomp $ LAny.map (λ a'≡· → PE.subst (h ∦L₀_) a'≡· h∦a') (p inja'∈≡t' PE.refl)    
-                  where
-                    h∦a' : h ∦L₀ a'
-                    h∦a' = inj₁ (⊑-resp-inj₁ injh⊑inja')
-                eliminator (inj₁ a') f (inj₂ inja'⊑injh) inja'∈≡t' = incomp $ LAny.map (λ a'≡· → PE.subst (h ∦L₀_) a'≡· h∦a') (p inja'∈≡t' PE.refl)    
-                  where
-                    h∦a' : h ∦L₀ a'
-                    h∦a' = inj₂ (⊑-resp-inj₁ inja'⊑injh)
+            imp : ∀ {a b} → U a → (b ≡ inj₁ a) → All (b ∥P_) resR-list
+            imp {a} {b} _ PE.refl = pointwiseRespAll imp' (proj₁ factoredR) resR-list U-R resR-eq
+              where 
+                imp' : ∀ {x y} → U x → (y ≡ inj₂ x) → b ∥P y
+                imp' {x} {.(inj₂ x)} _ PE.refl (inj₁ (₁∼₂ ()))
+                imp' {x} {.(inj₂ x)} _ PE.refl (inj₂ ()) 
 
-                eliminator (inj₂ a') f (inj₁ (₁∼₂ ())) inja'∈≡t'
-                eliminator (inj₂ a') f (inj₂ ()) inja'∈≡t'
+    |f|-⊥ : |f| (⊥L , ⊥R) ≈F ⊥F
+    |f|-⊥ = {!!}
+      where
+        pL : |fL| ⊥L ≈FL ([] , []-FreeL)
+        pL = |fL|-⊥
 
+        p : |f| (⊥L , ⊥R) ≡ proj₁ (concat-FP-P (proj₁ $ convL $ |fL| ⊥L) (convR $ |fR| ⊥R) [] [])  
+        p = {!PE.refl!}
+        
 ⟦ IVarSemilat x ⁂⟧ = {!!}
 ⟦ PartialSemilat x ⁂⟧ = {!!}
