@@ -529,7 +529,7 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
   { S = S
   ; P = P
   ; i = |i| , |i|-mono , |i|-injective
-  ; f = |f| , {!!} , {!!}
+  ; f = |f| , |f|-⊥ , |f|-∨
   ; g = {!!} , {!!} , {!!}
   ; inv-S→FP→S = {!!}
   ; inv-FP→S→FP = {!!} 
@@ -714,11 +714,11 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
     |i|-injective {inj₂ a'} {inj₂ b'} (₂∼₂ ia'≈ib') = ₂∼₂ $ iR-injective ia'≈ib'
 
     open import FreeSemilattice.Core P renaming 
-      (⊥' to ⊥F ; _∨'_ to _∨F_ ; concat-FP to concat-FP-P ; _≈_ to _≈F_ ; Carrier-FP to Carrier-FP )
+      (⊥' to ⊥F ; _∨'_ to _∨F_ ; concat-FP to concat-FP-P ; _≈_ to _≈F_ ; ≈-refl to ≈F-refl ; Carrier-FP to Carrier-FP )
     open import FreeSemilattice.Core deltaL renaming 
-      (IsFreeList to IsFreeListL ; []-Free to []-FreeL ; ∷-Free to ∷-FreeL ; _≈_ to _≈FL_ ; ⊥' to ⊥FL ; Carrier-FP to Carrier-FPL )
+      (IsFreeList to IsFreeListL ; []-Free to []-FreeL ; ∷-Free to ∷-FreeL ; _≈_ to _≈FL_ ; ⊥' to ⊥FL ; Carrier-FP to Carrier-FPL ; _∨'_ to _∨FL_ )
     open import FreeSemilattice.Core deltaR renaming 
-      (IsFreeList to IsFreeListR ; []-Free to []-FreeR ; ∷-Free to ∷-FreeR ; _≈_ to _≈FR_ ; ⊥' to ⊥FR ; Carrier-FP to Carrier-FPR )
+      (IsFreeList to IsFreeListR ; []-Free to []-FreeR ; ∷-Free to ∷-FreeR ; _≈_ to _≈FR_ ; ⊥' to ⊥FR ; Carrier-FP to Carrier-FPR ; _∨'_ to _∨FR_ )
 
     |fL| : |L| → Σ[ l ∈ List (DeltaPoset.Carrier deltaL) ] (IsFreeListL l)
     |fL| = proj₁ $ SemSemilat.f semSemilatL
@@ -783,25 +783,25 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
             eliminator (inj₂ a') f (inj₂ ()) inja'∈≡t'
 
     convR : (z : Σ[ l ∈ List |R₀| ] IsFreeListR l) → 
-            Σ[ l ∈ List |P| ] (IsFreeList l) × (LPW.Pointwise (λ x → λ y → (y ≡ inj₂ x)) (proj₁ z) l)
-    convR ([] , []-FreeR) = [] , []-Free , []
+            Σ[ l ∈ Carrier-FP ] (LPW.Pointwise (λ x → λ y → (y ≡ inj₂ x)) (proj₁ z) (proj₁ l))
+    convR ([] , []-FreeR) = ([] , []-Free) , []
     convR (h ∷ t , ∷-FreeR h t min incomp ft) = 
-      ((inj₂ h) ∷ t') , ∷-Free (inj₂ h) t' min' incomp' ft' , (PE.refl ∷ eqt')
+      ((inj₂ h) ∷ t' , ∷-Free (inj₂ h) t' min' incomp' ft') , (PE.refl ∷ eqt')
       where
         imp1 : ∀ {a : |R₀|} → {b : |P|} → (h <R₀ a) → (b ≡ inj₂ a) → (inj₂ h <P b)
         imp1 {a} {b} h<a b≡injA@PE.refl = ₂∼₂ h<a  
 
-        r : Σ[ l ∈ List |P| ] (IsFreeList l) × (LPW.Pointwise (λ x → λ y → (y ≡ inj₂ x)) t l)
+        r : Σ[ l ∈ Carrier-FP ] (LPW.Pointwise (λ x → λ y → (y ≡ inj₂ x)) t (proj₁ l))
         r = convR (t , ft)
 
         t' : List |P|
-        t' = proj₁ r
+        t' = proj₁ $ proj₁ r
 
         ft' : IsFreeList t'
-        ft' = proj₁ $ proj₂ r
+        ft' = proj₂ $ proj₁ r
 
         eqt' : LPW.Pointwise (λ x → λ y → (y ≡ inj₂ x)) t t'
-        eqt' = proj₂ $ proj₂ r
+        eqt' = proj₂ r
 
         min' : All (λ z → inj₂ h <P z) t'
         min' = pointwiseRespAll imp1 t t' min eqt'
@@ -832,9 +832,32 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
             eliminator (inj₁ a') f (inj₁ ()) inja'∈≡t'
             eliminator (inj₁ a') f (inj₂ (₁∼₂ ())) inja'∈≡t'
 
+    pL : proj₁ (|fL| ⊥L) ≡ []
+    pL = pointwise-[]ʳ |fL|-⊥ 
+
+    pL' : (|fL| ⊥L) ≡ ([] , []-FreeL)
+    pL' with |fL| ⊥L | pL
+    pL' | ([] , []-FreeR) | PE.refl  = PE.refl
+    pL' | (h ∷ t , ∷-FreeR _ _ _ _ _) | ()
+
+    pR : proj₁ (|fR| ⊥R) ≡ []
+    pR = pointwise-[]ʳ |fR|-⊥ 
+
+    pR' : (|fR| ⊥R) ≡ ([] , []-FreeR)
+    pR' with |fR| ⊥R | pR
+    pR' | ([] , []-FreeR) | PE.refl  = PE.refl
+    pR' | (h ∷ t , ∷-FreeR _ _ _ _ _) | ()
+
+    convL-⊥ : proj₁ (convL $ |fL| ⊥L) ≡ ⊥F
+    convL-⊥ rewrite pL' = PE.refl
+
+    convR-⊥ : proj₁ (convR $ |fR| ⊥R) ≡ ⊥F
+    convR-⊥ rewrite pR' = PE.refl
+
     |f| : Carrier' → Σ[ l ∈ List (DeltaPoset.Carrier P) ] (IsFreeList l)
     |f| (aL , aR) =
       let 
+        -- we should express this as a join rather than concat
         (conc , conc-f) , _ = concat-FP-P (resL-list , resL-free) (resR-list , resR-free) min incomp 
       in
         conc , conc-f
@@ -849,26 +872,26 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
         resL : Σ[ l ∈ Carrier-FP ] (LPW.Pointwise (λ x → λ y → (y ≡ inj₁ x)) (proj₁ factoredL) (proj₁ l))
         resL = convL factoredL
 
-        resR : Σ[ l ∈ List |P| ] (IsFreeList l) × (LPW.Pointwise (λ x → λ y → (y ≡ inj₂ x)) (proj₁ factoredR) l)
+        resR : Σ[ l ∈ Carrier-FP ] (LPW.Pointwise (λ x → λ y → (y ≡ inj₂ x)) (proj₁ factoredR) (proj₁ l))
         resR = convR factoredR
 
         resL-list : List |P|
         resL-list = proj₁ $ proj₁ resL
 
         resR-list : List |P|
-        resR-list = proj₁ resR
+        resR-list = proj₁ $ proj₁ resR
 
         resL-free : IsFreeList resL-list
         resL-free = proj₂ $ proj₁ resL
 
         resR-free : IsFreeList resR-list
-        resR-free = proj₁ $ proj₂ resR
+        resR-free = proj₂ $ proj₁ resR
 
         resL-eq : (LPW.Pointwise (λ x → λ y → (y ≡ inj₁ x)) (proj₁ factoredL) resL-list)
         resL-eq = proj₂ resL
 
         resR-eq : (LPW.Pointwise (λ x → λ y → (y ≡ inj₂ x)) (proj₁ factoredR) resR-list)
-        resR-eq = proj₂ $ proj₂ resR
+        resR-eq = proj₂ resR
 
         min : All (λ x → All (x <P_) resR-list) resL-list
         min = pointwiseRespAll imp (proj₁ factoredL) resL-list U-L resL-eq
@@ -911,13 +934,17 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
                 imp' {x} {.(inj₂ x)} _ PE.refl (inj₂ ()) 
 
     |f|-⊥ : |f| (⊥L , ⊥R) ≈F ⊥F
-    |f|-⊥ = {!!}
+    |f|-⊥ =  PE.subst (λ · → · ≈F ⊥F) (PE.sym p) (≈F-refl {⊥F})
       where
-        pL : |fL| ⊥L ≈FL ([] , []-FreeL)
-        pL = |fL|-⊥
+        p : |f| (⊥L , ⊥R) ≡ ⊥F 
+        p rewrite pL' | pR' = PE.refl
+    
+    |f|-∨ : (a b : Carrier') → |f| (a ∨' b) ≈F (|f| a) ∨F (|f| b)
+    |f|-∨ a@(aL , aR) b@(bL , bR) = {!!}
+      where
+        p : (aL , aR) ∨' (bL , bR) ≡ (aL ∨L bL , aR ∨R bR)
+        p = PE.refl
 
-        p : |f| (⊥L , ⊥R) ≡ proj₁ (concat-FP-P (proj₁ $ convL $ |fL| ⊥L) (convR $ |fR| ⊥R) [] [])  
-        p = {!PE.refl!}
-        
+        |f|-a∨b : |f| (a ∨' b) ≡ (
 ⟦ IVarSemilat x ⁂⟧ = {!!}
 ⟦ PartialSemilat x ⁂⟧ = {!!}
