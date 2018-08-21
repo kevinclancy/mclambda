@@ -48,8 +48,11 @@ record DeltaPoset {c ℓ⊑ ℓ< ℓ≈ : Level} : Set (Level.suc $ c ⊔ ℓ⊑
   trans⊑ : Transitive _⊑_
   trans⊑ = IsDecPartialOrder.trans isDecPartialOrder
 
-  refl⊑ : _≈_ ⇒ _⊑_
-  refl⊑ = IsDecPartialOrder.reflexive isDecPartialOrder
+  reflexive⊑ : _≈_ ⇒ _⊑_
+  reflexive⊑ = IsDecPartialOrder.reflexive isDecPartialOrder
+
+  refl⊑ : Reflexive _⊑_
+  refl⊑ = IsDecPartialOrder.refl isDecPartialOrder
 
   trans< : Transitive _<_
   trans< = IsStrictTotalOrder.trans isStrictTotalOrder
@@ -62,6 +65,9 @@ record DeltaPoset {c ℓ⊑ ℓ< ℓ≈ : Level} : Set (Level.suc $ c ⊔ ℓ⊑
 
   refl≈ : Reflexive _≈_
   refl≈ = IsDecEquivalence.refl isDecEquivalence
+
+  reflexive≈ : _≡_ ⇒ _≈_
+  reflexive≈ = IsDecEquivalence.reflexive isDecEquivalence
 
   _≈?_ : Decidable _≈_
   _≈?_ = IsDecEquivalence._≟_ isDecEquivalence 

@@ -38,7 +38,6 @@ data IsFreeList : List Carrier → Set (c ⊔ ℓ< ⊔ ℓ⊑) where
   ∷-Free : (hd : Carrier) → (tl : List Carrier) → (All (hd <_) tl) → ¬ (Any (λ x → (hd ⊑ x) ⊎ (x ⊑ hd)) tl) →
             (IsFreeList tl) → IsFreeList (hd ∷ tl) 
 
-
 sng-free : {c : Carrier} → (IsFreeList (c ∷ []))
 sng-free {c} = ∷-Free c [] [] (λ ()) []-Free
 
@@ -151,6 +150,43 @@ free-eq {h1 ∷ t1} {h2 ∷ t2} f1@(∷-Free _ _ min1 _ _) f2 a∈l1⇔a∈l2 | 
 
 Carrier-FP : Set _
 Carrier-FP = Σ[ x ∈ List Carrier ] IsFreeList x
+
+module _ where
+  open import Data.List.Properties
+  open import Data.List.All.Properties renaming (++⁺ to ++')
+  open import Data.List.Any.Properties renaming (++⁻ to ++'')
+
+  concat-FP : (a : Carrier-FP) → (b : Carrier-FP) → 
+              (All (λ x → All (x <_) $ proj₁ b) $ proj₁ a) →
+              (All (λ x → All (x ∥_) $ proj₁ b) $ proj₁ a) → 
+              Σ[ c ∈ Carrier-FP ] proj₁ c ≡ (proj₁ a) ++ (proj₁ b) 
+
+  concat-FP ([] , fa) (lb , fb) mins incomps = (lb , fb) , PE.refl
+  concat-FP (ha ∷ ta , ∷-Free _ _ mina incompa fta) (lb , fb) (minh ∷ minst) (incomph ∷ incompst) =
+    (ha ∷ l-rest , ∷-Free ha l-rest min incomp l-free) , PE.cong (λ · → ha ∷ ·) l-eq
+    where
+      rest : Σ[ c ∈ Carrier-FP ] (proj₁ c) ≡ ta ++ lb 
+      rest = concat-FP (ta , fta) (lb , fb) minst incompst
+
+      l-rest : List Carrier
+      l-rest = proj₁ $ proj₁ rest
+
+      l-free : IsFreeList l-rest
+      l-free = proj₂ $ proj₁ rest
+
+      l-eq : l-rest ≡ ta ++ lb
+      l-eq = proj₂ rest
+
+      min : All (ha <_) l-rest
+      min rewrite l-eq = ++' mina minh
+      
+      incomp : ¬ Any (ha ∦_) l-rest
+      incomp ha∦rest = anyEliminate l-rest elim ha∦rest
+        where
+          elim : AnyEliminator {ℓQ = l0} Carrier ⊥ (ha ∦_) l-rest
+          elim x f ha∦x x∈≡l-rest rewrite l-eq with ++'' ta x∈≡l-rest
+          elim x f ha∦x x∈≡l-rest | inj₁ x∈≡ta = incompa $ LAny.map (λ x≡· → PE.subst (λ · → ha ⊑ · ⊎ · ⊑ ha) x≡· ha∦x) x∈≡ta
+          elim x f ha∦x x∈≡l-rest | inj₂ x∈≡lb = (LA.lookup incomph x∈≡lb) ha∦x 
 
 _≤_ : (l1 l2 : Carrier-FP) → Set _
 (l1 , f1) ≤ (l2 , f2) = All (λ x → Any (x ⊑_) l2) l1
@@ -715,6 +751,20 @@ FP-Setoid = record
   ; isEquivalence = ≈-isEquiv
   }
 
+{-
+module _ where
+  open import Data.List.Properties
+  open import Data.List.All.Properties renaming (++⁺ to ++')
+  open import Data.List.Any.Properties renaming (++⁻ to ++'')
+
+  ∨'-disjoint : (a : Carrier-FP) → (b : Carrier-FP) → 
+                 (All (λ x → All (x <_) $ proj₁ b) $ proj₁ a) →
+                 (All (λ x → All (x ∥_) $ proj₁ b) $ proj₁ a) →
+                 proj₁ (a ∨' b) ≡ (proj₁ a) ++ (proj₁ b)
+  ∨'-disjoint ([] , fa) (lb , fb) min incomp = {!!}
+  ∨'-disjoint (x ∷ la , fa) (lb , fb) min incomp = {!!}
+-}
+
 a≤b→a∨b≈b : (a b : Carrier-FP) → (a ≤ b) → ((a ∨' b) ≈ b)
 a≤b→a∨b≈b a@(l1 , f1) b@(l2 , f2) a≤b = free-eq (∨-free f1 f2) f2 x∈∨⇔x∈l2
   where
@@ -870,3 +920,4 @@ a⊑b⊎a⊑c→a⊑b∨c a {h1 ∷ t1} {h2 ∷ t2} f1 f2@(∷-Free _ _ _ _ ft2)
 a⊑b∨c⇔a⊑b⊎a⊑c : (a : Carrier) → {b c : List Carrier} → (fb : IsFreeList b) → (fc : IsFreeList c) → 
                    (Any (a ⊑_) (b ∨ c)) ⇔ ((Any (a ⊑_) b) ⊎ (Any (a ⊑_) c))
 a⊑b∨c⇔a⊑b⊎a⊑c a fb fc = equivalence (a⊑b∨c→a⊑b⊎a⊑c a fb fc) (a⊑b⊎a⊑c→a⊑b∨c a fb fc)
+

@@ -69,10 +69,10 @@ P ↣+ R = Σ[ f ∈ (|P| → |R|) ] Monotone P R f × Injective P' R' f
     R' = DeltaPoset.≈-setoid R
 
 -- the space of bounded join semilattice homomorphisms between bounded join semilattices S and T
-_⇉_ : ∀ {c ℓ₁ ℓ₂ c' ℓ₁' ℓ₂'} → BoundedJoinSemilattice c ℓ₁ ℓ₂ → BoundedJoinSemilattice c' ℓ₁' ℓ₂' → Set (c ⊔ c' ⊔ ℓ₁')
-S ⇉ T = Σ[ f ∈ (|S| → |T|)] (f ⊥ₛ ≈ₜ ⊥ₜ) × ∀ (s1 s2 : |S|) → f (s1 ∨ₛ s2) ≈ₜ (f s1) ∨ₜ (f s2) 
+_⇉_ : ∀ {c ℓ₁ ℓ₂ c' ℓ₁' ℓ₂'} → BoundedJoinSemilattice c ℓ₁ ℓ₂ → BoundedJoinSemilattice c' ℓ₁' ℓ₂' → Set (c ⊔ c' ⊔ ℓ₁ ⊔ ℓ₁')
+S ⇉ T = Σ[ f ∈ (|S| → |T|)] (∀ (s1 s2 : |S|) → s1 ≈ₛ s2 → (f s1) ≈ₜ (f s2)) × (f ⊥ₛ ≈ₜ ⊥ₜ) × ∀ (s1 s2 : |S|) → f (s1 ∨ₛ s2) ≈ₜ (f s1) ∨ₜ (f s2) 
   where
-    open BoundedJoinSemilattice S renaming (⊥ to ⊥ₛ ; _∨_ to _∨ₛ_ ; Carrier to |S|)
+    open BoundedJoinSemilattice S renaming (_≈_ to _≈ₛ_ ; ⊥ to ⊥ₛ ; _∨_ to _∨ₛ_ ; Carrier to |S|)
     open BoundedJoinSemilattice T renaming (_≈_ to _≈ₜ_ ; ⊥ to ⊥ₜ ; _∨_ to _∨ₜ_ ; Carrier to |T|)
 
 -- the free semilattice functor's action on delta poset objects
@@ -80,6 +80,74 @@ FP : ∀{c ℓ⊑ ℓ< ℓ~} (P : DeltaPoset {c} {ℓ⊑} {ℓ<} {ℓ~}) → Bou
 FP P = FP-BJS
   where
     open import FreeSemilattice.Semilattice P
+
+⇉-mono : ∀ {c ℓ₁ ℓ₂ c' ℓ₁' ℓ₂'} → {S : BoundedJoinSemilattice c ℓ₁ ℓ₂} → {T : BoundedJoinSemilattice c' ℓ₁' ℓ₂'} → 
+          (h : S ⇉ T) → (a b : BoundedJoinSemilattice.Carrier S) → (BoundedJoinSemilattice._≤_ S a b) → 
+          (BoundedJoinSemilattice._≤_ T (proj₁ h $ a) (proj₁ h $ b))
+
+⇉-mono {S = S} {T = T} h a b a≤b =
+  begin
+    (|h| a) ≈⟨ PT.Eq.sym $ P-BJT.identityʳ $ |h| a ⟩
+    (|h| a) ∨T ⊥T ≤⟨ P-JT.∨-monotonic (PT.reflexive PT.Eq.refl) (BJT.minimum $ |h| b)  ⟩
+    (|h| a) ∨T (|h| b) ≈⟨ PT.Eq.sym $ |h|-∨ a b ⟩
+    (|h| $ a ∨S b) ≈⟨ |h|-≈ (a ∨S b) b $ connecting→ {A = jsS} a b a≤b ⟩
+    (|h| b)
+   ∎
+  where
+    jsS = BoundedJoinSemilattice.joinSemiLattice S
+    jsT = BoundedJoinSemilattice.joinSemiLattice T
+
+    open import Relation.Binary.PartialOrderReasoning (BoundedJoinSemilattice.poset T)
+    module BJT = BoundedJoinSemilattice T
+    module PT = Poset (BoundedJoinSemilattice.poset T)
+
+    open import Relation.Binary.Properties.BoundedJoinSemilattice T as P-BJT
+    open import Relation.Binary.Properties.JoinSemilattice jsT as P-JT
+
+    |h| = proj₁ h
+    |h|-≈ = proj₁ $ proj₂ h
+    |h|-∨ = proj₂ $ proj₂ $ proj₂ h
+
+    _∨S_ = BoundedJoinSemilattice._∨_ S
+    _∨T_ = BoundedJoinSemilattice._∨_ T
+    ⊥S = BoundedJoinSemilattice.⊥ S
+    ⊥T = BoundedJoinSemilattice.⊥ T
+  
+{-
+⇉-resp-≈ : ∀ {c ℓ₁ ℓ₂ c' ℓ₁' ℓ₂'} → {S : BoundedJoinSemilattice c ℓ₁ ℓ₂} → {T : BoundedJoinSemilattice c' ℓ₁' ℓ₂'} →
+            (h : S ⇉ T) → (s1 s2 : BoundedJoinSemilattice.Carrier S) → (BoundedJoinSemilattice._≈_ S s1 s2) → 
+            (BoundedJoinSemilattice._≈_ T (proj₁ h $ s1) (proj₁ h $ s2))
+
+⇉-resp-≈ {S = S} {T} (|h| , |h|-⊥ , |h|-∨) s1 s2 s1≈s2 = 
+  begin
+    |h| s1 ≈⟨   ⟩    
+   ∎ 
+  where
+    module S' = BoundedJoinSemilattice S
+    module T' = BoundedJoinSemilattice T
+
+    ≈-setoid : Setoid _ _
+    ≈-setoid = record
+      { Carrier = T'.Carrier
+      ; isEquivalence = T'.isEquivalence 
+      }
+
+    open import Relation.Binary.EqReasoning ≈-setoid
+
+    s1≤s2 : s1 S'.≤ s2 
+    s1≤s2 = S'.reflexive s1≈s2
+
+    s2≤s1 : s2 S'.≤ s1 
+    s2≤s1 = S'.reflexive (S'.Eq.sym s1≈s2)
+
+    s2∨s1≈s1 : s2 S'.∨ s1 S'.≈ s1 
+    s2∨s1≈s1 = connecting→ {A = S'.joinSemiLattice} s2 s1 s2≤s1
+
+    s1∨s2≈s2 : s1 S'.∨ s2 S'.≈ s2 
+    s1∨s2≈s2 = connecting→ {A = S'.joinSemiLattice} s1 s2 s1≤s2
+-}
+
+
 
 {-
 Ff : (P R : DeltaPoset0) → (f : P →+ R) → (FP P) ⇉ (FP R)

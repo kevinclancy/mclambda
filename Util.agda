@@ -30,6 +30,8 @@ open import Data.List.All as LL
 open import Data.Vec.All as VL
 open import Data.Empty
 
+open import Relation.Binary.Lattice
+
 -- this is called the inspect idiom in the Agda stdlib
 keep : ∀{ℓ}{A : Set ℓ} → (x : A) → Σ A (λ y → x ≡ y)
 keep {ℓ} {A} x = ( x , refl )
@@ -298,3 +300,38 @@ pointwiseRespAny {A = A} {B = B} {Q = Q} {P = P} {R = R} imp (hA ∷ tA) (hB ∷
   there $ pointwiseRespAny imp tA tB tP tQ 
 
 
+pointwise-[]ˡ : {ℓA ℓB ℓQ ℓP : Level} → {A : Set ℓA} → {B : Set ℓB} → {Q : REL B A ℓQ} → 
+               {lA : List A} → Pointwise Q [] lA → lA ≡ [] 
+
+pointwise-[]ˡ {A = A} {Q} {_} [] = PE.refl
+
+
+pointwise-[]ʳ : {ℓA ℓB ℓQ : Level} → {A : Set ℓA} → {B : Set ℓB} → {Q : REL A B ℓQ} → 
+                {lA : List A} → Pointwise Q lA [] → lA ≡ [] 
+
+pointwise-[]ʳ {A = A} {Q} {_} [] = PE.refl
+
+
+module _ {ℓ₁ ℓ₂ ℓ₃ : Level} {A : JoinSemilattice ℓ₁ ℓ₂ ℓ₃} where
+  open JoinSemilattice A renaming 
+    (_≤_ to _≤A_; _∨_ to _∨A_ ; _≈_ to _≈A_ ; refl to ≤A-refl ; reflexive to ≤A-reflexive )
+  
+  open import Relation.Binary.Properties.JoinSemilattice A
+
+  connecting→ : (a b : Carrier) → (a ≤A b) → (a ∨A b ≈A b)
+  connecting→ a b a≤b = antisym a∨b≤b b≤a∨b
+    where
+      open import Relation.Binary.PartialOrderReasoning (JoinSemilattice.poset A)
+
+      a∨b≤b : a ∨A b ≤A b
+      a∨b≤b = 
+        begin
+          a ∨A b ≤⟨ ∨-monotonic a≤b ≤A-refl ⟩
+          b ∨A b ≤⟨ ≤A-reflexive (∨-idempotent b) ⟩
+          b
+         ∎
+
+      b≤a∨b : b ≤A a ∨A b
+      b≤a∨b = proj₁ $ proj₂ $ supremum a b 
+    
+      
