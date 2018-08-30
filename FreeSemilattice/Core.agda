@@ -744,6 +744,97 @@ _≈_ : Rel Carrier-FP _
   trans = λ {s1} → λ {s2} → λ {s3} → ≈-trans {s1} {s2} {s3} 
   } 
 
+l1~l2→sameElements : {l1 l2 : List Carrier} → l1 ~' l2 → (a : Carrier) → (a ∈ l1 ⇔ a ∈ l2)
+l1~l2→sameElements {l1} {l2} l1∼l2 a = equivalence (a∈l1~l2 l1∼l2) (a∈l1~l2 $ (PW.symmetric sym~) l1∼l2)   
+
+sameElements→l1~l2 : {l1 l2 : Carrier-FP} → (∀ (a : Carrier) → a ∈ (proj₁ l1) ⇔ a ∈ (proj₁ l2)) → l1 ≈ l2
+sameElements→l1~l2 {[] , []-Free} {[] , []-Free} f = []
+sameElements→l1~l2 {[] , []-Free} {h2 ∷ t2 , ∷-Free _ _ _ _ _} f = ⊥-elim $ ¬Any[] (from ⟨$⟩ here refl~)  
+  where
+    open Equivalence (f h2)
+sameElements→l1~l2 {h1 ∷ t1 , ∷-Free _ _ _ _ _} {[] , []-Free} f = ⊥-elim $ ¬Any[] (to ⟨$⟩ here refl~) 
+  where
+    open Equivalence (f h1)
+sameElements→l1~l2 {h1 ∷ t1 , ∷-Free _ _ min1 incomp1 _} {h2 ∷ t2 , ∷-Free _ _ min2 incomp2 _} f with compare h1 h2
+sameElements→l1~l2 {h1 ∷ t1 , ∷-Free _ _ min1 incomp1 _} {h2 ∷ t2 , ∷-Free _ _ min2 incomp2 _} f | tri< h1<h2 _ _ =
+  ⊥-elim $ anyEliminate (h2 ∷ t2) eliminator h1∈l2 
+  where
+    open Equivalence (f h1)
+
+    h1<h2t2 : All (h1 <_) (h2 ∷ t2)
+    h1<h2t2 = h1<h2 ∷ LA.map (λ h2<· → trans< h1<h2 h2<·) min2
+
+    h1∈l2 : h1 ∈ (h2 ∷ t2)
+    h1∈l2 = to ⟨$⟩ here refl~ 
+      
+    eliminator : AnyEliminator {ℓQ = l0} Carrier ⊥ (h1 ~_) (h2 ∷ t2)
+    eliminator a f h1~a a∈≡h2t2 = irrefl refl~ $ LA.lookup a<h2t2 a∈≡h2t2 
+      where
+        a<h2t2 : All (a <_) (h2 ∷ t2) 
+        a<h2t2 = LA.map (λ h1<· → <-respˡ-~ h1~a h1<·) h1<h2t2
+
+sameElements→l1~l2 {h1 ∷ t1 , ∷-Free _ _ min1 incomp1 ft1} {h2 ∷ t2 , ∷-Free _ _ min2 incomp2 ft2} f | tri≈ _ h1~h2 _ =
+  h1~h2 ∷ sameElements→l1~l2 {t1 , ft1} {t2 , ft2} t-same⇔ 
+  where
+    ¬h1∈t2 : ¬ h1 ∈ t2
+    ¬h1∈t2 h1∈t2 = anyEliminate t2 eliminator h1∈t2   
+      where
+        eliminator : AnyEliminator {ℓQ = l0} Carrier ⊥ (h1 ~_) t2
+        eliminator a f h1~a a∈≡t2 = irrefl h1~a $ <-respˡ-~ (sym~ h1~h2) (LA.lookup min2 a∈≡t2)
+    
+    ¬h2∈t1 : ¬ h2 ∈ t1
+    ¬h2∈t1 h2∈t1 = anyEliminate t1 eliminator h2∈t1   
+      where
+        eliminator : AnyEliminator {ℓQ = l0} Carrier ⊥ (h2 ~_) t1
+        eliminator a f h2~a a∈≡t1 = irrefl h2~a $ <-respˡ-~ h1~h2 (LA.lookup min1 a∈≡t1)
+    
+    t-same→ : (a : Carrier) → a ∈ t1 → a ∈ t2
+    t-same→ a a∈t1 with to ⟨$⟩ (there a∈t1) 
+      where
+        open Equivalence (f a)
+    t-same→ a a∈t1 | here a~h2 = ⊥-elim $ ¬h2∈t1 (∈-resp-≈ (DecSetoid.setoid ~-decSetoid) a~h2 a∈t1) 
+      where
+        open import Data.List.Membership.Setoid.Properties
+    t-same→ a a∈t1 | there a∈t2 = a∈t2
+
+    t-same← : (a : Carrier) → a ∈ t2 → a ∈ t1
+    t-same← a a∈t2 with from ⟨$⟩ (there a∈t2) 
+      where
+        open Equivalence (f a)
+    t-same← a a∈t2 | here a~h1 = ⊥-elim $ ¬h1∈t2 (∈-resp-≈ (DecSetoid.setoid ~-decSetoid) a~h1 a∈t2) 
+      where
+        open import Data.List.Membership.Setoid.Properties
+    t-same← a a∈t2 | there a∈t1 = a∈t1
+
+    t-same⇔ : (a : Carrier) → (a ∈ t1) ⇔ (a ∈ t2)
+    t-same⇔ a = equivalence (t-same→ a) (t-same← a) 
+sameElements→l1~l2 {h1 ∷ t1 , ∷-Free _ _ min1 incomp1 _} {h2 ∷ t2 , ∷-Free _ _ min2 incomp2 _} f | tri> _ _ h2<h1 =
+  ⊥-elim $ anyEliminate (h1 ∷ t1) eliminator h1∈l2 
+  where
+    open Equivalence (f h2)
+
+    h2<h1t1 : All (h2 <_) (h1 ∷ t1)
+    h2<h1t1 = h2<h1 ∷ LA.map (λ h1<· → trans< h2<h1 h1<·) min1
+
+    h1∈l2 : h2 ∈ (h1 ∷ t1)
+    h1∈l2 = from ⟨$⟩ here refl~ 
+      
+    eliminator : AnyEliminator {ℓQ = l0} Carrier ⊥ (h2 ~_) (h1 ∷ t1)
+    eliminator a f h2~a a∈≡h1t1 = irrefl refl~ $ LA.lookup a<h1t1 a∈≡h1t1 
+      where
+        a<h1t1 : All (a <_) (h1 ∷ t1) 
+        a<h1t1 = LA.map (λ h2<· → <-respˡ-~ h2~a h2<·) h2<h1t1
+
+l1~l2⇔sameElements : (l1 l2 : Carrier-FP) → ((l1 ≈ l2) ⇔ (∀ (a : Carrier) → a ∈ (proj₁ l1) ⇔ a ∈ (proj₁ l2)))
+l1~l2⇔sameElements l1 l2 = equivalence (l1~l2→sameElements {proj₁ l1} {proj₁ l2}) (sameElements→l1~l2 {l1} {l2})
+
+
+{-
+  where
+    module E1 = Equivalence (f h1)
+    module E2 = Equivalence (f h2)
+-}
+
 FP-Setoid : Setoid _ _
 FP-Setoid = record
   { Carrier = Carrier-FP

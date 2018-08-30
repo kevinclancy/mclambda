@@ -286,9 +286,20 @@ pointwiseRespAll {A = A} {B} {Q} {P} {R} imp (hA ∷ tA) [] AllP ()
 pointwiseRespAll {A = A} {B} {Q} {P} {R} imp (hA ∷ tA) (hB ∷ tB) (hP ∷ tP) (hQ ∷ tQ) = 
   (imp hP hQ) ∷ (pointwiseRespAll imp tA tB tP tQ)
 
+pointwiseRespAll⃖ : {ℓA ℓB ℓQ ℓP ℓR : Level} → {A : Set ℓA} → {B : Set ℓB} → {Q : REL A B ℓQ} → {P : A → Set ℓP} →
+                   {R : B → Set ℓR} → (imp : ∀ {a b} → R b → Q a b → P a) → (lA : List A) → (lB : List B) → 
+                   (AllP : LL.All R lB) → (Pointwise Q lA lB) → LL.All P lA
+ 
+pointwiseRespAll⃖ {A = A} {B} {Q} {P} {R} imp [] [] AllR pwQ = []
+pointwiseRespAll⃖ {A = A} {B} {Q} {P} {R} imp [] (hB ∷ tB) AllR ()
+pointwiseRespAll⃖ {A = A} {B} {Q} {P} {R} imp (hA ∷ tA) [] AllR ()
+pointwiseRespAll⃖ {A = A} {B} {Q} {P} {R} imp (hA ∷ tA) (hB ∷ tB) (hR ∷ tR) (hQ ∷ tQ) = 
+  (imp hR hQ) ∷ (pointwiseRespAll⃖ imp tA tB tR tQ)
 
 pointwiseRespAny : {ℓA ℓB ℓQ ℓP ℓR : Level} → {A : Set ℓA} → {B : Set ℓB} → {Q : REL A B ℓQ} → {P : A → Set ℓP} →
-                   {R : B → Set ℓR} → (imp : ∀ {a b} → P a → Q a b → R b) → (lA : List A) → (lB : List B) → 
+                   {R : B → Set ℓR} →  
+                   (imp : ∀ {a b} → P a → Q a b → R b) → 
+                   (lA : List A) → (lB : List B) →
                    (anyP : LA.Any P lA) → (Pointwise Q lA lB) → LA.Any R lB
 
 pointwiseRespAny {A = A} {B} {Q} {P} {R} imp [] [] anyP pwQ = ⊥-elim $ LAP.¬Any[] anyP 
@@ -298,6 +309,37 @@ pointwiseRespAny {A = A} {B} {Q} {P} {R} imp (hA ∷ tA) (hB ∷ tB) (here hP) (
   here (imp hP hQ)
 pointwiseRespAny {A = A} {B = B} {Q = Q} {P = P} {R = R} imp (hA ∷ tA) (hB ∷ tB) (there tP) (hQ ∷ tQ) = 
   there $ pointwiseRespAny imp tA tB tP tQ 
+
+pointwise∈ : {ℓA ℓB ℓQ : Level} → {A : Set ℓA} → {B : Set ℓB} →
+              {Q : REL A B ℓQ} → (lA : List A) → (lB : List B) → (a : A) →
+              (a ∈ lA) → (Pointwise Q lA lB) → Σ[ b ∈ B ] Q a b 
+pointwise∈ {A = A} {B} {Q} lA lB a a∈lA pw = LA.satisfied $ pointwiseRespAny imp lA lB a∈lA pw 
+  where
+    imp : ∀ {a' b} → a ≡ a' → Q a' b → Q a b
+    imp {a'} {b} eq qab rewrite PE.sym eq = qab
+
+pointwiseRespAny⃖ : {ℓA ℓB ℓQ ℓP ℓR : Level} → {A : Set ℓA} → {B : Set ℓB} → {Q : REL A B ℓQ} → {P : A → Set ℓP} →
+                   {R : B → Set ℓR} →  
+                   (imp : ∀ {a b} → R b → Q a b → P a) → 
+                   (lA : List A) → (lB : List B) →
+                   (anyR : LA.Any R lB) → (Pointwise Q lA lB) → LA.Any P lA
+
+pointwiseRespAny⃖ {A = A} {B} {Q} {P} {R} imp [] [] anyR pwQ = ⊥-elim $ LAP.¬Any[] anyR 
+pointwiseRespAny⃖ {A = A} {B} {Q} {P} {R} imp [] (hB ∷ tB) anyR ()
+pointwiseRespAny⃖ {A = A} {B} {Q} {P} {R} imp (hA ∷ tA) [] anyR ()
+pointwiseRespAny⃖ {A = A} {B} {Q} {P} {R} imp (hA ∷ tA) (hB ∷ tB) (here hR) (hQ ∷ tQ) = 
+  here (imp hR hQ)
+pointwiseRespAny⃖ {A = A} {B = B} {Q = Q} {P = P} {R = R} imp (hA ∷ tA) (hB ∷ tB) (there tR) (hQ ∷ tQ) = 
+  there $ pointwiseRespAny⃖ imp tA tB tR tQ 
+
+
+pointwise∈⃖ : {ℓA ℓB ℓQ : Level} → {A : Set ℓA} → {B : Set ℓB} →
+              {Q : REL A B ℓQ} → (lA : List A) → (lB : List B) → (b : B) →
+              (b ∈ lB) → (Pointwise Q lA lB) → Σ[ a ∈ A ] Q a b 
+pointwise∈⃖ {A = A} {B} {Q} lA lB b b∈lB pw = LA.satisfied $ pointwiseRespAny⃖ imp lA lB b∈lB pw 
+  where
+    imp : ∀ {a b'} → b ≡ b' → Q a b' → Q a b
+    imp {a'} {b} eq qab rewrite PE.sym eq = qab
 
 
 pointwise-[]ˡ : {ℓA ℓB ℓQ ℓP : Level} → {A : Set ℓA} → {B : Set ℓB} → {Q : REL B A ℓQ} → 
@@ -333,5 +375,16 @@ module _ {ℓ₁ ℓ₂ ℓ₃ : Level} {A : JoinSemilattice ℓ₁ ℓ₂ ℓ�
 
       b≤a∨b : b ≤A a ∨A b
       b≤a∨b = proj₁ $ proj₂ $ supremum a b 
-    
-      
+
+
+private
+  inj-clash' : {ℓA ℓB : Level} → {A : Set ℓA} → {B : Set ℓB} → (a : A) → (b : B) → (c : A ⊎ B) → 
+               (inj₁ a ≡ c) → (inj₂ b ≡ c) → ⊥
+  inj-clash' a b (inj₁ x) eq1 ()
+  inj-clash' a b (inj₂ y) () eq2 
+
+inj-clash : {ℓA ℓB : Level} → {A : Set ℓA} → {B : Set ℓB} → (a : A) → (b : B) →  
+            (inj₁ a ≡ inj₂ b) → ⊥
+
+inj-clash a b eq = inj-clash' a b (inj₁ a) PE.refl (PE.sym eq)  
+  

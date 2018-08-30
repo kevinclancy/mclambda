@@ -1,6 +1,8 @@
 module SemKinding where
 
-open import Function using (_$_ ; _|>′_)
+open import Function using (_$_ ; _|>′_ ; const)
+open import Function.Equivalence  
+open import Function.Equality using (_⟨$⟩_) 
 open import Syntax
 open import Kinding
 open import BoolPoset
@@ -10,7 +12,9 @@ open import Data.Product
 open import Data.Sum
 open import Data.Empty
 open import Data.List
+open import Data.List.Properties as LP
 open import Data.List.Any as LAny
+open import Data.List.All as LA
 open import Level
 open import Util using (l0;l1;l2)
 open import Data.Unit renaming (preorder to unitPreorder ; decTotalOrder to unitToset) hiding (_≤_)
@@ -554,7 +558,7 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
   ; P = P
   ; i = |i| , |i|-mono , |i|-injective
   ; f = {!!} -- |f| , |f|-≈ , |f|-⊥ , |f|-∨  -- |f| , |f|-⊥ , |f|-∨
-  ; g = {!!} , {!!} , {!!}
+  ; g = {!!} -- |g| , |g|-≈ , |g|-⊥ , |g|-∨
   ; inv-S→FP→S = {!!}
   ; inv-FP→S→FP = {!!} 
   }
@@ -577,10 +581,19 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
     _≈L_ = BoundedJoinSemilattice._≈_ bjsL
     ≈L-refl = BoundedJoinSemilattice.Eq.refl bjsL
     ≈L-sym = BoundedJoinSemilattice.Eq.sym bjsL
+    ≈L-setoid : Setoid _ _
+    ≈L-setoid = record
+      { Carrier = |L|
+      ; isEquivalence = BoundedJoinSemilattice.isEquivalence bjsL
+      }
     _≈R_ = BoundedJoinSemilattice._≈_ bjsR
     ≈R-refl = BoundedJoinSemilattice.Eq.refl bjsR
     ≈R-sym = BoundedJoinSemilattice.Eq.sym bjsR
-
+    ≈R-setoid : Setoid _ _
+    ≈R-setoid = record
+      { Carrier = |R|
+      ; isEquivalence = BoundedJoinSemilattice.isEquivalence bjsR
+      }
     _≤L_ = BoundedJoinSemilattice._≤_ bjsL
     _≤R_ = BoundedJoinSemilattice._≤_ bjsR
 
@@ -677,10 +690,24 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
     _≈L₀_ = DeltaPoset._≈_ deltaL
     ≈L₀-sym = DeltaPoset.sym≈ deltaL
     ≈L₀-refl = DeltaPoset.refl≈ deltaL
+    ≈L₀-reflexive = DeltaPoset.reflexive≈ deltaL
+    ≈L₀-trans = DeltaPoset.trans≈ deltaL
+    ≈L₀-setoid : Setoid _ _
+    ≈L₀-setoid = record
+      { Carrier = |L₀|
+      ; isEquivalence = DeltaPoset.Eq.isEquivalence deltaL
+      }
     _≈R₀_ : |R₀| → |R₀| → Set
     _≈R₀_ = DeltaPoset._≈_ deltaR
     ≈R₀-sym = DeltaPoset.sym≈ deltaR
     ≈R₀-refl = DeltaPoset.refl≈ deltaR
+    ≈R₀-reflexive = DeltaPoset.reflexive≈ deltaR
+    ≈R₀-trans = DeltaPoset.trans≈ deltaR
+    ≈R₀-setoid : Setoid _ _
+    ≈R₀-setoid = record
+      { Carrier = |R₀|
+      ; isEquivalence = DeltaPoset.Eq.isEquivalence deltaR
+      }
     _⊑L₀_ : |L₀| → |L₀| → Set
     _⊑L₀_ = DeltaPoset._⊑_ deltaL
     _⊑R₀_ : |R₀| → |R₀| → Set
@@ -715,6 +742,15 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
 
     |P| : Set
     |P| = DeltaPoset.Carrier P
+
+    _≈P_ : |P| → |P| → Set
+    _≈P_ = DeltaPoset._≈_ P
+    
+    ≈P-setoid : Setoid _ _
+    ≈P-setoid = DeltaPoset.≈-setoid P
+    ≈P-reflexive = DeltaPoset.Eq.reflexive P
+    ≈P-refl = DeltaPoset.Eq.refl P
+    ≈P-trans = DeltaPoset.Eq.trans P
 
     _<P_ : |P| → |P| → Set
     _<P_ = DeltaPoset._<_ P
@@ -775,17 +811,20 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
     open import FreeSemilattice P renaming 
       (⊥ to ⊥F ; _∨_ to _∨F_ ; _≈_ to _≈F_ ; _~_ to _~F_ ; ≈-refl to ≈F-refl ; SemilatCarrier to Carrier-FP ;
        ≈-reflexive to ≈F-reflexive ; FP-BJS to FP-BJS ; ∨-identityˡ to ∨F-identityˡ ; ∨-identityʳ to ∨F-identityʳ ; 
-       ≈-sym to ≈F-sym ; ∨-congˡ to ∨F-congˡ ; ∨-congʳ to ∨F-congʳ ; ∨-assoc to ∨F-assoc ; ∨-comm to ∨F-comm ) 
+       ≈-sym to ≈F-sym ; ∨-congˡ to ∨F-congˡ ; ∨-congʳ to ∨F-congʳ ; ∨-assoc to ∨F-assoc ; ∨-comm to ∨F-comm ;
+       _∈_ to _∈P_ ; _∈'_ to _∈P'_ ; FP-setoid to FP-setoid ) 
     open import FreeSemilattice deltaL renaming 
       (IsFreeList to IsFreeListL ; []-Free to []-FreeL ; ∷-Free to ∷-FreeL ; _≈_ to _≈FL_ ; ⊥ to ⊥FL ; 
        SemilatCarrier to Carrier-FPL ; _∨_ to _∨FL_ ; FP-BJS to FPL-BJS ; FP-setoid to FPL-setoid ;
        ∨-identityˡ to ∨FL-identityˡ ; ∨-identityʳ to ∨FL-identityʳ ; ⊑-refl to ⊑L₀-refl ; ⊑-reflexive to ⊑L₀-reflexive ;
-       sng-free to sng-freeL ; _≤_ to _≤FL_ ; ≈-sym to ≈FL-sym )
+       sng-free to sng-freeL ; _≤_ to _≤FL_ ; ≈-sym to ≈FL-sym ; _∈_ to _∈L_ ; _∈'_ to _∈L'_ ;
+       c1≈c2⇔sameElements to c1≈c2⇔sameElementsL )
     open import FreeSemilattice deltaR renaming 
       (IsFreeList to IsFreeListR ; []-Free to []-FreeR ; ∷-Free to ∷-FreeR ; _≈_ to _≈FR_ ; ⊥ to ⊥FR ; 
        SemilatCarrier to Carrier-FPR ; _∨_ to _∨FR_ ; FP-BJS to FPR-BJS ; FP-setoid to FPL-setoid ;
        ∨-identityˡ to ∨FR-identityˡ ; ∨-identityʳ to ∨FR-identityʳ ; ⊑-refl to ⊑L₀-refl ; ⊑-reflexive to ⊑R₀-reflexive ;
-       sng-free to sng-freeR ; _≤_ to _≤FR_ ; ≈-sym to ≈FR-sym)
+       sng-free to sng-freeR ; _≤_ to _≤FR_ ; ≈-sym to ≈FR-sym ; _∈_ to _∈R_ ; _∈'_ to _∈R'_ ;
+       c1≈c2⇔sameElements to c1≈c2⇔sameElementsR)
 
     |fL| : |L| → Σ[ l ∈ List (DeltaPoset.Carrier deltaL) ] (IsFreeListL l)
     |fL| = proj₁ $ SemSemilat.f semSemilatL
@@ -825,6 +864,8 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
     |gL|-∨ : ∀ (a b : Carrier-FPL) → |gL| (a ∨FL b) ≈L ( (|gL| a) ∨L (|gL| b) ) 
     |gL|-∨ = proj₂ $ proj₂ $ proj₂ $ SemSemilat.g semSemilatL
 
+    |gL|-inv-S→FP→S = SemSemilat.inv-S→FP→S semSemilatL
+
     gR = SemSemilat.g semSemilatR
 
     |gR| : Carrier-FPR → |R|
@@ -839,6 +880,7 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
     |gR|-∨ : ∀ (a b : Carrier-FPR) → |gR| (a ∨FR b) ≈R ( (|gR| a) ∨R (|gR| b) ) 
     |gR|-∨ = proj₂ $ proj₂ $ proj₂ $ SemSemilat.g semSemilatR
 
+    |gR|-inv-S→FP→S = SemSemilat.inv-S→FP→S semSemilatR
 
 {-
     |fR| : |R| → Σ[ l ∈ List (DeltaPoset.Carrier deltaR) ] (IsFreeListR l)
@@ -1164,10 +1206,18 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
     convR-⊥ : proj₁ (convR $ |fR| ⊥R) ≡ ⊥F
     convR-⊥ rewrite pR' = PE.refl
 
-    |f| : Carrier' → Carrier-FP
-    |f| (aL , aR) =
-      (resL-list , resL-free) ∨F (resR-list , resR-free) 
+    P-|f| : (a : Carrier') → (x : |P|) → Set
+    P-|f| (aL , aR) x = (Σ[ y ∈ |L₀| ] (x ≈P inj₁ y) × (y ∈L |fL| aL)) ⊎ (Σ[ y ∈ |R₀| ] (x ≈P inj₂ y) × (y ∈R |fR| aR))
+
+    |f|-aux : (a : Carrier') → Σ[ c ∈ Carrier-FP ] ∀ (x : |P|) → x ∈P c ⇔ P-|f| a x 
+    |f|-aux (aL , aR) =
+      let
+        res , _ = concat-FP (resL-list , resL-free) (resR-list , resR-free) min incomp
+      in
+        res , res-prop⇔
       where
+        open import FreeSemilattice.Core P using (concat-FP)
+        
         factoredL : Σ[ l ∈ List |L₀| ] (IsFreeListL l)
         factoredL = |fL| aL
 
@@ -1216,7 +1266,6 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
               where 
                 imp' : ∀ {x y} → U x → (y ≡ inj₂ x) → b <P y
                 imp' {x} {y} _ y≡inj₂x rewrite b≡inj₁a | y≡inj₂x = ₁∼₂ tt 
-
    
         incomp : All (λ x → All (x ∥P_) resR-list) resL-list
         incomp = pointwiseRespAll imp (proj₁ factoredL) resL-list U-L resL-eq
@@ -1237,6 +1286,108 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
                 imp' : ∀ {x y} → U x → (y ≡ inj₂ x) → b ∥P y
                 imp' {x} {.(inj₂ x)} _ PE.refl (inj₁ (₁∼₂ ()))
                 imp' {x} {.(inj₂ x)} _ PE.refl (inj₂ ()) 
+
+        res : Carrier-FP
+        res = proj₁ $ concat-FP (resL-list , resL-free) (resR-list , resR-free) min incomp
+    
+        concat-property : (proj₁ res) ≡ (resL-list) ++ (resR-list)
+        concat-property = proj₂ $ concat-FP (resL-list , resL-free) (resR-list , resR-free) min incomp
+        
+        res-prop← : ∀ (x : |P|) → (Σ[ y ∈ |L₀| ] (x ≈P inj₁ y) × (y ∈L |fL| aL)) ⊎ (Σ[ y ∈ |R₀| ] (x ≈P inj₂ y) × (y ∈R |fR| aR)) → 
+                        (x ∈P res)
+        res-prop← x (inj₁ (y , x-≈P-inj₁y , y-∈L~fLaL)) rewrite concat-property = ∈-++⁺ˡ ≈P-setoid p''
+          where
+            open import Data.List.Membership.Setoid.Properties
+            imp : ∀ {a : |P|} → {b : |L₀|} → (y ≈L₀ b) → (a ≡ inj₁ b) → (a ≈P inj₁ y)
+            imp {a} {b} y-≈L₀-b a-≡-inj₁b = DeltaPoset.Eq.trans P a-≈P-inj₁b (₁∼₁ (≈L₀-sym y-≈L₀-b))  
+              where
+                open Setoid ≈P-setoid
+
+                a-≈P-inj₁b : a ≈P inj₁ b
+                a-≈P-inj₁b = ≈P-reflexive a-≡-inj₁b
+
+            -- step 1 : since y ∈L fLaL, we have inj₁ y ∈P convL fLaL
+            p : Any (λ · → · ≈P inj₁ y) resL-list
+            p = pointwiseRespAny imp (proj₁ $ |fL| aL) resL-list y-∈L~fLaL resL-eq 
+
+            p' : inj₁ y ∈P proj₁ resL
+            p' = LAny.map (λ ·-≈P-inj₁y → DeltaPoset.Eq.sym P ·-≈P-inj₁y) p
+
+            p'' : x ∈P proj₁ resL
+            p'' = LAny.map (λ inj₁y-≈P-· → DeltaPoset.Eq.trans P x-≈P-inj₁y inj₁y-≈P-·) p'
+
+        res-prop← x (inj₂ (y , x-≈P-inj₂y , y-∈R~fRaR)) rewrite concat-property = ∈-++⁺ʳ ≈P-setoid resL-list p''
+          where
+            open import Data.List.Membership.Setoid.Properties
+            imp : ∀ {a : |P|} → {b : |R₀|} → (y ≈R₀ b) → (a ≡ inj₂ b) → (a ≈P inj₂ y)
+            imp {a} {b} y-≈R₀-b a-≡-inj₂b = DeltaPoset.Eq.trans P a-≈P-inj₂b (₂∼₂ (≈R₀-sym y-≈R₀-b))  
+              where
+                open Setoid ≈P-setoid
+
+                a-≈P-inj₂b : a ≈P inj₂ b
+                a-≈P-inj₂b = ≈P-reflexive a-≡-inj₂b
+
+            p : Any (λ · → · ≈P inj₂ y) resR-list
+            p = pointwiseRespAny imp (proj₁ $ |fR| aR) resR-list y-∈R~fRaR resR-eq 
+
+            p' : inj₂ y ∈P proj₁ resR
+            p' = LAny.map (λ ·-≈P-inj₁y → DeltaPoset.Eq.sym P ·-≈P-inj₁y) p
+
+            p'' : x ∈P proj₁ resR
+            p'' = LAny.map (λ inj₂y-≈P-· → DeltaPoset.Eq.trans P x-≈P-inj₂y inj₂y-≈P-·) p'
+
+
+        res-prop→ : ∀ (x : |P|) → x ∈P res →  
+                       (Σ[ y ∈ |L₀| ] (x ≈P inj₁ y) × (y ∈L |fL| aL)) ⊎
+                       (Σ[ y ∈ |R₀| ] (x ≈P inj₂ y) × (y ∈R |fR| aR))
+        res-prop→ x x∈res with x∈resL⊎resR
+          where
+            open import Data.List.Membership.Setoid.Properties
+            x∈resL⊎resR : x ∈P (proj₁ resL) ⊎ x ∈P (proj₁ resR)
+            x∈resL⊎resR = ∈-++⁻ ≈P-setoid resL-list (PE.subst (λ z → x ∈P' z) concat-property x∈res)
+        res-prop→ x x∈res | (inj₁ x∈resL) = inj₁ $ anyEliminate (proj₁ $ |fL| aL) elim p
+          where
+            imp : ∀ {a : |P|} → {b : |L₀|} → (x ≈P a) → (a ≡ inj₁ b) → (x ≈P inj₁ b)
+            imp {a} {b} x≈a a≡inj₁b = PE.subst (λ · → x ≈P ·) a≡inj₁b x≈a 
+
+            p : Any (λ · → x ≈P inj₁ ·) (proj₁ $ |fL| aL)
+            p = pointwiseRespAny⃖ imp (proj₁ $ |fL| aL) resL-list x∈resL resL-eq
+
+            elim : AnyEliminator {ℓQ = l0} |L₀| (Σ[ y ∈ |L₀| ] (x ≈P inj₁ y) × (y ∈L |fL| aL)) (λ · → x ≈P inj₁ ·) (proj₁ $ |fL| aL) 
+            elim a f x≈Pa a∈≡fLaL = (a , x≈Pa , LAny.map (λ a∈≡· → ≈L₀-reflexive a∈≡·) a∈≡fLaL)
+        res-prop→ x x∈res | (inj₂ x∈resR) = inj₂ $ anyEliminate (proj₁ $ |fR| aR) elim p
+          where
+            imp : ∀ {a : |P|} → {b : |R₀|} → (x ≈P a) → (a ≡ inj₂ b) → (x ≈P inj₂ b)
+            imp {a} {b} x≈a a≡inj₂b = PE.subst (λ · → x ≈P ·) a≡inj₂b x≈a 
+
+            p : Any (λ · → x ≈P inj₂ ·) (proj₁ $ |fR| aR)
+            p = pointwiseRespAny⃖ imp (proj₁ $ |fR| aR) resR-list x∈resR resR-eq
+
+            elim : AnyEliminator {ℓQ = l0} |R₀| (Σ[ y ∈ |R₀| ] (x ≈P inj₂ y) × (y ∈R |fR| aR)) (λ · → x ≈P inj₂ ·) (proj₁ $ |fR| aR) 
+            elim a f x≈Pa a∈≡fRaR = (a , x≈Pa , LAny.map (λ a∈≡· → ≈R₀-reflexive a∈≡·) a∈≡fRaR)
+
+        res-prop⇔ : (x : |P|) → (x ∈P res) ⇔ P-|f| (aL , aR) x
+        res-prop⇔ x = equivalence (res-prop→ x) (res-prop← x)
+
+    |f| : Carrier' → Carrier-FP
+    |f| c = proj₁ $ |f|-aux c
+    
+    |f|-prop : (c : Carrier') → (x : |P|) → (x ∈P (|f| c)) ⇔ (P-|f| c x)
+    |f|-prop c = proj₂ $ |f|-aux c
+    
+{- 
+    module _ where
+      open import Data.List.Membership.Setoid ≈P-setoid renaming (_∈_ to _∈P_) 
+      open import Data.List.Membership.Setoid ≈L₀-setoid renaming (_∈_ to _∈L_)
+      open import Data.List.Membership.Setoid ≈R₀-setoid renaming (_∈_ to _∈R_)
+
+      |f|-prop : (c : Carrier') → (x : |P|) → (x ∈P (proj₁ $ |f| c)) → 
+                 (Σ[ y ∈ |L₀| ] (x ≡ inj₁ y) × (y ∈L (proj₁ $ |fL| (proj₁ c)))) ⊎ (Σ[ y ∈ |R₀| ] (x ≡ inj₂ y) × (y ∈R (proj₁ $ |fR| (proj₂ c))))
+      |f|-prop (cL , cR) (inj₁ x') x∈fc = {!!}
+      |f|-prop (cL , cR) (inj₂ x') x∈fc = {!!}
+-}
+ 
+
     {-
     |f|-≈ : (a b : Carrier') → (a ≈' b) → (|f| a) ≈F (|f| b)  
     |f|-≈ a@(aL , aR) b@(bL , bR) (aL≈bL , aR≈bR) = 
@@ -1296,361 +1447,402 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
         cbL = convL' (|fL| bL)
         cbR = convR' (|fR| bR)
     -}
+
+    decompose : (c : Carrier-FP) → 
+              Σ[ l ∈ Carrier-FPL ] Σ[ r ∈ Carrier-FPR ] Σ[ tl ∈ Carrier-FP ] Σ[ tr ∈ Carrier-FP ]
+              LPW.Pointwise (λ x → λ y → y ≡ inj₁ x) (proj₁ l) (proj₁ tl) ×
+              LPW.Pointwise (λ x → λ y → y ≡ inj₂ x) (proj₁ r) (proj₁ tr) ×
+              (proj₁ c) ≡ (proj₁ tl) ++ (proj₁ tr)
+    decompose ([] , []-Free) = 
+      ([] , []-FreeL) , 
+      ([] , []-FreeR) , 
+      ([] , []-Free) , 
+      ([] , []-Free) , 
+      [] , 
+      [] ,
+      ++-identityˡ []
+      where
+        open import Data.List.Properties
+    decompose ((inj₁ h') ∷ t , ∷-Free .(inj₁ h') .t min incomp ft) =
+       (h' ∷ (proj₁ restL) , ∷-FreeL h' (proj₁ restL) minL incompL (proj₂ restL)) , 
+       restR , 
+       (inj₁ h' ∷ (proj₁ restTL) , ∷-Free (inj₁ h') (proj₁ restTL) minTL incompTL (proj₂ restTL))  , 
+       restTR , 
+       PE.refl ∷ rest-eql , 
+       rest-eqr , 
+       PE.cong (λ · → inj₁ h' ∷ ·) rest-concat
+      where
+        rest : Σ[ l ∈ Carrier-FPL ] Σ[ r ∈ Carrier-FPR ] Σ[ tl ∈ Carrier-FP ] Σ[ tr ∈ Carrier-FP ]
+               LPW.Pointwise (λ x → λ y → y ≡ inj₁ x) (proj₁ l) (proj₁ tl) ×
+               LPW.Pointwise (λ x → λ y → y ≡ inj₂ x) (proj₁ r) (proj₁ tr) ×
+               t ≡ (proj₁ tl) ++ (proj₁ tr)
+
+        rest = decompose (t , ft)
+
+        restL : Carrier-FPL
+        restL = let l , _ , _ , _ , _ , _ , _ = rest in l
+
+        restR : Carrier-FPR
+        restR = let _ , r , _ , _ , _ , _ , _ = rest in r
+
+        restTL : Carrier-FP
+        restTL = let _ , _ , tl , _ , _ , _ , _ = rest in tl
+
+        restTR : Carrier-FP
+        restTR = let _ , _ , _ , tr , _ , _ , _ = rest in tr
+
+        rest-eql : LPW.Pointwise (λ x → λ y → y ≡ inj₁ x) (proj₁ restL) (proj₁ restTL)
+        rest-eql = let _ , _ , _ , _ , eql , _ , _ = rest in eql
+
+        rest-eqr : LPW.Pointwise (λ x → λ y → y ≡ inj₂ x) (proj₁ restR) (proj₁ restTR)
+        rest-eqr = let _ , _ , _ , _ , _ , eqr , _ = rest in eqr
+
+        rest-concat : t ≡ (proj₁ restTL) ++ (proj₁ restTR)
+        rest-concat = let _ , _ , _ , _ , _ , _ , conc = rest in conc
+
+        minL : All (h' <L₀_) (proj₁ restL)
+        minL =
+          pointwiseRespAll⃖ imp (proj₁ restL) (proj₁ restTL) p' rest-eql
+          where
+            open import Data.List.All.Properties
+            
+            p : All (inj₁ h' <P_) ((proj₁ restTL) ++ (proj₁ restTR))
+            p rewrite PE.sym rest-concat = min 
+            
+            p' : All (inj₁ h' <P_) (proj₁ restTL)
+            p' = ++⁻ˡ (proj₁ restTL) p
+            
+            imp : {a : |L₀|} → {b : |P|} → (inj₁ h' <P b) → (b ≡ inj₁ a) → (h' <L₀ a)
+            imp {a} {b} (₁∼₁ h'<a) b≡inj₁a@PE.refl = h'<a
+ 
+        minTL : All (inj₁ h' <P_) (proj₁ restTL)
+        minTL = ++⁻ˡ (proj₁ restTL) p
+          where
+            open import Data.List.All.Properties
+            
+            p : All (inj₁ h' <P_) ((proj₁ restTL) ++ (proj₁ restTR))
+            p rewrite PE.sym rest-concat = min     
+        
+        incompL : ¬ Any (h' ∦L₀_) (proj₁ restL)
+        incompL h'∦restL = ⊥-elim $ incomp p'
+          where
+            open import Data.List.Any.Properties
+
+            imp : {a : |L₀|} → {b : |P|} → h' ∦L₀ a → b ≡ inj₁ a → (inj₁ h') ∦P b
+            imp {a} {b} (inj₁ h'⊑a) b≡inj₁a@PE.refl = inj₁ (₁∼₁ h'⊑a)
+            imp {a} {b} (inj₂ a⊑h') b≡inj₁a@PE.refl = inj₂ (₁∼₁ a⊑h')
+
+            p : Any (inj₁ h' ∦P_) (proj₁ restTL)
+            p = pointwiseRespAny imp (proj₁ restL) (proj₁ restTL) h'∦restL rest-eql
+
+            p' : Any (inj₁ h' ∦P_) t
+            p' = PE.subst (λ · → Any (inj₁ h' ∦P_) ·) (PE.sym rest-concat) (++⁺ˡ p) 
+            
+        incompTL : ¬ Any (inj₁ h' ∦P_) (proj₁ restTL)
+        incompTL inj₁h'∦restTL = ⊥-elim $ incomp p'
+          where
+            open import Data.List.Any.Properties
+
+            p' : Any (inj₁ h' ∦P_) t
+            p' = PE.subst (λ · → Any (inj₁ h' ∦P_) ·) (PE.sym rest-concat) (++⁺ˡ inj₁h'∦restTL) 
+
+    decompose ((inj₂ h') ∷ t , ∷-Free .(inj₂ h') .t min incomp ft) =
+       restL ,
+       (h' ∷ (proj₁ restR) , ∷-FreeR h' (proj₁ restR) minR incompR (proj₂ restR)) , 
+       restTL ,
+       (inj₂ h' ∷ (proj₁ restTR) , ∷-Free (inj₂ h') (proj₁ restTR) minTR incompTR (proj₂ restTR))  , 
+       rest-eql ,
+       PE.refl ∷ rest-eqr ,
+       (begin
+          inj₂ h' ∷ t ≡⟨ ++-identityˡ (inj₂ h' ∷ t) ⟩
+          [] ++ (inj₂ h' ∷ t) ≡⟨ PE.cong (λ · → · ++ (inj₂ h' ∷ t)) $ PE.sym restTL-empty ⟩
+          (proj₁ restTL) ++ (inj₂ h' ∷ t) ≡⟨ PE.cong (λ · → (proj₁ restTL) ++ (inj₂ h' ∷ ·)) rest-concat ⟩
+          (proj₁ restTL) ++ (inj₂ h' ∷ (proj₁ restTL) ++ (proj₁ restTR)) ≡⟨ PE.cong (λ · → (proj₁ restTL) ++ (inj₂ h' ∷ (· ++ (proj₁ restTR)))) $ restTL-empty ⟩ 
+          (proj₁ restTL) ++ (inj₂ h' ∷ [] ++ (proj₁ restTR)) ≡⟨ PE.cong (λ · → (proj₁ restTL) ++ (inj₂ h' ∷ ·)) $ ++-identityˡ (proj₁ restTR) ⟩ 
+          (proj₁ restTL) ++ (inj₂ h' ∷ (proj₁ restTR)) 
+         ∎) 
+      where
+        open PE.≡-Reasoning
+        rest : Σ[ l ∈ Carrier-FPL ] Σ[ r ∈ Carrier-FPR ] Σ[ tl ∈ Carrier-FP ] Σ[ tr ∈ Carrier-FP ]
+               LPW.Pointwise (λ x → λ y → y ≡ inj₁ x) (proj₁ l) (proj₁ tl) ×
+               LPW.Pointwise (λ x → λ y → y ≡ inj₂ x) (proj₁ r) (proj₁ tr) ×
+               t ≡ (proj₁ tl) ++ (proj₁ tr)
+
+        rest = decompose (t , ft)
+
+        restL : Carrier-FPL
+        restL = let l , _ , _ , _ , _ , _ , _ = rest in l
+
+        restR : Carrier-FPR
+        restR = let _ , r , _ , _ , _ , _ , _ = rest in r
+
+        restTL : Carrier-FP
+        restTL = let _ , _ , tl , _ , _ , _ , _ = rest in tl
+
+        restTR : Carrier-FP
+        restTR = let _ , _ , _ , tr , _ , _ , _ = rest in tr
+
+        rest-eql : LPW.Pointwise (λ x → λ y → y ≡ inj₁ x) (proj₁ restL) (proj₁ restTL)
+        rest-eql = let _ , _ , _ , _ , eql , _ , _ = rest in eql
+
+        rest-eqr : LPW.Pointwise (λ x → λ y → y ≡ inj₂ x) (proj₁ restR) (proj₁ restTR)
+        rest-eqr = let _ , _ , _ , _ , _ , eqr , _ = rest in eqr
+
+        rest-concat : t ≡ (proj₁ restTL) ++ (proj₁ restTR)
+        rest-concat = let _ , _ , _ , _ , _ , _ , conc = rest in conc
+
+        minTL : All (inj₂ h' <P_) (proj₁ restTL)
+        minTL = ++⁻ˡ (proj₁ restTL) p
+          where
+            open import Data.List.All.Properties
+            
+            p : All (inj₂ h' <P_) ((proj₁ restTL) ++ (proj₁ restTR))
+            p rewrite PE.sym rest-concat = min    
+     
+   
+        restTL-empty : (proj₁ restTL) ≡ []
+        restTL-empty with keep (proj₁ restTL)
+        restTL-empty | ([]) , q = q
+        restTL-empty | (inj₁ x' ∷ t) , q with p₁
+          where
+            p₀ : inj₁ x' ∈≡ proj₁ restTL
+            p₀ rewrite q = here PE.refl 
+
+            p₁ : inj₂ h' <P inj₁ x'
+            p₁ = LA.lookup minTL {inj₁ x'} p₀
+        restTL-empty | (inj₁ x' ∷ t) , q | ()
+        restTL-empty | (inj₂ x' ∷ t) , q with pointwise∈⃖ (proj₁ restL) (proj₁ restTL) (inj₂ x') z rest-eql
+          where
+            z : inj₂ x' ∈≡ (proj₁ restTL)
+            z rewrite q = here PE.refl
+        restTL-empty | (inj₂ x' ∷ t) , q | b , inj₂x'≡inj₁b =
+          ⊥-elim $ inj-clash b x' (PE.sym inj₂x'≡inj₁b)
+  
+        minR : All (h' <R₀_) (proj₁ restR)
+        minR =
+          pointwiseRespAll⃖ imp (proj₁ restR) (proj₁ restTR) p' rest-eqr
+          where
+            open import Data.List.All.Properties
+            
+            p : All (inj₂ h' <P_) ((proj₁ restTL) ++ (proj₁ restTR))
+            p rewrite PE.sym rest-concat = min 
+            
+            p' : All (inj₂ h' <P_) (proj₁ restTR)
+            p' = ++⁻ʳ (proj₁ restTL) p
+            
+            imp : {a : |R₀|} → {b : |P|} → (inj₂ h' <P b) → (b ≡ inj₂ a) → (h' <R₀ a)
+            imp {a} {b} (₂∼₂ h'<a) b≡inj₂a@PE.refl = h'<a
+ 
+        minTR : All (inj₂ h' <P_) (proj₁ restTR)
+        minTR = ++⁻ʳ (proj₁ restTL) p
+          where
+            open import Data.List.All.Properties
+            
+            p : All (inj₂ h' <P_) ((proj₁ restTL) ++ (proj₁ restTR))
+            p rewrite PE.sym rest-concat = min     
+        
+        incompR : ¬ Any (h' ∦R₀_) (proj₁ restR)
+        incompR h'∦restR = ⊥-elim $ incomp p'
+          where
+            open import Data.List.Any.Properties
+
+            imp : {a : |R₀|} → {b : |P|} → h' ∦R₀ a → b ≡ inj₂ a → (inj₂ h') ∦P b
+            imp {a} {b} (inj₁ h'⊑a) b≡inj₁a@PE.refl = inj₁ (₂∼₂ h'⊑a)
+            imp {a} {b} (inj₂ a⊑h') b≡inj₁a@PE.refl = inj₂ (₂∼₂ a⊑h')
+
+            p : Any (inj₂ h' ∦P_) (proj₁ restTR)
+            p = pointwiseRespAny imp (proj₁ restR) (proj₁ restTR) h'∦restR rest-eqr
+
+            p' : Any (inj₂ h' ∦P_) t
+            p' = PE.subst (λ · → Any (inj₂ h' ∦P_) ·) (PE.sym rest-concat) (++⁺ʳ (proj₁ restTL) p) 
+            
+        incompTR : ¬ Any (inj₂ h' ∦P_) (proj₁ restTR)
+        incompTR inj₂h'∦restTR = ⊥-elim $ incomp p'
+          where
+            open import Data.List.Any.Properties
+
+            p' : Any (inj₂ h' ∦P_) t
+            p' = PE.subst (λ · → Any (inj₂ h' ∦P_) ·) (PE.sym rest-concat) (++⁺ʳ (proj₁ restTL) inj₂h'∦restTR) 
+
+    decompL : Carrier-FP → Carrier-FPL
+    decompL a with decompose a
+    decompL a | l , r , tl , tr , eql , eqr , concat =
+      l
+
+    decompR : Carrier-FP → Carrier-FPR
+    decompR a with decompose a
+    decompR a | l , r , tl , tr , eql , eqr , concat =
+      r
+
+{-
+    a≈b→aL≈bL : (a b : Carrier-FP) → a ≈F b → (decompL a) ≈FL (decompL b)
+    a≈b→aL≈bL a b a≈b with decompose a | decompose b
+    a≈b→aL≈bL (.(atl ++ atr) , _) (.(btl ++ btr) , _) ((atl ++ atr) ≈F (btl ++ btr))  
+               | al , ar , atl , atr , aeql , aeqr , aconcat 
+               | bl , br , btl , btr , beql , beqr , bconcat =
+      ?
+  -}
+              
     |g| : Carrier-FP → Carrier'
-    |g| ([] , []-Free) = ⊥'
-    |g| ((inj₁ h') ∷ t , ∷-Free _ _ _ _ ft) = (|gL| (h' ∷ [] , sng-freeL) , ⊥R) ∨' (|g| $ t , ft)
-    |g| ((inj₂ h') ∷ t , ∷-Free _ _ _ _ ft) = (⊥L , |gR| (h' ∷ [] , sng-freeR)) ∨' (|g| $ t , ft)
+    |g| c with decompose c
+    |g| c | l , r , tl , tr , eql , eqr , concat = 
+      (|gL| l , |gR| r)
 
-    |g|-≈ : (a b : Carrier-FP) → (a ≈F b) → (|g| a) ≈' (|g| b)  
-    |g|-≈ ([] , []-Free) ([] , []-Free) [] = ≈'-refl
-    |g|-≈ ([] , fa) (hb ∷ tb , fb) ()
-    |g|-≈ (ha ∷ ta , fa) ([] , fb) ()
-    |g|-≈ a@((inj₁ ha) ∷ ta , ∷-Free _ _ _ _ fta) b@((inj₁ hb) ∷ tb , ∷-Free _ _ _ _ ftb) ((₁∼₁ ha~hb) ∷ ta≈tb) = 
-      let
-        h : (ha ∷ [] , sng-freeL) ≈FL (hb ∷ [] , sng-freeL)
-        h = ha~hb ∷ []
-      in
-      begin 
-        (|g| a) ≡⟨ PE.refl ⟩
-        (|gL| (ha ∷ [] , sng-freeL) , ⊥R) ∨' (|g| $ ta , fta) ≈⟨ ∨-cong ((|gL|-≈ (ha ∷ [] , sng-freeL) (hb ∷ [] , sng-freeL) h , ≈R-refl)) (|g|-≈ (ta , fta) (tb , ftb) ta≈tb) ⟩ 
-        (|gL| (hb ∷ [] , sng-freeL) , ⊥R) ∨' (|g| $ tb , ftb) ≡⟨ PE.refl ⟩
-        (|g| b)
-       ∎
+
+    inv-S→FP→S : (a : Carrier') → ((|g| $ |f| a) ≈' a)
+    inv-S→FP→S (aL , aR) with decompose $ |f| (aL , aR)
+    inv-S→FP→S (aL , aR) | l , r , atl , atr , aeql , aeqr , aconcat =
+      eq1 , eq2
       where
-        open import Relation.Binary.Properties.JoinSemilattice joinSemilatticeS
-        open import Relation.Binary.EqReasoning ≈'-setoid 
-    |g|-≈ a@((inj₂ ha) ∷ ta , ∷-Free _ _ _ _ fta) b@((inj₂ hb) ∷ tb , ∷-Free _ _ _ _ ftb) ((₂∼₂ ha~hb) ∷ ta≈tb) =
-      let
-        h : (ha ∷ [] , sng-freeR) ≈FR (hb ∷ [] , sng-freeR)
-        h = ha~hb ∷ []
-      in
-      begin 
-        (|g| a) ≡⟨ PE.refl ⟩
-        (⊥L , |gR| (ha ∷ [] , sng-freeR) ) ∨' (|g| $ ta , fta) ≈⟨ ∨-cong ((≈L-refl , |gR|-≈ (ha ∷ [] , sng-freeR) (hb ∷ [] , sng-freeR) h)) (|g|-≈ (ta , fta) (tb , ftb) ta≈tb) ⟩ 
-        (⊥L , |gR| (hb ∷ [] , sng-freeR) ) ∨' (|g| $ tb , ftb) ≡⟨ PE.refl ⟩
-        (|g| b)
-       ∎
-      where
-        open import Relation.Binary.Properties.JoinSemilattice joinSemilatticeS
-        open import Relation.Binary.EqReasoning ≈'-setoid 
-    |g|-≈ a@((inj₁ ha) ∷ ta , ∷-Free _ _ _ _ fta) b@((inj₂ hb) ∷ tb , ∷-Free _ _ _ _ ftb) ((₁∼₂ ()) ∷ ta≈tb)
+        aconcat' : proj₁ (|f| $ aL , aR) ≡ (proj₁ atl ++ proj₁ atr)
+        aconcat' = aconcat
 
-    |g|-⊥ : |g| ⊥F ≈' ⊥'
-    |g|-⊥ = ≈'-refl
+        invaux-S→FP→S : (x : |P|) → (x ∈P (|f| $ aL , aR)) ⇔ (P-|f| (aL , aR) x)
+        invaux-S→FP→S x = |f|-prop (aL , aR) x
+        
+        fLaL≈l : |fL| aL ≈FL l
+        fLaL≈l = ≈FL-sym {l} {|fL| aL} (E.from ⟨$⟩ x∈l⇔x∈fLaL)
+          where
+            module E = Equivalence (c1≈c2⇔sameElementsL l (|fL| aL))  
+            p→ : (x : |L₀|) → (x ∈L |fL| aL) → (x ∈L l)
+            p→ x x∈fLaL = pointwiseRespAny⃖ imp (proj₁ l) (proj₁ atl) inj₁x∈atl aeql 
+              where 
+                inj₁x∈fa : (inj₁ x) ∈P |f| (aL , aR)
+                inj₁x∈fa = from ⟨$⟩ (inj₁ $ x , ≈P-refl , x∈fLaL)
+                  where
+                    open Equivalence (invaux-S→FP→S $ inj₁ x)
+                
+                inj₁x∈atl++atr : (inj₁ x) ∈P' ((proj₁ atl) ++ (proj₁ atr))
+                inj₁x∈atl++atr rewrite (PE.sym aconcat) = inj₁x∈fa 
+ 
+                inj₁x∈atl : (inj₁ x) ∈P' (proj₁ atl)
+                inj₁x∈atl with ∈-++⁻ ≈P-setoid (proj₁ atl) inj₁x∈atl++atr 
+                  where
+                    open import Data.List.Membership.Setoid.Properties
+                inj₁x∈atl | inj₁ inj₁x∈atl = inj₁x∈atl
+                inj₁x∈atl | inj₂ inj₁x∈atr = 
+                  ⊥-elim $ (from ⟨$⟩ pointwiseRespAny⃖ imp (proj₁ r) (proj₁ atr) inj₁x∈atr aeqr)  
+                  where
+                    open import Data.List.Any.Properties
+                    open Inverse ⊥↔Any⊥
+                    imp : {a : |P|} → {b : |R₀|} → (inj₁ x ≈P a) → (a ≡ inj₂ b) → const ⊥ |R₀|
+                    imp {a} {b} inj₁x≈a a≡inj₂b with ≈P-trans inj₁x≈a (≈P-reflexive a≡inj₂b)
+                    imp {a} {b} inj₁x≈a a≡inj₂b | (₁∼₂ ())
+                
+                imp : ∀ {a : |P|} → {b : |L₀|} → (inj₁ x ≈P a) → (a ≡ inj₁ b) → (x ≈L₀ b)
+                imp {a} {b} inj₁x≈a a≡inj₁b with ≈P-trans inj₁x≈a (≈P-reflexive a≡inj₁b)
+                imp {a} {b} inj₁x≈a a≡inj₁b | (₁∼₁ x≈b) = x≈b
 
-    |g|-∨ : (a b : Carrier-FP) → (|g| $ a ∨F b) ≈' ((|g| a) ∨' (|g| b))
-    |g|-∨ ([] , []-Free) ([] , []-Free) = 
-      begin
-        (|g| $ ([] , []-Free) ∨F ([] , []-Free)) ≈⟨ |g|-≈ (([] , []-Free) ∨F ([] , []-Free)) ([] , []-Free) $ ∨F-identityˡ ([] , []-Free) ⟩
-        (|g| $ ([] , []-Free)) ≈⟨ |g|-⊥ ⟩
-        ⊥' ≈⟨ ≈'-sym $ identityˡ ⊥' ⟩ 
-        (⊥' ∨' ⊥')
-       ∎
-      where
-        open import Relation.Binary.EqReasoning (≈'-setoid)
-        open import Relation.Binary.Properties.BoundedJoinSemilattice S
-    |g|-∨ a@([] , []-Free) b@(hb ∷ tb , ∷-Free _ _ _ _ ftb) =
-      begin
-        (|g| $ ([] , []-Free) ∨F b) ≈⟨ |g|-≈ (([] , []-Free) ∨F b) b $ ∨F-identityˡ b ⟩
-        (|g| b) ≈⟨ ≈'-sym $ identityˡ (|g| b) ⟩
-        ⊥' ∨' (|g| b) ≈⟨ ∨-cong (≈'-sym |g|-⊥) ≈'-refl  ⟩
-        (|g| ([] , []-Free)) ∨' (|g| b)
-       ∎
-      where
-        open import Relation.Binary.EqReasoning (≈'-setoid)
-        open import Relation.Binary.Properties.BoundedJoinSemilattice S
-        open import Relation.Binary.Properties.JoinSemilattice (BoundedJoinSemilattice.joinSemiLattice S)
-    |g|-∨ a@(ha ∷ ta , ∷-Free _ _ _ _ fta) b@([] , []-Free) =
-      begin
-        (|g| $ a ∨F ([] , []-Free)) ≈⟨ ≈'-sym $ |g|-≈ (a ∨F ([] , []-Free)) a $ ∨F-identityˡ a ⟩
-        (|g| a) ≈⟨ ≈'-sym $ identityʳ (|g| a) ⟩
-        (|g| a) ∨' ⊥' ≈⟨ ∨-cong ≈'-refl (≈'-sym |g|-⊥) ⟩
-        (|g| a) ∨' (|g| ([] , []-Free)) 
-       ∎
-      where
-        open import Relation.Binary.EqReasoning (≈'-setoid)
-        open import Relation.Binary.Properties.BoundedJoinSemilattice S
-        open import Relation.Binary.Properties.JoinSemilattice (BoundedJoinSemilattice.joinSemiLattice S)
-    |g|-∨ (ha ∷ ta , fa@(∷-Free _ _ _ _ fta)) (hb ∷ tb , fb@(∷-Free _ _ _ _ ftb)) with ha ∦P? hb
-    |g|-∨ a@((inj₁ ha) ∷ ta , fa@(∷-Free _ _ _ _ fta)) b@((inj₂ hb) ∷ tb , fb@(∷-Free _ _ _ _ ftb)) | l⊑r (₁∼₂ ()) ¬hb⊑ha 
-    |g|-∨ a@((inj₂ ha) ∷ ta , fa@(∷-Free _ _ _ _ fta)) b@((inj₁ hb) ∷ tb , fb@(∷-Free _ _ _ _ ftb)) | l⊑r () ¬hb⊑ha
-    |g|-∨ a@((inj₁ ha) ∷ ta , fa@(∷-Free _ _ _ _ fta)) b@((inj₁ hb) ∷ tb , fb@(∷-Free _ _ _ _ ftb)) | l⊑r (₁∼₁ ha⊑hb) ¬hb⊑ha = 
-      begin
-        (|g| $ (ta , fta) ∨F b) ≈⟨ |g|-∨ (ta , fta) b ⟩
-        (|g| $ ta , fta) ∨' (|g| b) ≡⟨ PE.refl ⟩
-        (|g| $ ta , fta) ∨' ((|gL| sngB , ⊥R) ∨' (|g| $ tb , ftb)) ≈⟨ ∨-cong ≈'-refl (∨-cong p ≈'-refl) ⟩
-        (|g| $ ta , fta) ∨' ((|gL| (sngA ∨FL sngB) , ⊥R) ∨' (|g| $ tb , ftb)) ≈⟨ ∨-cong ≈'-refl (∨-cong (|gL|-∨ sngA sngB , ≈R-refl) ≈'-refl) ⟩
-        (|g| $ ta , fta) ∨' ( ((|gL| sngA) ∨L (|gL| sngB) , ⊥R) ∨' (|g| $ tb , ftb)) ≈⟨ ∨-cong ≈'-refl (∨-cong (≈L-refl , (≈R-sym $ R-identityʳ ⊥R)) ≈'-refl) ⟩
-        (|g| $ ta , fta) ∨' ( ((|gL| sngA) ∨L (|gL| sngB) , ⊥R ∨R ⊥R) ∨' (|g| $ tb , ftb))  ≡⟨ PE.refl ⟩ 
-        (|g| $ ta , fta) ∨' ( ((|gL| sngA , ⊥R) ∨' (|gL| sngB , ⊥R)) ∨' (|g| $ tb , ftb) ) ≈⟨ ≈'-sym $ ∨'-assoc (|g| $ ta , fta) ((|gL| sngA , ⊥R) ∨' (|gL| sngB , ⊥R)) (|g| $ tb , ftb) ⟩ 
-        ((|g| $ ta , fta) ∨' (|gL| sngA , ⊥R) ∨' (|gL| sngB , ⊥R)) ∨' (|g| $ tb , ftb) ≈⟨ ∨-cong (≈'-sym $ ∨'-assoc (|g| $ ta , fta) (|gL| sngA , ⊥R) (|gL| sngB , ⊥R)) ≈'-refl ⟩
-        (((|g| $ ta , fta) ∨' (|gL| sngA , ⊥R)) ∨' (|gL| sngB , ⊥R)) ∨' (|g| $ tb , ftb) ≈⟨ ∨-cong  (∨-cong (∨'-comm (|g| $ ta , fta) (|gL| sngA , ⊥R)) ≈'-refl) ≈'-refl  ⟩
-        (((|gL| sngA , ⊥R) ∨' (|g| $ ta , fta)) ∨' (|gL| sngB , ⊥R)) ∨' (|g| $ tb , ftb) ≈⟨ ∨'-assoc ((|gL| sngA , ⊥R) ∨' (|g| $ ta , fta)) (|gL| sngB , ⊥R) (|g| $ tb , ftb)  ⟩ 
-        ((|gL| sngA , ⊥R) ∨' (|g| $ ta , fta)) ∨' ((|gL| sngB , ⊥R) ∨' (|g| $ tb , ftb)) ≡⟨ PE.refl ⟩
-        (|g| $ a) ∨' (|g| b)
-       ∎
-      where
-        jsS = BoundedJoinSemilattice.joinSemiLattice S
+            p← : (x : |L₀|) → (x ∈L l) → (x ∈L |fL| aL)
+            p← x x∈l with to ⟨$⟩ inj₁x∈fa 
+              where
+                open Equivalence (|f|-prop (aL , aR) (inj₁ x))  
+                inj₁x∈atl : (inj₁ x) ∈P' (proj₁ atl)
+                inj₁x∈atl = pointwiseRespAny imp (proj₁ l) (proj₁ atl) x∈l aeql 
+                  where
+                    imp : ∀ {a b} → (x ≈L₀ a) → (b ≡ inj₁ a) → (inj₁ x ≈P b)
+                    imp {a} {b} x≈a b≡inj₁a = ≈P-trans (₁∼₁ x≈a) (≈P-reflexive $ PE.sym b≡inj₁a)
+                inj₁x∈fa : (inj₁ x) ∈P (|f| $ aL , aR)
+                inj₁x∈fa rewrite aconcat = ∈-++⁺ˡ ≈P-setoid inj₁x∈atl 
+                  where
+                    open import Data.List.Membership.Setoid.Properties
+            p← x x∈l | inj₁ (l₀ , (₁∼₁ x≈l₀) , l₀∈fLaL) =
+              LAny.map (λ l₀≈· → ≈L₀-trans x≈l₀ l₀≈·) l₀∈fLaL  
+            p← x x∈l | inj₂ (r₀ , (₁∼₂ ()) , r₀∈fRaR)
+            
+            x∈l⇔x∈fLaL : (x : |L₀|) → (x ∈L l) ⇔ x ∈L (|fL| aL)
+            x∈l⇔x∈fLaL x = equivalence (p← x) (p→ x)
 
-        open import Relation.Binary.EqReasoning (≈'-setoid)
-        open import Relation.Binary.Properties.BoundedJoinSemilattice S
-        open import Relation.Binary.Properties.JoinSemilattice jsS
-          renaming( ∨-assoc to ∨'-assoc ; ∨-comm to ∨'-comm )
-        open import Relation.Binary.Properties.BoundedJoinSemilattice bjsR
-          renaming (identityˡ to R-identityˡ ; identityʳ to R-identityʳ)
+        fRaR≈r : |fR| aR ≈FR r
+        fRaR≈r = ≈FR-sym {r} {|fR| aR} (E.from ⟨$⟩ x∈r⇔x∈fRaR)
+          where
+            module E = Equivalence (c1≈c2⇔sameElementsR r (|fR| aR))  
+            p→ : (x : |R₀|) → (x ∈R |fR| aR) → (x ∈R r)
+            p→ x x∈fRaR = pointwiseRespAny⃖ imp (proj₁ r) (proj₁ atr) inj₂x∈atr aeqr 
+              where 
+                inj₂x∈fa : (inj₂ x) ∈P |f| (aL , aR)
+                inj₂x∈fa = from ⟨$⟩ (inj₂ $ x , ≈P-refl , x∈fRaR)
+                  where
+                    open Equivalence (invaux-S→FP→S $ inj₂ x)
+                
+                inj₂x∈atl++atr : (inj₂ x) ∈P' ((proj₁ atl) ++ (proj₁ atr))
+                inj₂x∈atl++atr rewrite (PE.sym aconcat) = inj₂x∈fa 
+ 
+                inj₂x∈atr : (inj₂ x) ∈P' (proj₁ atr)
+                inj₂x∈atr with ∈-++⁻ ≈P-setoid (proj₁ atl) inj₂x∈atl++atr 
+                  where
+                    open import Data.List.Membership.Setoid.Properties
+                inj₂x∈atr | inj₁ inj₂x∈atl = 
+                  ⊥-elim $ (from ⟨$⟩ pointwiseRespAny⃖ imp (proj₁ l) (proj₁ atl) inj₂x∈atl aeql)  
+                  where
+                    open import Data.List.Any.Properties
+                    open Inverse ⊥↔Any⊥
+                    imp : {a : |P|} → {b : |L₀|} → (inj₂ x ≈P a) → (a ≡ inj₁ b) → const ⊥ |R₀|
+                    imp {a} {b} inj₂x≈a a≡inj₂b with ≈P-trans inj₂x≈a (≈P-reflexive a≡inj₂b)
+                    imp {a} {b} inj₂x≈a a≡inj₂b | ()
+                inj₂x∈atr | inj₂ inj₂x∈atr = inj₂x∈atr
+                
+                imp : ∀ {a : |P|} → {b : |R₀|} → (inj₂ x ≈P a) → (a ≡ inj₂ b) → (x ≈R₀ b)
+                imp {a} {b} inj₂x≈a a≡inj₂b with ≈P-trans inj₂x≈a (≈P-reflexive a≡inj₂b)
+                imp {a} {b} inj₂x≈a a≡inj₂b | (₂∼₂ x≈b) = x≈b
 
-        |gL|-mono = ⇉-mono {S = FPL-BJS} {T = SemSemilat.S semSemilatL} gL
+            p← : (x : |R₀|) → (x ∈R r) → (x ∈R |fR| aR)
+            p← x x∈r with to ⟨$⟩ inj₂x∈fa 
+              where
+                open Equivalence (|f|-prop (aL , aR) (inj₂ x))  
+                inj₂x∈atr : (inj₂ x) ∈P' (proj₁ atr)
+                inj₂x∈atr = pointwiseRespAny imp (proj₁ r) (proj₁ atr) x∈r aeqr 
+                  where
+                    imp : ∀ {a b} → (x ≈R₀ a) → (b ≡ inj₂ a) → (inj₂ x ≈P b)
+                    imp {a} {b} x≈a b≡inj₂a = ≈P-trans (₂∼₂ x≈a) (≈P-reflexive $ PE.sym b≡inj₂a)
+                inj₂x∈fa : (inj₂ x) ∈P (|f| $ aL , aR)
+                inj₂x∈fa rewrite aconcat = ∈-++⁺ʳ ≈P-setoid (proj₁ atl) inj₂x∈atr 
+                  where
+                    open import Data.List.Membership.Setoid.Properties
+            p← x x∈l | inj₁ (l₀ , () , l₀∈fLaL)
+            p← x x∈l | inj₂ (r₀ , (₂∼₂ x≈r₀) , r₀∈fRaR) =
+              LAny.map (λ r₀≈· → ≈R₀-trans x≈r₀ r₀≈·) r₀∈fRaR  
+            
+            x∈r⇔x∈fRaR : (x : |R₀|) → (x ∈R r) ⇔ x ∈R (|fR| aR)
+            x∈r⇔x∈fRaR x = equivalence (p← x) (p→ x)
+                           
+        eq1 : |gL| l ≈L aL
+        eq1 = 
+          begin
+            |gL| l ≈⟨ |gL|-≈ l (|fL| aL) (≈FL-sym {|fL| aL} {l} fLaL≈l) ⟩
+            |gL| (|fL| aL) ≈⟨ |gL|-inv-S→FP→S aL ⟩
+            aL
+           ∎
+          where
+            open import Relation.Binary.EqReasoning ≈L-setoid
 
-        sngA = (ha ∷ [] , sng-freeL)
-        sngB = (hb ∷ [] , sng-freeL)
+        eq2 : |gR| r ≈R aR
+        eq2 = 
+          begin
+            |gR| r ≈⟨ |gR|-≈ r (|fR| aR) (≈FR-sym {|fR| aR} {r} fRaR≈r) ⟩
+            |gR| (|fR| aR) ≈⟨ |gR|-inv-S→FP→S aR ⟩
+            aR
+           ∎
+          where
+            open import Relation.Binary.EqReasoning ≈R-setoid 
 
-        h : sngA ≤FL sngB 
-        h = (here ha⊑hb) ∷ []
+    -- inv-FP→S→FP : (a : BoundedJoinSemilattice.Carrier $ FP P) → (BoundedJoinSemilattice._≈_ (FP P) (proj₁ f $ proj₁ g $ a) a) 
 
-        p : (|gL| sngB , ⊥R) ≈' ((|gL| $ sngA ∨FL sngB) , ⊥R) 
-        p = ( (|gL|-≈ sngB (sngA ∨FL sngB) $ ≈FL-sym {sngA ∨FL sngB} {sngB} (connecting→ {A = BoundedJoinSemilattice.joinSemiLattice FPL-BJS} sngA sngB h)) , ≈R-refl) 
-    |g|-∨ a@((inj₂ ha) ∷ ta , fa@(∷-Free _ _ _ _ fta)) b@((inj₂ hb) ∷ tb , fb@(∷-Free _ _ _ _ ftb)) | l⊑r (₂∼₂ ha⊑hb) ¬hb⊑ha = 
-      begin
-        (|g| $ (ta , fta) ∨F b) ≈⟨ |g|-∨ (ta , fta) b ⟩
-        (|g| $ ta , fta) ∨' (|g| b) ≡⟨ PE.refl ⟩
-        (|g| $ ta , fta) ∨' ((⊥L , |gR| sngB) ∨' (|g| $ tb , ftb)) ≈⟨ ∨-cong ≈'-refl (∨-cong p ≈'-refl) ⟩
-        (|g| $ ta , fta) ∨' ((⊥L , |gR| (sngA ∨FR sngB)) ∨' (|g| $ tb , ftb)) ≈⟨ ∨-cong ≈'-refl (∨-cong (≈L-refl , |gR|-∨ sngA sngB) ≈'-refl) ⟩
-        (|g| $ ta , fta) ∨' ( (⊥L , (|gR| sngA) ∨R (|gR| sngB)) ∨' (|g| $ tb , ftb)) ≈⟨ ∨-cong ≈'-refl (∨-cong ((≈L-sym $ L-identityʳ ⊥L) , ≈R-refl) ≈'-refl) ⟩
-        (|g| $ ta , fta) ∨' ( (⊥L ∨L ⊥L , (|gR| sngA) ∨R (|gR| sngB)) ∨' (|g| $ tb , ftb))  ≡⟨ PE.refl ⟩ 
-        (|g| $ ta , fta) ∨' (((⊥L , |gR| sngA) ∨' (⊥L , |gR| sngB) ) ∨' (|g| $ tb , ftb)) ≈⟨ ≈'-sym $ ∨'-assoc (|g| $ ta , fta) ((⊥L , |gR| sngA) ∨' (⊥L , |gR| sngB)) (|g| $ tb , ftb) ⟩ 
-        ((|g| $ ta , fta) ∨' (⊥L , |gR| sngA) ∨' (⊥L , |gR| sngB)) ∨' (|g| $ tb , ftb) ≈⟨ ∨-cong (≈'-sym $ ∨'-assoc (|g| $ ta , fta) (⊥L , |gR| sngA) (⊥L , |gR| sngB)) ≈'-refl ⟩
-        (((|g| $ ta , fta) ∨' (⊥L , |gR| sngA)) ∨' (⊥L , |gR| sngB)) ∨' (|g| $ tb , ftb) ≈⟨ ∨-cong  (∨-cong (∨'-comm (|g| $ ta , fta) (⊥L , |gR| sngA)) ≈'-refl) ≈'-refl  ⟩
-        (((⊥L , |gR| sngA) ∨' (|g| $ ta , fta)) ∨' (⊥L , |gR| sngB)) ∨' (|g| $ tb , ftb) ≈⟨ ∨'-assoc ((⊥L , |gR| sngA) ∨' (|g| $ ta , fta)) (⊥L , |gR| sngB) (|g| $ tb , ftb)  ⟩ 
-        ((⊥L , |gR| sngA) ∨' (|g| $ ta , fta)) ∨' ((⊥L , |gR| sngB) ∨' (|g| $ tb , ftb)) ≡⟨ PE.refl ⟩
-        (|g| $ a) ∨' (|g| b)
-       ∎
-      where
-        jsS = BoundedJoinSemilattice.joinSemiLattice S
 
-        open import Relation.Binary.EqReasoning (≈'-setoid)
-        open import Relation.Binary.Properties.BoundedJoinSemilattice S
-        open import Relation.Binary.Properties.JoinSemilattice jsS
-          renaming( ∨-assoc to ∨'-assoc ; ∨-comm to ∨'-comm )
-        open import Relation.Binary.Properties.BoundedJoinSemilattice bjsL
-          renaming (identityˡ to L-identityˡ ; identityʳ to L-identityʳ)
-
-        sngA = (ha ∷ [] , sng-freeR)
-        sngB = (hb ∷ [] , sng-freeR)
-
-        h : sngA ≤FR sngB 
-        h = (here ha⊑hb) ∷ []
-
-        p : (⊥L , |gR| sngB) ≈' (⊥L , (|gR| $ sngA ∨FR sngB)) 
-        p = ( ≈L-refl , (|gR|-≈ sngB (sngA ∨FR sngB) $ ≈FR-sym {sngA ∨FR sngB} {sngB} (connecting→ {A = BoundedJoinSemilattice.joinSemiLattice FPR-BJS} sngA sngB h)) ) 
-    |g|-∨ a@((inj₁ ha) ∷ ta , fa@(∷-Free _ _ _ _ fta)) b@((inj₂ hb) ∷ tb , fb@(∷-Free _ _ _ _ ftb)) | r⊑l ¬ha⊑hb ()
-    |g|-∨ a@((inj₂ ha) ∷ ta , fa@(∷-Free _ _ _ _ fta)) b@((inj₁ hb) ∷ tb , fb@(∷-Free _ _ _ _ ftb)) | r⊑l ¬ha⊑hb (₁∼₂ ())
-    |g|-∨ a@((inj₁ ha) ∷ ta , fa@(∷-Free _ _ _ _ fta)) b@((inj₁ hb) ∷ tb , fb@(∷-Free _ _ _ _ ftb)) | r⊑l ¬ha⊑hb (₁∼₁ hb⊑ha) =
-      begin
-        (|g| $ a ∨F (tb , ftb)) ≈⟨ |g|-∨ a (tb , ftb) ⟩
-        (|g| $ a) ∨' (|g| $ tb , ftb) ≡⟨ PE.refl ⟩
-        ((|gL| sngA , ⊥R) ∨' (|g| $ ta , fta)) ∨' (|g| $ tb , ftb) ≈⟨ ∨'-cong (∨'-cong p ≈'-refl) ≈'-refl ⟩
-        ((|gL| (sngB ∨FL sngA) , ⊥R) ∨' (|g| $ ta , fta)) ∨' (|g| $ tb , ftb) ≈⟨ ∨'-cong (∨'-cong (|gL|-∨ sngB sngA , ≈R-refl) ≈'-refl) ≈'-refl ⟩ 
-        (((|gL| sngB) ∨L (|gL| sngA) , ⊥R) ∨' (|g| $ ta , fta)) ∨' (|g| $ tb , ftb) ≈⟨ ∨'-cong (∨'-cong (≈L-refl , (≈R-sym $ R-identityʳ ⊥R)) ≈'-refl) ≈'-refl ⟩ 
-        (((|gL| sngB) ∨L (|gL| sngA) , ⊥R ∨R ⊥R) ∨' (|g| $ ta , fta)) ∨' (|g| $ tb , ftb) ≡⟨ PE.refl ⟩
-        (((|gL| sngB , ⊥R) ∨' (|gL| sngA , ⊥R)) ∨' (|g| $ ta , fta)) ∨' (|g| $ tb , ftb) ≈⟨  ∨'-cong (∨'-cong (∨'-comm (|gL| sngB , ⊥R) (|gL| sngA , ⊥R)) ≈'-refl) ≈'-refl ⟩ 
-        (((|gL| sngA , ⊥R) ∨' (|gL| sngB , ⊥R)) ∨' (|g| $ ta , fta)) ∨' (|g| $ tb , ftb) ≈⟨ ∨'-cong (∨'-assoc (|gL| sngA , ⊥R) (|gL| sngB , ⊥R) (|g| $ ta , fta)) ≈'-refl ⟩ 
-        ((|gL| sngA , ⊥R) ∨' ((|gL| sngB , ⊥R) ∨' (|g| $ ta , fta))) ∨' (|g| $ tb , ftb) ≈⟨ ∨'-cong (∨'-cong ≈'-refl (∨'-comm (|gL| sngB , ⊥R) (|g| $ ta , fta))) ≈'-refl ⟩
-        ((|gL| sngA , ⊥R) ∨' ((|g| $ ta , fta) ∨' (|gL| sngB , ⊥R))) ∨' (|g| $ tb , ftb) ≈⟨ ∨'-cong (≈'-sym (∨'-assoc (|gL| sngA , ⊥R) (|g| $ ta , fta) (|gL| sngB , ⊥R))) ≈'-refl ⟩
-        (((|gL| sngA , ⊥R) ∨' (|g| $ ta , fta)) ∨' (|gL| sngB , ⊥R)) ∨' (|g| $ tb , ftb) ≈⟨  ∨'-assoc ((|gL| sngA , ⊥R) ∨' (|g| $ ta , fta)) (|gL| sngB , ⊥R) (|g| $ tb , ftb)  ⟩ 
-        ((|gL| sngA , ⊥R) ∨' (|g| $ ta , fta)) ∨' ((|gL| sngB , ⊥R) ∨' (|g| $ tb , ftb)) ≡⟨ PE.refl ⟩ 
-        (|g| $ a) ∨' (|g| b)
-       ∎
-      where
-        jsS = BoundedJoinSemilattice.joinSemiLattice S
-
-        open import Relation.Binary.EqReasoning (≈'-setoid)
-        open import Relation.Binary.Properties.BoundedJoinSemilattice S
-        open import Relation.Binary.Properties.JoinSemilattice jsS
-          renaming( ∨-assoc to ∨'-assoc ; ∨-comm to ∨'-comm ; ∨-cong to ∨'-cong )
-        open import Relation.Binary.Properties.BoundedJoinSemilattice bjsR
-          renaming (identityˡ to R-identityˡ ; identityʳ to R-identityʳ)
-
-        sngA = (ha ∷ [] , sng-freeL)
-        sngB = (hb ∷ [] , sng-freeL)
-
-        h : sngB ≤FL sngA 
-        h = (here hb⊑ha) ∷ []
-
-        p : (|gL| sngA , ⊥R) ≈' ((|gL| $ sngB ∨FL sngA) , ⊥R) 
-        p = ( (|gL|-≈ sngA (sngB ∨FL sngA) $ ≈FL-sym {sngB ∨FL sngA} {sngA} (connecting→ {A = BoundedJoinSemilattice.joinSemiLattice FPL-BJS} sngB sngA h)) , ≈R-refl)       
-    |g|-∨ a@((inj₂ ha) ∷ ta , fa@(∷-Free _ _ _ _ fta)) b@((inj₂ hb) ∷ tb , fb@(∷-Free _ _ _ _ ftb)) | r⊑l ¬ha⊑hb (₂∼₂ hb⊑ha) =
-      begin
-        (|g| $ a ∨F (tb , ftb)) ≈⟨ |g|-∨ a (tb , ftb) ⟩
-        (|g| $ a) ∨' (|g| $ tb , ftb) ≡⟨ PE.refl ⟩
-        ((⊥L , |gR| sngA) ∨' (|g| $ ta , fta)) ∨' (|g| $ tb , ftb) ≈⟨ ∨'-cong (∨'-cong p ≈'-refl) ≈'-refl ⟩
-        ((⊥L , |gR| (sngB ∨FR sngA)) ∨' (|g| $ ta , fta)) ∨' (|g| $ tb , ftb) ≈⟨ ∨'-cong (∨'-cong (≈L-refl , |gR|-∨ sngB sngA) ≈'-refl) ≈'-refl ⟩ 
-        (((⊥L , (|gR| sngB) ∨R (|gR| sngA))) ∨' (|g| $ ta , fta)) ∨' (|g| $ tb , ftb) ≈⟨ ∨'-cong (∨'-cong ((≈L-sym $ L-identityʳ ⊥L) , ≈R-refl) ≈'-refl) ≈'-refl ⟩ 
-        ((⊥L ∨L ⊥L , (|gR| sngB) ∨R (|gR| sngA)) ∨' (|g| $ ta , fta)) ∨' (|g| $ tb , ftb) ≡⟨ PE.refl ⟩
-        (((⊥L , |gR| sngB) ∨' (⊥L , |gR| sngA)) ∨' (|g| $ ta , fta)) ∨' (|g| $ tb , ftb) ≈⟨  ∨'-cong (∨'-cong (∨'-comm (⊥L , |gR| sngB) (⊥L , |gR| sngA)) ≈'-refl) ≈'-refl ⟩ 
-        (((⊥L , |gR| sngA) ∨' (⊥L , |gR| sngB)) ∨' (|g| $ ta , fta)) ∨' (|g| $ tb , ftb) ≈⟨ ∨'-cong (∨'-assoc (⊥L , |gR| sngA) (⊥L , |gR| sngB) (|g| $ ta , fta)) ≈'-refl ⟩ 
-        ((⊥L , |gR| sngA) ∨' ((⊥L , |gR| sngB) ∨' (|g| $ ta , fta))) ∨' (|g| $ tb , ftb) ≈⟨ ∨'-cong (∨'-cong ≈'-refl (∨'-comm (⊥L , |gR| sngB) (|g| $ ta , fta))) ≈'-refl ⟩
-        ((⊥L , |gR| sngA) ∨' ((|g| $ ta , fta) ∨' (⊥L , |gR| sngB))) ∨' (|g| $ tb , ftb) ≈⟨ ∨'-cong (≈'-sym (∨'-assoc (⊥L , |gR| sngA) (|g| $ ta , fta) (⊥L , |gR| sngB))) ≈'-refl ⟩
-        (((⊥L , |gR| sngA) ∨' (|g| $ ta , fta)) ∨' (⊥L , |gR| sngB)) ∨' (|g| $ tb , ftb) ≈⟨  ∨'-assoc ((⊥L , |gR| sngA) ∨' (|g| $ ta , fta)) (⊥L , |gR| sngB) (|g| $ tb , ftb)  ⟩ 
-        ((⊥L , |gR| sngA) ∨' (|g| $ ta , fta)) ∨' ((⊥L , |gR| sngB) ∨' (|g| $ tb , ftb)) ≡⟨ PE.refl ⟩ 
-        (|g| $ a) ∨' (|g| b) 
-       ∎
-      where
-        jsS = BoundedJoinSemilattice.joinSemiLattice S
-
-        open import Relation.Binary.EqReasoning (≈'-setoid)
-        open import Relation.Binary.Properties.BoundedJoinSemilattice S
-        open import Relation.Binary.Properties.JoinSemilattice jsS
-          renaming( ∨-assoc to ∨'-assoc ; ∨-comm to ∨'-comm ; ∨-cong to ∨'-cong )
-        open import Relation.Binary.Properties.BoundedJoinSemilattice bjsL
-          renaming (identityˡ to L-identityˡ ; identityʳ to L-identityʳ)
-
-        sngA = (ha ∷ [] , sng-freeR)
-        sngB = (hb ∷ [] , sng-freeR)
-
-        h : sngB ≤FR sngA 
-        h = (here hb⊑ha) ∷ []
-
-        p : (⊥L , |gR| sngA) ≈' (⊥L , (|gR| $ sngB ∨FR sngA)) 
-        p = (≈L-refl , (|gR|-≈ sngA (sngB ∨FR sngA) $ ≈FR-sym {sngB ∨FR sngA} {sngA} (connecting→ {A = BoundedJoinSemilattice.joinSemiLattice FPR-BJS} sngB sngA h)))       
-    |g|-∨ a@((inj₁ ha) ∷ ta , fa@(∷-Free _ _ _ _ fta)) b@((inj₂ hb) ∷ tb , fb@(∷-Free _ _ _ _ ftb)) | l≈r (₁∼₂ ())
-    |g|-∨ a@((inj₂ ha) ∷ ta , fa@(∷-Free _ _ _ _ fta)) b@((inj₁ hb) ∷ tb , fb@(∷-Free _ _ _ _ ftb)) | l≈r ()
-    |g|-∨ a@((inj₁ ha) ∷ ta , fa@(∷-Free _ _ _ _ fta)) b@((inj₁ hb) ∷ tb , fb@(∷-Free _ _ _ _ ftb)) | l≈r (₁∼₁ ha≈hb) =
-      begin
-        (|g| $ (ta , fta) ∨F b) ≈⟨ |g|-∨ (ta , fta) b ⟩
-        (|g| $ ta , fta) ∨' (|g| b) ≡⟨ PE.refl ⟩
-        (|g| $ ta , fta) ∨' ((|gL| sngB , ⊥R) ∨' (|g| $ tb , ftb)) ≈⟨ ∨-cong ≈'-refl (∨-cong p ≈'-refl) ⟩
-        (|g| $ ta , fta) ∨' ((|gL| (sngA ∨FL sngB) , ⊥R) ∨' (|g| $ tb , ftb)) ≈⟨ ∨-cong ≈'-refl (∨-cong (|gL|-∨ sngA sngB , ≈R-refl) ≈'-refl) ⟩
-        (|g| $ ta , fta) ∨' ( ((|gL| sngA) ∨L (|gL| sngB) , ⊥R) ∨' (|g| $ tb , ftb)) ≈⟨ ∨-cong ≈'-refl (∨-cong (≈L-refl , (≈R-sym $ R-identityʳ ⊥R)) ≈'-refl) ⟩
-        (|g| $ ta , fta) ∨' ( ((|gL| sngA) ∨L (|gL| sngB) , ⊥R ∨R ⊥R) ∨' (|g| $ tb , ftb))  ≡⟨ PE.refl ⟩ 
-        (|g| $ ta , fta) ∨' ( ((|gL| sngA , ⊥R) ∨' (|gL| sngB , ⊥R)) ∨' (|g| $ tb , ftb) ) ≈⟨ ≈'-sym $ ∨'-assoc (|g| $ ta , fta) ((|gL| sngA , ⊥R) ∨' (|gL| sngB , ⊥R)) (|g| $ tb , ftb) ⟩ 
-        ((|g| $ ta , fta) ∨' (|gL| sngA , ⊥R) ∨' (|gL| sngB , ⊥R)) ∨' (|g| $ tb , ftb) ≈⟨ ∨-cong (≈'-sym $ ∨'-assoc (|g| $ ta , fta) (|gL| sngA , ⊥R) (|gL| sngB , ⊥R)) ≈'-refl ⟩
-        (((|g| $ ta , fta) ∨' (|gL| sngA , ⊥R)) ∨' (|gL| sngB , ⊥R)) ∨' (|g| $ tb , ftb) ≈⟨ ∨-cong  (∨-cong (∨'-comm (|g| $ ta , fta) (|gL| sngA , ⊥R)) ≈'-refl) ≈'-refl  ⟩
-        (((|gL| sngA , ⊥R) ∨' (|g| $ ta , fta)) ∨' (|gL| sngB , ⊥R)) ∨' (|g| $ tb , ftb) ≈⟨ ∨'-assoc ((|gL| sngA , ⊥R) ∨' (|g| $ ta , fta)) (|gL| sngB , ⊥R) (|g| $ tb , ftb)  ⟩ 
-        ((|gL| sngA , ⊥R) ∨' (|g| $ ta , fta)) ∨' ((|gL| sngB , ⊥R) ∨' (|g| $ tb , ftb)) ≡⟨ PE.refl ⟩
-        (|g| $ a) ∨' (|g| b)
-       ∎
-      where
-        jsS = BoundedJoinSemilattice.joinSemiLattice S
-
-        open import Relation.Binary.EqReasoning (≈'-setoid)
-        open import Relation.Binary.Properties.BoundedJoinSemilattice S
-        open import Relation.Binary.Properties.JoinSemilattice jsS
-          renaming( ∨-assoc to ∨'-assoc ; ∨-comm to ∨'-comm )
-        open import Relation.Binary.Properties.BoundedJoinSemilattice bjsR
-          renaming (identityˡ to R-identityˡ ; identityʳ to R-identityʳ)
-
-        sngA = (ha ∷ [] , sng-freeL)
-        sngB = (hb ∷ [] , sng-freeL)
-
-        h : sngA ≤FL sngB 
-        h = (here (⊑L₀-reflexive ha≈hb)) ∷ []
-
-        p : (|gL| sngB , ⊥R) ≈' ((|gL| $ sngA ∨FL sngB) , ⊥R) 
-        p = ( (|gL|-≈ sngB (sngA ∨FL sngB) $ ≈FL-sym {sngA ∨FL sngB} {sngB} (connecting→ {A = BoundedJoinSemilattice.joinSemiLattice FPL-BJS} sngA sngB h)) , ≈R-refl) 
-    |g|-∨ a@((inj₂ ha) ∷ ta , fa@(∷-Free _ _ _ _ fta)) b@((inj₂ hb) ∷ tb , fb@(∷-Free _ _ _ _ ftb)) | l≈r (₂∼₂ ha≈hb) = 
-      begin
-        (|g| $ (ta , fta) ∨F b) ≈⟨ |g|-∨ (ta , fta) b ⟩
-        (|g| $ ta , fta) ∨' (|g| b) ≡⟨ PE.refl ⟩
-        (|g| $ ta , fta) ∨' ((⊥L , |gR| sngB) ∨' (|g| $ tb , ftb)) ≈⟨ ∨-cong ≈'-refl (∨-cong p ≈'-refl) ⟩
-        (|g| $ ta , fta) ∨' ((⊥L , |gR| (sngA ∨FR sngB)) ∨' (|g| $ tb , ftb)) ≈⟨ ∨-cong ≈'-refl (∨-cong (≈L-refl , |gR|-∨ sngA sngB) ≈'-refl) ⟩
-        (|g| $ ta , fta) ∨' ( (⊥L , (|gR| sngA) ∨R (|gR| sngB)) ∨' (|g| $ tb , ftb)) ≈⟨ ∨-cong ≈'-refl (∨-cong ((≈L-sym $ L-identityʳ ⊥L) , ≈R-refl) ≈'-refl) ⟩
-        (|g| $ ta , fta) ∨' ( (⊥L ∨L ⊥L , (|gR| sngA) ∨R (|gR| sngB)) ∨' (|g| $ tb , ftb))  ≡⟨ PE.refl ⟩ 
-        (|g| $ ta , fta) ∨' (((⊥L , |gR| sngA) ∨' (⊥L , |gR| sngB) ) ∨' (|g| $ tb , ftb)) ≈⟨ ≈'-sym $ ∨'-assoc (|g| $ ta , fta) ((⊥L , |gR| sngA) ∨' (⊥L , |gR| sngB)) (|g| $ tb , ftb) ⟩ 
-        ((|g| $ ta , fta) ∨' (⊥L , |gR| sngA) ∨' (⊥L , |gR| sngB)) ∨' (|g| $ tb , ftb) ≈⟨ ∨-cong (≈'-sym $ ∨'-assoc (|g| $ ta , fta) (⊥L , |gR| sngA) (⊥L , |gR| sngB)) ≈'-refl ⟩
-        (((|g| $ ta , fta) ∨' (⊥L , |gR| sngA)) ∨' (⊥L , |gR| sngB)) ∨' (|g| $ tb , ftb) ≈⟨ ∨-cong  (∨-cong (∨'-comm (|g| $ ta , fta) (⊥L , |gR| sngA)) ≈'-refl) ≈'-refl  ⟩
-        (((⊥L , |gR| sngA) ∨' (|g| $ ta , fta)) ∨' (⊥L , |gR| sngB)) ∨' (|g| $ tb , ftb) ≈⟨ ∨'-assoc ((⊥L , |gR| sngA) ∨' (|g| $ ta , fta)) (⊥L , |gR| sngB) (|g| $ tb , ftb)  ⟩ 
-        ((⊥L , |gR| sngA) ∨' (|g| $ ta , fta)) ∨' ((⊥L , |gR| sngB) ∨' (|g| $ tb , ftb)) ≡⟨ PE.refl ⟩
-        (|g| $ a) ∨' (|g| b)
-       ∎
-      where
-        jsS = BoundedJoinSemilattice.joinSemiLattice S
-
-        open import Relation.Binary.EqReasoning (≈'-setoid)
-        open import Relation.Binary.Properties.BoundedJoinSemilattice S
-        open import Relation.Binary.Properties.JoinSemilattice jsS
-          renaming( ∨-assoc to ∨'-assoc ; ∨-comm to ∨'-comm )
-        open import Relation.Binary.Properties.BoundedJoinSemilattice bjsL
-          renaming (identityˡ to L-identityˡ ; identityʳ to L-identityʳ)
-
-        sngA = (ha ∷ [] , sng-freeR)
-        sngB = (hb ∷ [] , sng-freeR)
-
-        h : sngA ≤FR sngB 
-        h = (here (⊑R₀-reflexive ha≈hb)) ∷ []
-
-        p : (⊥L , |gR| sngB) ≈' (⊥L , (|gR| $ sngA ∨FR sngB)) 
-        p = ( ≈L-refl , (|gR|-≈ sngB (sngA ∨FR sngB) $ ≈FR-sym {sngA ∨FR sngB} {sngB} (connecting→ {A = BoundedJoinSemilattice.joinSemiLattice FPR-BJS} sngA sngB h)) ) 
-    |g|-∨ a@(ha ∷ ta , fa@(∷-Free _ _ _ _ fta)) b@(hb ∷ tb , fb@(∷-Free _ _ _ _ ftb)) | l∥r ha∥hb with DeltaPoset.compare P ha hb
-    |g|-∨ a@((inj₁ ha) ∷ ta , fa@(∷-Free _ _ _ _ fta)) b@(hb ∷ tb , fb@(∷-Free _ _ _ _ ftb)) | l∥r ha∥hb | tri< ha<hb _ _ = 
-      begin
-        (|gL| sngA , ⊥R) ∨' (|g| $ (ta , fta) ∨F b) ≈⟨ ∨'-cong ≈'-refl (|g|-∨ (ta , fta) b) ⟩
-        (|gL| sngA , ⊥R) ∨' ((|g| $ ta , fta) ∨' (|g| b)) ≈⟨ ≈'-sym (∨'-assoc (|gL| sngA , ⊥R) (|g| $ ta , fta) (|g| b)) ⟩
-        ((|gL| sngA , ⊥R) ∨' (|g| $ ta , fta)) ∨' (|g| b) ≡⟨ PE.refl ⟩
-        (|g| a) ∨' (|g| b)
-       ∎
-      where
-        jsS = BoundedJoinSemilattice.joinSemiLattice S
-
-        open import Relation.Binary.EqReasoning (≈'-setoid)      
-        open import Relation.Binary.Properties.JoinSemilattice jsS
-          renaming( ∨-assoc to ∨'-assoc ; ∨-comm to ∨'-comm ; ∨-cong to ∨'-cong )
-
-        sngA : Carrier-FPL
-        sngA = (ha ∷ [] , sng-freeL)
-    |g|-∨ a@((inj₂ ha) ∷ ta , fa@(∷-Free _ _ _ _ fta)) b@(hb ∷ tb , fb@(∷-Free _ _ _ _ ftb)) | l∥r ha∥hb | tri< ha<hb _ _ = 
-      begin
-        (⊥L , |gR| sngA) ∨' (|g| $ (ta , fta) ∨F b) ≈⟨ ∨'-cong ≈'-refl (|g|-∨ (ta , fta) b) ⟩
-        (⊥L , |gR| sngA) ∨' ((|g| $ ta , fta) ∨' (|g| b)) ≈⟨ ≈'-sym (∨'-assoc (⊥L , |gR| sngA) (|g| $ ta , fta) (|g| b)) ⟩
-        ((⊥L , |gR| sngA) ∨' (|g| $ ta , fta)) ∨' (|g| b) ≡⟨ PE.refl ⟩
-        (|g| a) ∨' (|g| b)
-       ∎
-      where
-        jsS = BoundedJoinSemilattice.joinSemiLattice S
-
-        open import Relation.Binary.EqReasoning (≈'-setoid)      
-        open import Relation.Binary.Properties.JoinSemilattice jsS
-          renaming( ∨-assoc to ∨'-assoc ; ∨-comm to ∨'-comm ; ∨-cong to ∨'-cong )
-
-        sngA : Carrier-FPR
-        sngA = (ha ∷ [] , sng-freeR)
-    |g|-∨ a@(ha ∷ ta , fa@(∷-Free _ _ _ _ fta)) b@(hb ∷ tb , fb@(∷-Free _ _ _ _ ftb)) | l∥r ha∥hb | tri≈ _ ha≈hb _ = 
-      ⊥-elim $ ha∥hb (inj₁ $ DeltaPoset.reflexive⊑ P ha≈hb)
-    |g|-∨ a@(ha ∷ ta , fa@(∷-Free _ _ _ _ fta)) b@((inj₁ hb) ∷ tb , fb@(∷-Free _ _ _ _ ftb)) | l∥r ha∥hb | tri> _ _ hb<ha = 
-      begin
-        (|gL| sngB , ⊥R) ∨' (|g| $ a ∨F (tb , ftb)) ≈⟨ ∨'-cong ≈'-refl (|g|-∨ a (tb , ftb)) ⟩
-        (|gL| sngB , ⊥R) ∨' ((|g| a) ∨' (|g| $ tb , ftb)) ≈⟨ ≈'-sym (∨'-assoc (|gL| sngB , ⊥R) (|g| a) (|g| $ tb , ftb)) ⟩
-        ((|gL| sngB , ⊥R) ∨' (|g| a)) ∨' (|g| $ tb , ftb) ≈⟨ ∨'-cong (∨'-comm (|gL| sngB , ⊥R) (|g| a)) ≈'-refl ⟩
-        ((|g| a) ∨' (|gL| sngB , ⊥R)) ∨' (|g| $ tb , ftb) ≈⟨ ∨'-assoc (|g| a) (|gL| sngB , ⊥R) (|g| $ tb , ftb) ⟩
-        (|g| a) ∨' ((|gL| sngB , ⊥R) ∨' (|g| $ tb , ftb)) ≡⟨ PE.refl ⟩ 
-        (|g| a) ∨' (|g| b)
-       ∎
-      where
-        jsS = BoundedJoinSemilattice.joinSemiLattice S
-
-        open import Relation.Binary.EqReasoning (≈'-setoid)      
-        open import Relation.Binary.Properties.JoinSemilattice jsS
-          renaming( ∨-assoc to ∨'-assoc ; ∨-comm to ∨'-comm ; ∨-cong to ∨'-cong )
-
-        sngB : Carrier-FPL
-        sngB = (hb ∷ [] , sng-freeL)
-    |g|-∨ a@(ha ∷ ta , fa@(∷-Free _ _ _ _ fta)) b@((inj₂ hb) ∷ tb , fb@(∷-Free _ _ _ _ ftb)) | l∥r ha∥hb | tri> _ _ hb<ha = 
-      begin
-        (⊥L , |gR| sngB) ∨' (|g| $ a ∨F (tb , ftb)) ≈⟨ ∨'-cong ≈'-refl (|g|-∨ a (tb , ftb)) ⟩
-        (⊥L , |gR| sngB) ∨' ((|g| a) ∨' (|g| $ tb , ftb)) ≈⟨ ≈'-sym (∨'-assoc (⊥L , |gR| sngB) (|g| a) (|g| $ tb , ftb)) ⟩
-        ((⊥L , |gR| sngB) ∨' (|g| a)) ∨' (|g| $ tb , ftb) ≈⟨ ∨'-cong (∨'-comm (⊥L , |gR| sngB) (|g| a)) ≈'-refl ⟩
-        ((|g| a) ∨' (⊥L , |gR| sngB)) ∨' (|g| $ tb , ftb) ≈⟨ ∨'-assoc (|g| a) (⊥L , |gR| sngB) (|g| $ tb , ftb) ⟩
-        (|g| a) ∨' ((⊥L , |gR| sngB) ∨' (|g| $ tb , ftb)) ≡⟨ PE.refl ⟩ 
-        (|g| a) ∨' (|g| b)
-       ∎
-      where
-        jsS = BoundedJoinSemilattice.joinSemiLattice S
-
-        open import Relation.Binary.EqReasoning (≈'-setoid)      
-        open import Relation.Binary.Properties.JoinSemilattice jsS
-          renaming( ∨-assoc to ∨'-assoc ; ∨-comm to ∨'-comm ; ∨-cong to ∨'-cong )
-
-        sngB : Carrier-FPR
-        sngB = (hb ∷ [] , sng-freeR)
-    
+{-
+    |g|-≈ : (a b : Carrier-FP) → (a ≈F b) → (|g| a) ≈' (|g| b)
+    |g|-≈ (.[] , []-Free) (.[] , []-Free) [] =
+      |gL|-≈ ([] , []-FreeL) ([] , []-FreeL) [] , |gR|-≈ ([] , []-FreeR) ([] , []-FreeR) [] 
+    |g|-≈ ((inj₁ ha) ∷ ta) , _) ((inj₁ hb) ∷ tb , _) (x∼y ∷ ta≈tb) = {!!}
+  -}   
+{-
+|g|-≈ a b a≈b with decompose a | decompose b | Pointwise-length a≈b
+    |g|-≈ (.(atl ++ atr) , _) (.(btl ++ btr) , _) a≈b  
+          | al , ar , (atl , _) , (atr , _) , aeql , aeqr , PE.refl 
+          | bl , br , (btl , _) , (btr , _) , beql , beqr , PE.refl
+          | lena≡lenb = 
+      {!!}
+-}      
+        
 ⟦ IVarSemilat x ⁂⟧ = {!!}
 ⟦ PartialSemilat x ⁂⟧ = {!!}

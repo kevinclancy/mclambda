@@ -1,11 +1,13 @@
 open import Data.List
 open import Data.List.All
 open import Data.List.Any
+open import Data.Product
 open import Relation.Nullary
 open import Relation.Binary
 open import Relation.Binary.Lattice
 open import Relation.Binary.PropositionalEquality as PE
 open import Level renaming (_⊔_ to _v_) 
+open import Function.Equivalence as FE
 open import Algebra.FunctionProperties
 open import RelationalStructures
 open import Util
@@ -118,3 +120,13 @@ open Core.IsFreeList public
 sng-free : {c : DeltaCarrier} → (Core.IsFreeList (c ∷ []))
 sng-free = Core.sng-free
 
+module _ where
+  open import Data.List.Membership.Setoid (DeltaPoset.≈-setoid P) renaming (_∈_ to _∈'_) public
+  
+  _∈_ : DeltaCarrier → SemilatCarrier → Set _
+  p ∈ (l , f) = p ∈' l
+
+c1≈c2⇔sameElements : (c1 c2 : SemilatCarrier) → (c1 ≈ c2) ⇔ (∀ (a : DeltaCarrier) → (a ∈ c1) ⇔ (a ∈ c2))
+c1≈c2⇔sameElements c1 c2 = Core.l1~l2⇔sameElements c1 c2  
+  
+  
