@@ -751,6 +751,7 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
     ≈P-reflexive = DeltaPoset.Eq.reflexive P
     ≈P-refl = DeltaPoset.Eq.refl P
     ≈P-trans = DeltaPoset.Eq.trans P
+    ≈P-sym = DeltaPoset.Eq.sym P
 
     _<P_ : |P| → |P| → Set
     _<P_ = DeltaPoset._<_ P
@@ -812,7 +813,7 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
       (⊥ to ⊥F ; _∨_ to _∨F_ ; _≈_ to _≈F_ ; _~_ to _~F_ ; ≈-refl to ≈F-refl ; SemilatCarrier to Carrier-FP ;
        ≈-reflexive to ≈F-reflexive ; FP-BJS to FP-BJS ; ∨-identityˡ to ∨F-identityˡ ; ∨-identityʳ to ∨F-identityʳ ; 
        ≈-sym to ≈F-sym ; ∨-congˡ to ∨F-congˡ ; ∨-congʳ to ∨F-congʳ ; ∨-assoc to ∨F-assoc ; ∨-comm to ∨F-comm ;
-       _∈_ to _∈P_ ; _∈'_ to _∈P'_ ; FP-setoid to FP-setoid ) 
+       _∈_ to _∈P_ ; _∈'_ to _∈P'_ ; FP-setoid to FP-setoid ; c1≈c2⇔sameElements to c1≈c2⇔sameElementsP ) 
     open import FreeSemilattice deltaL renaming 
       (IsFreeList to IsFreeListL ; []-Free to []-FreeL ; ∷-Free to ∷-FreeL ; _≈_ to _≈FL_ ; ⊥ to ⊥FL ; 
        SemilatCarrier to Carrier-FPL ; _∨_ to _∨FL_ ; FP-BJS to FPL-BJS ; FP-setoid to FPL-setoid ;
@@ -864,7 +865,8 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
     |gL|-∨ : ∀ (a b : Carrier-FPL) → |gL| (a ∨FL b) ≈L ( (|gL| a) ∨L (|gL| b) ) 
     |gL|-∨ = proj₂ $ proj₂ $ proj₂ $ SemSemilat.g semSemilatL
 
-    |gL|-inv-S→FP→S = SemSemilat.inv-S→FP→S semSemilatL
+    L-inv-S→FP→S = SemSemilat.inv-S→FP→S semSemilatL
+    L-inv-FP→S→FP = SemSemilat.inv-FP→S→FP semSemilatL
 
     gR = SemSemilat.g semSemilatR
 
@@ -880,7 +882,8 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
     |gR|-∨ : ∀ (a b : Carrier-FPR) → |gR| (a ∨FR b) ≈R ( (|gR| a) ∨R (|gR| b) ) 
     |gR|-∨ = proj₂ $ proj₂ $ proj₂ $ SemSemilat.g semSemilatR
 
-    |gR|-inv-S→FP→S = SemSemilat.inv-S→FP→S semSemilatR
+    R-inv-S→FP→S = SemSemilat.inv-S→FP→S semSemilatR
+    R-inv-FP→S→FP = SemSemilat.inv-FP→S→FP semSemilatR
 
 {-
     |fR| : |R| → Σ[ l ∈ List (DeltaPoset.Carrier deltaR) ] (IsFreeListR l)
@@ -1688,8 +1691,445 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
     |g| c | l , r , tl , tr , eql , eqr , concat = 
       (|gL| l , |gR| r)
 
+    |g|-≈ : (a b : Carrier-FP) → (a ≈F b) → (|g| a) ≈' (|g| b)
+    |g|-≈ a b a≈b = {!!}
+{-
+    --[[[
+    |g|-≈ a b a≈b with decompose a | decompose b
+    |g|-≈ a@(.(proj₁ atl ++ proj₁ atr) , _) b@(.(proj₁ btl ++ proj₁ btr) , _) a≈b  
+          | al , ar , atl , atr , aeql , aeqr , PE.refl 
+          | bl , br , btl , btr , beql , beqr , PE.refl = 
+      |gL|-≈ al bl al≈bl , |gR|-≈ ar br ar≈br
+      where
+        atl≈btl : atl ≈F btl
+        --[[[
+        atl≈btl with to ⟨$⟩ a≈b  
+          where
+            open Equivalence (c1≈c2⇔sameElementsP a b)
+        atl≈btl | p∈a⇔p∈b =
+          E.from ⟨$⟩ sameElements
+          where
+            p→ : (p : |P|) → (p ∈P atl) → (p ∈P btl)
+            --[[[
+            p→ p p∈atl = p∈btl 
+              where
+                open import Data.List.Membership.Setoid.Properties
+                module E = Equivalence (p∈a⇔p∈b p) 
 
+                p∈a : p ∈P a
+                p∈a = ∈-++⁺ˡ ≈P-setoid p∈atl
+
+                p∈b : p ∈P b
+                p∈b = E.to ⟨$⟩ p∈a
+
+                p∈btl : p ∈P btl
+                p∈btl with ∈-++⁻ ≈P-setoid (proj₁ btl) p∈b
+                p∈btl | inj₁ goal = goal
+                p∈btl | inj₂ p∈btr = 
+                  ⊥-elim $ I1.from ⟨$⟩ (pointwiseRespAny⃖ imp (proj₁ al) (proj₁ atl) p∈atl (LPW.map ≈P-reflexive aeql)) 
+                  where
+                    open import Data.List.Any.Properties
+                    module I1 = Inverse ⊥↔Any⊥
+                    module I2 = Inverse ⊥↔Any⊥
+
+                    imp : {l₀ : |L₀|} → {x : |P|} → (p ≈P x) → (x ≈P inj₁ l₀) → const ⊥ l₀
+                    imp {l₀} {x} p≈x x≈inj₁l₀ = 
+                      ⊥-elim $ I2.from ⟨$⟩ (pointwiseRespAny⃖ imp' (proj₁ br) (proj₁ btr) p∈btr (LPW.map ≈P-reflexive beqr))
+                      where
+                        p≈inj₁l₀ : p ≈P inj₁ l₀
+                        p≈inj₁l₀ = ≈P-trans p≈x x≈inj₁l₀
+
+                        imp' : {r₀ : |R₀|} → {z : |P|} → (p ≈P z) → (z ≈P inj₂ r₀) → const ⊥ r₀
+                        imp' {r₀} {z} p≈z z≈inj₂r₀ with ≈P-trans (≈P-sym p≈inj₁l₀) p≈inj₂r₀
+                          where
+                            p≈inj₂r₀ : p ≈P inj₂ r₀
+                            p≈inj₂r₀ = ≈P-trans p≈z z≈inj₂r₀
+                        imp' {r₀} {z} p≈z z≈inj₂r₀ | (₁∼₂ ())
+            --]]]
+            p← : (p : |P|) → (p ∈P btl) → (p ∈P atl)
+            --[[[
+            p← p p∈btl = p∈atl
+              where
+                open import Data.List.Membership.Setoid.Properties
+                module E = Equivalence (p∈a⇔p∈b p) 
+
+                p∈b : p ∈P b
+                p∈b = ∈-++⁺ˡ ≈P-setoid p∈btl
+
+                p∈a : p ∈P a
+                p∈a = E.from ⟨$⟩ p∈b
+
+                p∈atl : p ∈P atl
+                p∈atl with ∈-++⁻ ≈P-setoid (proj₁ atl) p∈a
+                p∈atl | inj₁ goal = goal
+                p∈atl | inj₂ p∈atr = 
+                  ⊥-elim $ I1.from ⟨$⟩ (pointwiseRespAny⃖ imp (proj₁ bl) (proj₁ btl) p∈btl (LPW.map ≈P-reflexive beql)) 
+                  where
+                    open import Data.List.Any.Properties
+                    module I1 = Inverse ⊥↔Any⊥
+                    module I2 = Inverse ⊥↔Any⊥
+
+                    imp : {l₀ : |L₀|} → {x : |P|} → (p ≈P x) → (x ≈P inj₁ l₀) → const ⊥ l₀
+                    imp {l₀} {x} p≈x x≈inj₁l₀ = 
+                      ⊥-elim $ I2.from ⟨$⟩ (pointwiseRespAny⃖ imp' (proj₁ ar) (proj₁ atr) p∈atr (LPW.map ≈P-reflexive aeqr))
+                      where
+                        p≈inj₁l₀ : p ≈P inj₁ l₀
+                        p≈inj₁l₀ = ≈P-trans p≈x x≈inj₁l₀
+
+                        imp' : {r₀ : |R₀|} → {z : |P|} → (p ≈P z) → (z ≈P inj₂ r₀) → const ⊥ r₀
+                        imp' {r₀} {z} p≈z z≈inj₂r₀ with ≈P-trans (≈P-sym p≈inj₁l₀) p≈inj₂r₀
+                          where
+                            p≈inj₂r₀ : p ≈P inj₂ r₀
+                            p≈inj₂r₀ = ≈P-trans p≈z z≈inj₂r₀
+                        imp' {r₀} {z} p≈z z≈inj₂r₀ | (₁∼₂ ())
+            --]]]
+            sameElements : (p : |P|) → (p ∈P atl) ⇔ (p ∈P btl)
+            sameElements p = equivalence (p→ p) (p← p) 
+
+            module E = Equivalence (c1≈c2⇔sameElementsP atl btl)
+        --]]]
+
+        al≈bl : al ≈FL bl
+        --[[[
+        al≈bl =
+          LPW.transitive t'' t' (LPW.symmetric ≈P-sym $ LPW.map ≈P-reflexive beql) 
+          where
+            t : {l₀' : |L₀|} → {atl₀ : |P|} → {btl₀ : |P|} → (atl₀ ≈P inj₁ l₀') → (atl₀ ≈P btl₀) → (btl₀ ≈P inj₁ l₀')
+            t {l₀'} {atl₀} {btl₀} atl₀≈inj₁l₀' atl₀≈btl₀ = ≈P-trans (≈P-sym atl₀≈btl₀) atl₀≈inj₁l₀'
+
+            t' : LPW.Pointwise (λ x → λ y → y ≈P inj₁ x) (proj₁ al) (proj₁ btl)
+            t' = LPW.transitive t (LPW.map ≈P-reflexive aeql) atl≈btl
+      
+            t'' : {al₀' : |L₀|} → {btl₀ : |P|} → {bl₀' : |L₀|} → (btl₀ ≈P inj₁ al₀') → (inj₁ bl₀' ≈P btl₀) → (al₀' ≈L₀ bl₀')
+            t'' {al₀'} {btl₀} {bl₀'} btl₀≈inj₁al₀' inj₁bl₀'≈btl₀ with ≈P-trans (≈P-sym btl₀≈inj₁al₀') (≈P-sym inj₁bl₀'≈btl₀)
+            t'' {al₀'} {btl₀} {bl₀'} btl₀≈inj₁al₀' inj₁bl₀'≈btl₀ | ₁∼₁ al₀'≈bl₀' = al₀'≈bl₀' 
+        --]]]
+
+        atr≈btr : atr ≈F btr
+        --[[[
+        atr≈btr with to ⟨$⟩ a≈b  
+          where
+            open Equivalence (c1≈c2⇔sameElementsP a b)
+        atr≈btr | p∈a⇔p∈b =
+          E.from ⟨$⟩ sameElements
+          where
+            p→ : (p : |P|) → (p ∈P atr) → (p ∈P btr)
+            --[[[
+            p→ p p∈atr = p∈btr 
+              where
+                open import Data.List.Membership.Setoid.Properties
+                module E = Equivalence (p∈a⇔p∈b p) 
+
+                p∈a : p ∈P a
+                p∈a = ∈-++⁺ʳ ≈P-setoid (proj₁ atl) p∈atr
+
+                p∈b : p ∈P b
+                p∈b = E.to ⟨$⟩ p∈a
+
+                p∈btr : p ∈P btr
+                p∈btr with ∈-++⁻ ≈P-setoid (proj₁ btl) p∈b
+                p∈btr | inj₁ p∈btl = 
+                  ⊥-elim $ I1.from ⟨$⟩ (pointwiseRespAny⃖ imp (proj₁ bl) (proj₁ btl) p∈btl (LPW.map ≈P-reflexive beql)) 
+                  where
+                    open import Data.List.Any.Properties
+                    module I1 = Inverse ⊥↔Any⊥
+                    module I2 = Inverse ⊥↔Any⊥
+
+                    imp : {l₀ : |L₀|} → {x : |P|} → (p ≈P x) → (x ≈P inj₁ l₀) → const ⊥ l₀
+                    imp {l₀} {x} p≈x x≈inj₁l₀ = 
+                      ⊥-elim $ I2.from ⟨$⟩ (pointwiseRespAny⃖ imp' (proj₁ ar) (proj₁ atr) p∈atr (LPW.map ≈P-reflexive aeqr))
+                      where
+                        p≈inj₁l₀ : p ≈P inj₁ l₀
+                        p≈inj₁l₀ = ≈P-trans p≈x x≈inj₁l₀
+
+                        imp' : {r₀ : |R₀|} → {z : |P|} → (p ≈P z) → (z ≈P inj₂ r₀) → const ⊥ r₀
+                        imp' {r₀} {z} p≈z z≈inj₂r₀ with ≈P-trans (≈P-sym p≈inj₁l₀) p≈inj₂r₀
+                          where
+                            p≈inj₂r₀ : p ≈P inj₂ r₀
+                            p≈inj₂r₀ = ≈P-trans p≈z z≈inj₂r₀
+                        imp' {r₀} {z} p≈z z≈inj₂r₀ | (₁∼₂ ())
+                p∈btr | inj₂ goal = goal
+
+            --]]]
+            p← : (p : |P|) → (p ∈P btr) → (p ∈P atr)
+            --[[[
+            p← p p∈btr = p∈atr
+              where
+                open import Data.List.Membership.Setoid.Properties
+                module E = Equivalence (p∈a⇔p∈b p) 
+
+                p∈b : p ∈P b
+                p∈b = ∈-++⁺ʳ ≈P-setoid (proj₁ btl) p∈btr
+
+                p∈a : p ∈P a
+                p∈a = E.from ⟨$⟩ p∈b
+
+                p∈atr : p ∈P atr
+                p∈atr with ∈-++⁻ ≈P-setoid (proj₁ atl) p∈a
+                p∈atr | inj₁ p∈atl = 
+                  ⊥-elim $ I1.from ⟨$⟩ (pointwiseRespAny⃖ imp (proj₁ al) (proj₁ atl) p∈atl (LPW.map ≈P-reflexive aeql)) 
+                  where
+                    open import Data.List.Any.Properties
+                    module I1 = Inverse ⊥↔Any⊥
+                    module I2 = Inverse ⊥↔Any⊥
+
+                    imp : {l₀ : |L₀|} → {x : |P|} → (p ≈P x) → (x ≈P inj₁ l₀) → const ⊥ l₀
+                    imp {l₀} {x} p≈x x≈inj₁l₀ = 
+                      ⊥-elim $ I2.from ⟨$⟩ (pointwiseRespAny⃖ imp' (proj₁ br) (proj₁ btr) p∈btr (LPW.map ≈P-reflexive beqr))
+                      where
+                        p≈inj₁l₀ : p ≈P inj₁ l₀
+                        p≈inj₁l₀ = ≈P-trans p≈x x≈inj₁l₀
+
+                        imp' : {r₀ : |R₀|} → {z : |P|} → (p ≈P z) → (z ≈P inj₂ r₀) → const ⊥ r₀
+                        imp' {r₀} {z} p≈z z≈inj₂r₀ with ≈P-trans (≈P-sym p≈inj₁l₀) p≈inj₂r₀
+                          where
+                            p≈inj₂r₀ : p ≈P inj₂ r₀
+                            p≈inj₂r₀ = ≈P-trans p≈z z≈inj₂r₀
+                        imp' {r₀} {z} p≈z z≈inj₂r₀ | (₁∼₂ ())
+                p∈atr | inj₂ goal = goal
+
+            --]]]
+            sameElements : (p : |P|) → (p ∈P atr) ⇔ (p ∈P btr)
+            sameElements p = equivalence (p→ p) (p← p) 
+
+            module E = Equivalence (c1≈c2⇔sameElementsP atr btr)
+        --]]]
+
+        ar≈br : ar ≈FR br
+        --[[[
+        ar≈br =
+          LPW.transitive t'' t' (LPW.symmetric ≈P-sym $ LPW.map ≈P-reflexive beqr) 
+          where
+            t : {r₀' : |R₀|} → {atr₀ : |P|} → {btr₀ : |P|} → (atr₀ ≈P inj₂ r₀') → (atr₀ ≈P btr₀) → (btr₀ ≈P inj₂ r₀')
+            t {r₀'} {atr₀} {btr₀} atr₀≈inj₁r₀' atr₀≈btr₀ = ≈P-trans (≈P-sym atr₀≈btr₀) atr₀≈inj₁r₀'
+
+            t' : LPW.Pointwise (λ x → λ y → y ≈P inj₂ x) (proj₁ ar) (proj₁ btr)
+            t' = LPW.transitive t (LPW.map ≈P-reflexive aeqr) atr≈btr
+      
+            t'' : {ar₀' : |R₀|} → {btr₀ : |P|} → {br₀' : |R₀|} → (btr₀ ≈P inj₂ ar₀') → (inj₂ br₀' ≈P btr₀) → (ar₀' ≈R₀ br₀')
+            t'' {ar₀'} {btr₀} {br₀'} btr₀≈inj₁ar₀' inj₁br₀'≈btr₀ with ≈P-trans (≈P-sym btr₀≈inj₁ar₀') (≈P-sym inj₁br₀'≈btr₀)
+            t'' {ar₀'} {btr₀} {br₀'} btr₀≈inj₁ar₀' inj₁br₀'≈btr₀ | ₂∼₂ ar₀'≈br₀' = ar₀'≈br₀' 
+        --]]]
+    --]]]
+-}
+
+    |g|-⊥ : |g| ⊥F ≈' ⊥'
+    |g|-⊥ with decompose ⊥F 
+    |g|-⊥ | l , r , (hl ∷ tl , _) , ([] , _) , aeql , aeqr , ()
+    |g|-⊥ | l , r , ([] , _) , (hr ∷ tr , _) , aeql , aeqr , ()
+    |g|-⊥ | l , r , (hl ∷ tl , _) , (hr ∷ tr , _) , aeql , aeqr , ()
+    |g|-⊥ | ([] , []-FreeL) , ([] , []-FreeR) , ([] , []-Free) , ([] , []-Free) , [] , [] , aconcat =
+      |gL|-⊥ , |gR|-⊥
+        
+    |g|-∨ : (a b : Carrier-FP) → (|g| $ a ∨F b) ≈' ((|g| a) ∨' (|g| b))
+    --[[[
+    |g|-∨ a b with decompose a | decompose b | decompose (a ∨F b)
+    |g|-∨ a b | al , ar , atl , atr , aeql , aeqr , PE.refl
+               | bl , br , btl , btr , beql , beqr , PE.refl
+               | jl , jr , jtl , jtr , jeql , jeqr , jconcat =
+      {!|gL|-∨ al bl!} , {!!}
+      where
+       jtl≈atl∨btl : jtl ≈F (atl ∨F btl)
+       jtl≈atl∨btl = {!!}
+         where
+           p→ : (p : |P|) → (p ∈P jtl) → (p ∈P (atl ∨F btl))
+           p→ p p∈jtl = {!pointwiseRespAny imp p∈jtl!}
+             where
+               open import Data.List.Membership.Setoid.Properties
+               --module E1 = Equivalence (c1≈c2⇔sameElementsP ((proj₁ atl ++ proj₁ atr) ∨' (proj₁ btl ++ proj₁ btr)) (proj₁ jtl ++ proj₁ jtr))
+
+               p∈jtl++jtr : p ∈P' (proj₁ jtl ++ proj₁ jtr)
+               p∈jtl++jtr = ∈-++⁺ˡ ≈P-setoid p∈jtl
+
+               imp : {l₀ : |L₀|} → {x : |P|} → (p ≈P x) → (x ≈P inj₁ l₀) → (x ∈P (atl ∨F btl))
+               imp {l₀} {x} p≈x x≈inj₁l₀ = {!!}
+
+       jl≈al∨bl : jl ≈FL (al ∨FL bl)
+       jl≈al∨bl = {!!}
+    --]]]
+
+{-
+    inv-FP→S→FP : (a : Carrier-FP) → ((|f| $ |g| a) ≈F a) 
+    --[[[
+    inv-FP→S→FP a =
+      ≈F-sym (EP.from ⟨$⟩ sameElements)
+      where
+        open import Relation.Binary.EqReasoning FP-setoid
+        module EP = Equivalence (c1≈c2⇔sameElementsP a (|f| $ |g| a))
+
+        l : Carrier-FPL
+        l = proj₁ (decompose a)
+
+        r : Carrier-FPR
+        r = let _ , r , _ , _ , _ , _ , _ = decompose a in r
+
+        al : Carrier-FP
+        al = let _ , _ , al , _ , _ , _ , _ = decompose a in al
+ 
+        ar : Carrier-FP
+        ar = let _ , _ , _ , ar , _ , _ , _ = decompose a in ar
+
+        eql = let _ , _ , _ , _ , eql , _ , _ = decompose a in eql
+        eqr = let _ , _ , _ , _ , _ , eqr , _ = decompose a in eqr
+
+        aconcat : (proj₁ a) ≡ (proj₁ al) ++ (proj₁ ar)
+        aconcat = let _ , _ , _ , _ , _ , _ , aconcat = decompose a in aconcat
+
+        p→ : (p : |P|) → (p ∈P (|f| $ |g| a)) → p ∈P a
+        --[[[
+        p→ p p∈fga with to ⟨$⟩ p∈fga
+          where
+            open Equivalence (|f|-prop (|g| a) p) 
+        p→ p p∈fga | inj₁ (l₀ , p≈inj₁l₀ , l₀∈fLgLl) =
+          p∈a  
+          where
+            open import Data.List.Membership.Setoid.Properties
+            imp : {x : |L₀|} → {y : |P|} → l₀ ≈L₀ x → y ≡ inj₁ x → ((inj₁ l₀) ≈P y) 
+            imp {x} {y} l₀≈x y≡inj₁x = ≈P-sym $ ≈P-trans (≈P-reflexive y≡inj₁x) (₁∼₁ $ ≈L₀-sym l₀≈x)
+            
+            fLgLl≈l : |fL| (|gL| l) ≈FL l
+            fLgLl≈l = L-inv-FP→S→FP l
+
+            l₀∈l : l₀ ∈L l
+            l₀∈l = goal 
+              where
+                sameElements : (z : |L₀|) → (z ∈L (|fL| $ |gL| $ l)) ⇔ (z ∈L l)
+                sameElements = to ⟨$⟩ fLgLl≈l
+                  where
+                    open Equivalence (c1≈c2⇔sameElementsL (|fL| $ |gL| l) l)
+                    
+                goal : l₀ ∈L l 
+                goal = to ⟨$⟩ l₀∈fLgLl 
+                  where
+                    open Equivalence (sameElements l₀)
+  
+            p∈al : p ∈P al
+            p∈al = ∈-resp-≈ ≈P-setoid (≈P-sym p≈inj₁l₀) (pointwiseRespAny imp (proj₁ l) (proj₁ al) l₀∈l eql)
+
+            p∈a : p ∈P a
+            p∈a rewrite aconcat = ∈-++⁺ˡ ≈P-setoid p∈al
+        p→ p p∈fga | inj₂ (r₀ , p≈inj₂r₀ , r₀∈fRgRr) =
+          p∈a  
+          where
+            open import Data.List.Membership.Setoid.Properties
+            imp : {x : |R₀|} → {y : |P|} → r₀ ≈R₀ x → y ≡ inj₂ x → ((inj₂ r₀) ≈P y) 
+            imp {x} {y} r₀≈x y≡inj₂x = ≈P-sym $ ≈P-trans (≈P-reflexive y≡inj₂x) (₂∼₂ $ ≈R₀-sym r₀≈x)
+            
+            fRgRr≈r : |fR| (|gR| r) ≈FR r
+            fRgRr≈r = R-inv-FP→S→FP r
+
+            r₀∈r : r₀ ∈R r
+            r₀∈r = goal 
+              where
+                sameElements : (z : |R₀|) → (z ∈R (|fR| $ |gR| $ r)) ⇔ (z ∈R r)
+                sameElements = to ⟨$⟩ fRgRr≈r
+                  where
+                    open Equivalence (c1≈c2⇔sameElementsR (|fR| $ |gR| r) r)
+                    
+                goal : r₀ ∈R r
+                goal = to ⟨$⟩ r₀∈fRgRr 
+                  where
+                    open Equivalence (sameElements r₀)
+  
+            p∈ar : p ∈P ar
+            p∈ar = ∈-resp-≈ ≈P-setoid (≈P-sym p≈inj₂r₀) (pointwiseRespAny imp (proj₁ r) (proj₁ ar) r₀∈r eqr)
+
+            p∈a : p ∈P a
+            p∈a rewrite aconcat = ∈-++⁺ʳ ≈P-setoid (proj₁ al) p∈ar
+        --]]]
+  
+        p← : (p : |P|) → (p ∈P a) → (p ∈P (|f| $ |g| a))
+        --[[[
+        p← (inj₁ l₀) inj₁l₀∈a = 
+          E3.from ⟨$⟩ inj₁ (l₀ , (≈P-reflexive PE.refl) , l₀∈fLgLl)
+          where
+            open import Data.List.Membership.Setoid.Properties
+            module E1 = Equivalence (c1≈c2⇔sameElementsL (|fL| $ |gL| l) l)
+            module E2 = Equivalence ((E1.to ⟨$⟩ L-inv-FP→S→FP l) l₀) 
+
+            inj₁l₀∈al : inj₁ l₀ ∈P al
+            --[[[
+            inj₁l₀∈al = anyEliminate (proj₁ al ++ proj₁ ar) eliminator inj₁l₀∈al++ar  
+              where
+                inj₁l₀∈al++ar : inj₁ l₀ ∈P' (proj₁ al) ++ (proj₁ ar)
+                inj₁l₀∈al++ar = PE.subst (λ · → inj₁ l₀ ∈P' ·) aconcat inj₁l₀∈a
+ 
+                eliminator : AnyEliminator {ℓQ = l0} |P| (inj₁ l₀ ∈P al) (inj₁ l₀ ≈P_) (proj₁ al ++ proj₁ ar)
+                eliminator x f inj₁l₀≈x x∈≡a with ∈-++⁻ ≈P-setoid (proj₁ al) (LAny.map (λ x≡· → ≈P-reflexive x≡·) x∈≡a)
+                eliminator x f inj₁l₀≈x x∈≡a | inj₁ x∈proj₁al =
+                  ∈-resp-≈ ≈P-setoid (≈P-sym inj₁l₀≈x) x∈proj₁al
+                eliminator x f inj₁l₀≈x x∈≡a | inj₂ x∈proj₁ar =
+                   ⊥-elim (from ⟨$⟩ pointwiseRespAny⃖ imp (proj₁ r) (proj₁ ar) x∈proj₁ar (LPW.map ≈P-reflexive eqr)) 
+                  where 
+                    open import Data.List.Any.Properties
+                    open Inverse (⊥↔Any⊥ {A = |R₀|} {xs = proj₁ r})
+
+                    imp : {r₀ : |R₀|} → {p : |P|} → (x ≈P p) → (p ≈P inj₂ r₀) → const ⊥ r₀
+                    imp {r₀} {p} x≈p p≈inj₂r₀ with ≈P-trans inj₁l₀≈x (≈P-trans x≈p p≈inj₂r₀)
+                    imp {r₀} {p} x≈p p≈inj₂r₀ | ₁∼₂ ()
+            --]]]
+
+            l₀∈l : l₀ ∈L l
+            l₀∈l = pointwiseRespAny⃖ imp (proj₁ l) (proj₁ al) inj₁l₀∈al (LPW.map ≈P-reflexive eql) 
+              where
+                imp : {l₀' : |L₀|} → {p : |P|} → (inj₁ l₀ ≈P p) →  (p ≈P inj₁ l₀') → (l₀ ≈L₀ l₀')
+                imp {l₀'} {p} inj₁l₀≈p p≈inj₁l₀' with (≈P-trans inj₁l₀≈p p≈inj₁l₀')
+                imp {l₀'} {p} inj₁l₀≈p p≈inj₁l₀' | ₁∼₁ l₀≈l₀' = l₀≈l₀'
+
+            l₀∈fLgLl : l₀ ∈L (|fL| $ |gL| l)
+            l₀∈fLgLl = E2.from ⟨$⟩ l₀∈l
+
+            module E3 = Equivalence (|f|-prop (|g| a) (inj₁ l₀))
+        p← (inj₂ r₀) inj₂r₀∈a =
+          E3.from ⟨$⟩ inj₂ (r₀ , (≈P-reflexive PE.refl) , r₀∈fRgRr)
+          where
+            open import Data.List.Membership.Setoid.Properties
+            module E1 = Equivalence (c1≈c2⇔sameElementsR (|fR| $ |gR| r) r)
+            module E2 = Equivalence ((E1.to ⟨$⟩ R-inv-FP→S→FP r) r₀) 
+
+            inj₂r₀∈ar : inj₂ r₀ ∈P ar
+            --[[[
+            inj₂r₀∈ar = anyEliminate (proj₁ al ++ proj₁ ar) eliminator inj₂r₀∈al++ar  
+              where
+                inj₂r₀∈al++ar : inj₂ r₀ ∈P' (proj₁ al) ++ (proj₁ ar)
+                inj₂r₀∈al++ar = PE.subst (λ · → inj₂ r₀ ∈P' ·) aconcat inj₂r₀∈a
+ 
+                eliminator : AnyEliminator {ℓQ = l0} |P| (inj₂ r₀ ∈P ar) (inj₂ r₀ ≈P_) (proj₁ al ++ proj₁ ar)
+                eliminator x f inj₂r₀≈x x∈≡a with ∈-++⁻ ≈P-setoid (proj₁ al) (LAny.map (λ x≡· → ≈P-reflexive x≡·) x∈≡a)
+                eliminator x f inj₂r₀≈x x∈≡a | inj₁ x∈proj₁al =
+                  ⊥-elim (from ⟨$⟩ pointwiseRespAny⃖ imp (proj₁ l) (proj₁ al) x∈proj₁al (LPW.map ≈P-reflexive eql)) 
+                  where 
+                    open import Data.List.Any.Properties
+                    open Inverse (⊥↔Any⊥ {A = |L₀|} {xs = proj₁ l})
+
+                    imp : {l₀ : |L₀|} → {p : |P|} → (x ≈P p) → (p ≈P inj₁ l₀) → const ⊥ l₀
+                    imp {l₀} {p} x≈p p≈inj₁l₀ with ≈P-trans inj₂r₀≈x (≈P-trans x≈p p≈inj₁l₀)
+                    imp {l₀} {p} x≈p p≈inj₁l₀ | ()
+                eliminator x f inj₂r₀≈x x∈≡a | inj₂ x∈proj₁ar =
+                    ∈-resp-≈ ≈P-setoid (≈P-sym inj₂r₀≈x) x∈proj₁ar
+            --]]]
+
+            r₀∈r : r₀ ∈R r
+            r₀∈r = pointwiseRespAny⃖ imp (proj₁ r) (proj₁ ar) inj₂r₀∈ar (LPW.map ≈P-reflexive eqr) 
+              where
+                imp : {r₀' : |R₀|} → {p : |P|} → (inj₂ r₀ ≈P p) →  (p ≈P inj₂ r₀') → (r₀ ≈R₀ r₀')
+                imp {r₀'} {p} inj₂r₀≈p p≈inj₂r₀' with (≈P-trans inj₂r₀≈p p≈inj₂r₀')
+                imp {r₀'} {p} inj₂r₀≈p p≈inj₂r₀' | ₂∼₂ r₀≈r₀' = r₀≈r₀'
+
+            r₀∈fRgRr : r₀ ∈R (|fR| $ |gR| r)
+            r₀∈fRgRr = E2.from ⟨$⟩ r₀∈r
+
+            module E3 = Equivalence (|f|-prop (|g| a) (inj₂ r₀))
+          --]]]
+        
+        sameElements : (p : |P|) → (p ∈P a) ⇔ (p ∈P (|f| $ |g| a))
+        sameElements p = equivalence (p← p) (p→ p) 
+      --]]]
+-}        
+        
+{-
     inv-S→FP→S : (a : Carrier') → ((|g| $ |f| a) ≈' a)
+    --[[[
     inv-S→FP→S (aL , aR) with decompose $ |f| (aL , aR)
     inv-S→FP→S (aL , aR) | l , r , atl , atr , aeql , aeqr , aconcat =
       eq1 , eq2
@@ -1824,17 +2264,11 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
             aR
            ∎
           where
-            open import Relation.Binary.EqReasoning ≈R-setoid 
+            open import Relation.Binary.EqReasoning ≈R-setoid
+    --]]]
+-}
 
-    -- inv-FP→S→FP : (a : BoundedJoinSemilattice.Carrier $ FP P) → (BoundedJoinSemilattice._≈_ (FP P) (proj₁ f $ proj₁ g $ a) a) 
-
-
-{-
-    |g|-≈ : (a b : Carrier-FP) → (a ≈F b) → (|g| a) ≈' (|g| b)
-    |g|-≈ (.[] , []-Free) (.[] , []-Free) [] =
-      |gL|-≈ ([] , []-FreeL) ([] , []-FreeL) [] , |gR|-≈ ([] , []-FreeR) ([] , []-FreeR) [] 
-    |g|-≈ ((inj₁ ha) ∷ ta) , _) ((inj₁ hb) ∷ tb , _) (x∼y ∷ ta≈tb) = {!!}
-  -}   
+   
 {-
 |g|-≈ a b a≈b with decompose a | decompose b | Pointwise-length a≈b
     |g|-≈ (.(atl ++ atr) , _) (.(btl ++ btr) , _) a≈b  

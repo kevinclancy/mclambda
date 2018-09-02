@@ -128,5 +128,5 @@ module _ where
 
 c1≈c2⇔sameElements : (c1 c2 : SemilatCarrier) → (c1 ≈ c2) ⇔ (∀ (a : DeltaCarrier) → (a ∈ c1) ⇔ (a ∈ c2))
 c1≈c2⇔sameElements c1 c2 = Core.l1~l2⇔sameElements c1 c2  
-  
-  
+
+
