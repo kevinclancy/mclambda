@@ -2,6 +2,7 @@ open import Data.List
 open import Data.List.All
 open import Data.List.Any
 open import Data.Product
+open import Data.Sum
 open import Relation.Nullary
 open import Relation.Binary
 open import Relation.Binary.Lattice
@@ -128,5 +129,16 @@ module _ where
 
 c1≈c2⇔sameElements : (c1 c2 : SemilatCarrier) → (c1 ≈ c2) ⇔ (∀ (a : DeltaCarrier) → (a ∈ c1) ⇔ (a ∈ c2))
 c1≈c2⇔sameElements c1 c2 = Core.l1~l2⇔sameElements c1 c2  
+
+P∨ : {l1 l2 : List DeltaCarrier} → (f1 : IsFreeList l1) → (f2 : IsFreeList l2) → 
+      (a : DeltaCarrier) → Set _
+P∨ {l1} {l2} f1 f2 a = (a ∈' l1 × ¬ Any (a ⊑_) l2) ⊎ (a ∈' l2 × ¬ Any (a ⊑_) l1) ⊎ (a ∈' l1 × a ∈' l2)
+
+x∈∨⇔P∨ : (c1 c2 c3 : SemilatCarrier) → 
+            (eq : (c1 ∨ c2) ≈ c3) → (x : DeltaCarrier) → (x ∈ c3 ⇔ P∨ (proj₂ c1) (proj₂ c2) x)
+
+x∈∨⇔P∨ (l1 , f1) (l2 , f2) (l3 , f3) eq x = Core.x∈∨⇔P∨ f1 f2 f3 eq x
+
+
 
 

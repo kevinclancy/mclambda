@@ -813,7 +813,8 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
       (⊥ to ⊥F ; _∨_ to _∨F_ ; _≈_ to _≈F_ ; _~_ to _~F_ ; ≈-refl to ≈F-refl ; SemilatCarrier to Carrier-FP ;
        ≈-reflexive to ≈F-reflexive ; FP-BJS to FP-BJS ; ∨-identityˡ to ∨F-identityˡ ; ∨-identityʳ to ∨F-identityʳ ; 
        ≈-sym to ≈F-sym ; ∨-congˡ to ∨F-congˡ ; ∨-congʳ to ∨F-congʳ ; ∨-assoc to ∨F-assoc ; ∨-comm to ∨F-comm ;
-       _∈_ to _∈P_ ; _∈'_ to _∈P'_ ; FP-setoid to FP-setoid ; c1≈c2⇔sameElements to c1≈c2⇔sameElementsP ) 
+       _∈_ to _∈P_ ; _∈'_ to _∈P'_ ; FP-setoid to FP-setoid ; c1≈c2⇔sameElements to c1≈c2⇔sameElementsP ;
+       P∨ to P-P∨ ; x∈∨⇔P∨ to P-x∈∨⇔P∨) 
     open import FreeSemilattice deltaL renaming 
       (IsFreeList to IsFreeListL ; []-Free to []-FreeL ; ∷-Free to ∷-FreeL ; _≈_ to _≈FL_ ; ⊥ to ⊥FL ; 
        SemilatCarrier to Carrier-FPL ; _∨_ to _∨FL_ ; FP-BJS to FPL-BJS ; FP-setoid to FPL-setoid ;
@@ -822,7 +823,7 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
        c1≈c2⇔sameElements to c1≈c2⇔sameElementsL )
     open import FreeSemilattice deltaR renaming 
       (IsFreeList to IsFreeListR ; []-Free to []-FreeR ; ∷-Free to ∷-FreeR ; _≈_ to _≈FR_ ; ⊥ to ⊥FR ; 
-       SemilatCarrier to Carrier-FPR ; _∨_ to _∨FR_ ; FP-BJS to FPR-BJS ; FP-setoid to FPL-setoid ;
+       SemilatCarrier to Carrier-FPR ; _∨_ to _∨FR_ ; FP-BJS to FPR-BJS ; FP-setoid to FPR-setoid ;
        ∨-identityˡ to ∨FR-identityˡ ; ∨-identityʳ to ∨FR-identityʳ ; ⊑-refl to ⊑L₀-refl ; ⊑-reflexive to ⊑R₀-reflexive ;
        sng-free to sng-freeR ; _≤_ to _≤FR_ ; ≈-sym to ≈FR-sym ; _∈_ to _∈R_ ; _∈'_ to _∈R'_ ;
        c1≈c2⇔sameElements to c1≈c2⇔sameElementsR)
@@ -1377,80 +1378,130 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
     
     |f|-prop : (c : Carrier') → (x : |P|) → (x ∈P (|f| c)) ⇔ (P-|f| c x)
     |f|-prop c = proj₂ $ |f|-aux c
-    
-{- 
-    module _ where
-      open import Data.List.Membership.Setoid ≈P-setoid renaming (_∈_ to _∈P_) 
-      open import Data.List.Membership.Setoid ≈L₀-setoid renaming (_∈_ to _∈L_)
-      open import Data.List.Membership.Setoid ≈R₀-setoid renaming (_∈_ to _∈R_)
 
-      |f|-prop : (c : Carrier') → (x : |P|) → (x ∈P (proj₁ $ |f| c)) → 
-                 (Σ[ y ∈ |L₀| ] (x ≡ inj₁ y) × (y ∈L (proj₁ $ |fL| (proj₁ c)))) ⊎ (Σ[ y ∈ |R₀| ] (x ≡ inj₂ y) × (y ∈R (proj₁ $ |fR| (proj₂ c))))
-      |f|-prop (cL , cR) (inj₁ x') x∈fc = {!!}
-      |f|-prop (cL , cR) (inj₂ x') x∈fc = {!!}
+{-    
+    |f|-≈ : (c1 c2 : Carrier') → c1 ≈' c2 → (|f| c1) ≈F (|f| c2)
+    |f|-≈ (l1 , r1) (l2 , r2) (l1≈l2 , r1≈r2) = from ⟨$⟩ sameElements
+      where
+        p→ : (p : |P|) → (p ∈P (|f| $ l1 , r1)) → (p ∈P (|f| $ l2 , r2))
+        --[[[
+        p→ p p∈fc1 with to ⟨$⟩ p∈fc1
+          where
+            open Equivalence (|f|-prop (l1 , r1) p)
+        p→ p p∈fc1 | inj₁ (l₀ , p≈inj₁l₀ , l₀∈fLl1) = 
+          E3.from ⟨$⟩ inj₁ (l₀ , p≈inj₁l₀ , l₀∈fLl2) 
+          where
+            open import Data.List.Membership.Setoid.Properties
+            module E1 = Equivalence (c1≈c2⇔sameElementsL (|fL| l1) (|fL| l2))
+            module E2 = Equivalence ((E1.to ⟨$⟩ |fL|-≈ l1 l2 l1≈l2) l₀)
+    
+            l₀∈fLl2 : l₀ ∈L (|fL| l2)
+            l₀∈fLl2 = E2.to ⟨$⟩ l₀∈fLl1
+
+            module E3 = Equivalence (|f|-prop (l2 , r2) p)
+        p→ p p∈fc1 | inj₂ (r₀ , p≈inj₂r₀ , r₀∈fRr1) =    
+          E3.from ⟨$⟩ inj₂ (r₀ , p≈inj₂r₀ , r₀∈fRr2) 
+          where
+            open import Data.List.Membership.Setoid.Properties
+            module E1 = Equivalence (c1≈c2⇔sameElementsR (|fR| r1) (|fR| r2))
+            module E2 = Equivalence ((E1.to ⟨$⟩ |fR|-≈ r1 r2 r1≈r2) r₀)
+    
+            r₀∈fRr2 : r₀ ∈R (|fR| r2)
+            r₀∈fRr2 = E2.to ⟨$⟩ r₀∈fRr1
+
+            module E3 = Equivalence (|f|-prop (l2 , r2) p)
+        --]]]
+
+        p← : (p : |P|) → (p ∈P (|f| $ l2 , r2)) → (p ∈P (|f| $ l1 , r1))
+        --[[[
+        p← p p∈fc2 with to ⟨$⟩ p∈fc2
+          where
+            open Equivalence (|f|-prop (l2 , r2) p)
+        p← p p∈fc2 | inj₁ (l₀ , p≈inj₁l₀ , l₀∈fLl2) = 
+          E3.from ⟨$⟩ inj₁ (l₀ , p≈inj₁l₀ , l₀∈fLl1) 
+          where
+            open import Data.List.Membership.Setoid.Properties
+            module E1 = Equivalence (c1≈c2⇔sameElementsL (|fL| l1) (|fL| l2))
+            module E2 = Equivalence ((E1.to ⟨$⟩ |fL|-≈ l1 l2 l1≈l2) l₀)
+    
+            l₀∈fLl1 : l₀ ∈L (|fL| l1)
+            l₀∈fLl1 = E2.from ⟨$⟩ l₀∈fLl2
+
+            module E3 = Equivalence (|f|-prop (l1 , r1) p)
+        p← p p∈fc2 | inj₂ (r₀ , p≈inj₂r₀ , r₀∈fRr2) =    
+          E3.from ⟨$⟩ inj₂ (r₀ , p≈inj₂r₀ , r₀∈fRr1) 
+          where
+            open import Data.List.Membership.Setoid.Properties
+            module E1 = Equivalence (c1≈c2⇔sameElementsR (|fR| r1) (|fR| r2))
+            module E2 = Equivalence ((E1.to ⟨$⟩ |fR|-≈ r1 r2 r1≈r2) r₀)
+    
+            r₀∈fRr1 : r₀ ∈R (|fR| r1)
+            r₀∈fRr1 = E2.from ⟨$⟩ r₀∈fRr2
+
+            module E3 = Equivalence (|f|-prop (l1 , r1) p)
+        --]]]
+
+        sameElements : (p : |P|) → (p ∈P (|f| $ l1 , r1)) ⇔ (p ∈P (|f| $ l2 , r2))
+        sameElements p = equivalence (p→ p) (p← p)
+
+        open Equivalence (c1≈c2⇔sameElementsP (|f| $ l1 , r1) (|f| $ l2 , r2))
 -}
- 
 
-    {-
-    |f|-≈ : (a b : Carrier') → (a ≈' b) → (|f| a) ≈F (|f| b)  
-    |f|-≈ a@(aL , aR) b@(bL , bR) (aL≈bL , aR≈bR) = 
-      begin
-        (|f| a) ≡⟨ PE.refl ⟩
-        (convL' $ |fL| aL) ∨F (convR' $ |fR| $ aR) ≈⟨ ∨F-congˡ {convL' $ |fL| aL} {convL' $ |fL| bL} (convR' $ |fR| aR) $ convL'-resp-≈FL (|fL|-≈ aL bL aL≈bL) ⟩
-        (convL' $ |fL| bL) ∨F (convR' $ |fR| $ aR) ≈⟨ ∨F-congʳ {convR' $ |fR| aR} {convR' $ |fR| bR} (convL' $ |fL| bL) $ convR'-resp-≈FR (|fR|-≈ aR bR aR≈bR) ⟩
-        (convL' $ |fL| bL) ∨F (convR' $ |fR| $ bR) ≡⟨ PE.refl ⟩
-        (|f| b)
-       ∎
+{-
+    |f|-⊥ : (|f| ⊥') ≈F ⊥F
+    |f|-⊥ = from ⟨$⟩ sameElements
       where
-        open import Relation.Binary.EqReasoning FP-setoid
+        p→ : (p : |P|) → (p ∈P (|f| ⊥')) → (p ∈P ⊥F)
+        --[[[
+        p→ p p∈f⊥ with to ⟨$⟩ p∈f⊥
+          where
+            open Equivalence (|f|-prop ⊥' p)
+        p→ p p∈f⊥ | inj₁ (l₀ , p≈inj₁l₀ , l₀∈fL⊥L) =
+          ⊥-elim $ ¬Any[] l₀∈⊥FL
+          where
+            open import Data.List.Any.Properties
 
-    |f|-⊥ : |f| (⊥L , ⊥R) ≈F ⊥F
-    |f|-⊥ = ≈F-reflexive p
-      where
-        p : |f| (⊥L , ⊥R) ≡ ⊥F 
-        p rewrite pL' | pR' = PE.refl
-    
+            module E1 = Equivalence (c1≈c2⇔sameElementsL (|fL| ⊥L) ⊥FL)
+            module E2 = Equivalence ((E1.to ⟨$⟩ |fL|-⊥) l₀)
+
+            l₀∈⊥FL : l₀ ∈L ⊥FL
+            l₀∈⊥FL = E2.to ⟨$⟩ l₀∈fL⊥L
+        p→ p p∈f⊥ | inj₂ (r₀ , p≈inj₂r₀ , r₀∈fR⊥R) =
+          ⊥-elim $ ¬Any[] r₀∈⊥FR
+          where
+            open import Data.List.Any.Properties
+
+            module E1 = Equivalence (c1≈c2⇔sameElementsR (|fR| ⊥R) ⊥FR)
+            module E2 = Equivalence ((E1.to ⟨$⟩ |fR|-⊥) r₀)
+
+            r₀∈⊥FR : r₀ ∈R ⊥FR
+            r₀∈⊥FR = E2.to ⟨$⟩ r₀∈fR⊥R
+        --]]]
+        
+        p← : (p : |P|) → (p ∈P ⊥F) → (p ∈P (|f| ⊥'))
+        --[[[
+        p← p p∈⊥F = ⊥-elim $ ¬Any[] p∈⊥F
+          where
+            open import Data.List.Any.Properties
+        --]]]
+        
+        sameElements : (p : |P|) → (p ∈P (|f| ⊥')) ⇔ (p ∈P ⊥F)
+        sameElements p = equivalence (p→ p) (p← p)
+        
+        open Equivalence (c1≈c2⇔sameElementsP (|f| ⊥') ⊥F)
+-}
+
     |f|-∨ : (a b : Carrier') → (|f| $ a ∨' b) ≈F ((|f| a) ∨F (|f| b))
-    |f|-∨ a@(aL , aR) b@(bL , bR) =
-      begin
-        |f| (a ∨' b) ≡⟨ PE.cong (λ · → |f| $ ·) p ⟩
-        |f| (aL ∨L bL , aR ∨R bR) ≡⟨ PE.refl ⟩ 
-        ( (proj₁ $ convL $ |fL| $ aL ∨L bL) ∨F (proj₁ $ convR $ |fR| $ aR ∨R bR) ) ≈⟨ ∨F-congˡ {proj₁ $ convL $ |fL| $ aL ∨L bL} {convL' $ (|fL| aL) ∨FL (|fL| bL)} (proj₁ $ convR $ |fR| $ aR ∨R bR) rL ⟩
-        ( (convL' $ (|fL| aL) ∨FL (|fL| bL)) ∨F (proj₁ $ convR $ |fR| $ aR ∨R bR) ) ≈⟨ ∨F-congˡ {convL' $ (|fL| aL) ∨FL (|fL| bL)} {(convL' $ |fL| aL) ∨F (convL' $ |fL| bL)} (proj₁ $ convR $ |fR| $ aR ∨R bR) qL ⟩
-        ( ((convL' $ |fL| aL) ∨F (convL' $ |fL| bL)) ∨F (proj₁ $ convR $ |fR| $ aR ∨R bR) ) ≈⟨ ∨F-congʳ {proj₁ $ convR $ |fR| $ aR ∨R bR} {proj₁ $ convR $ (|fR| aR) ∨FR (|fR| bR)} ((convL' $ |fL| aL) ∨F (convL' $ |fL| bL)) rR ⟩
-        ( ((convL' $ |fL| aL) ∨F (convL' $ |fL| bL)) ∨F (proj₁ $ convR $ (|fR| aR) ∨FR (|fR| bR)) ) ≈⟨ ∨F-congʳ {proj₁ $ convR $ (|fR| aR) ∨FR (|fR| bR)} {(convR' $ |fR| aR) ∨F (convR' $ |fR| bR)} ((convL' $ |fL| aL) ∨F (convL' $ |fL| bL)) qR ⟩
-        ( (caL ∨F cbL) ∨F (caR ∨F cbR) ) ≈⟨  ∨F-assoc caL cbL (caR ∨F cbR) ⟩
-        ( caL ∨F (cbL ∨F (caR ∨F cbR)) ) ≈⟨ ∨F-congʳ {cbL ∨F (caR ∨F cbR)} {(cbL ∨F caR) ∨F cbR} caL $ ≈F-sym {(cbL ∨F caR) ∨F cbR} {cbL ∨F (caR ∨F cbR)} (∨F-assoc cbL caR cbR) ⟩
-        ( caL ∨F ((cbL ∨F caR) ∨F cbR) ) ≈⟨ ∨F-congʳ {(cbL ∨F caR) ∨F cbR} {(caR ∨F cbL) ∨F cbR} caL $ ∨F-congˡ {cbL ∨F caR} {caR ∨F cbL} cbR $ ∨F-comm cbL caR ⟩ 
-        ( caL ∨F ((caR ∨F cbL) ∨F cbR) ) ≈⟨ ≈F-sym {(caL ∨F (caR ∨F cbL)) ∨F cbR} {caL ∨F ((caR ∨F cbL) ∨F cbR)} $ ∨F-assoc caL (caR ∨F cbL) cbR ⟩ 
-        ( (caL ∨F (caR ∨F cbL)) ∨F cbR ) ≈⟨ ∨F-congˡ {caL ∨F (caR ∨F cbL)} {(caL ∨F caR) ∨F cbL} cbR $ ≈F-sym {(caL ∨F caR) ∨F cbL} {caL ∨F (caR ∨F cbL)} (∨F-assoc caL caR cbL) ⟩
-        ( ((caL ∨F caR) ∨F cbL) ∨F cbR ) ≈⟨ ∨F-assoc (caL ∨F caR) cbL cbR ⟩ 
-        ( (caL ∨F caR) ∨F (cbL ∨F cbR) ) ≡⟨ PE.refl ⟩ 
-        ((|f| a) ∨F (|f| b))
-       ∎
+    |f|-∨ a@(aL , aR) b@(bL , bR) = {!!}
       where
-        open import Relation.Binary.EqReasoning FP-setoid
-        p : (aL , aR) ∨' (bL , bR) ≡ (aL ∨L bL , aR ∨R bR)
-        p = PE.refl
-
-        rL : (convL' $ |fL| $ aL ∨L bL) ≈F (convL' $ (|fL| aL) ∨FL (|fL| bL))
-        rL = convL'-resp-≈FL (|fL|-∨ aL bL)
-
-        qL : (convL' $ (|fL| aL) ∨FL (|fL| bL)) ≈F ( (convL' $ |fL| aL) ∨F (convL' $ |fL| bL) )
-        qL = convL'-preserves-∨ (|fL| aL) (|fL| bL)
-
-        rR : (convR' $ |fR| $ aR ∨R bR) ≈F (convR' $ (|fR| aR) ∨FR (|fR| bR))
-        rR = convR'-resp-≈FR (|fR|-∨ aR bR)
-
-        qR : (convR' $ (|fR| aR) ∨FR (|fR| bR)) ≈F ( (convR' $ |fR| aR) ∨F (convR' $ |fR| bR) )
-        qR = convR'-preserves-∨ (|fR| aR) (|fR| bR)
-
-        caL = convL' (|fL| aL)
-        caR = convR' (|fR| aR)
-        cbL = convL' (|fL| bL)
-        cbR = convR' (|fR| bR)
-    -}
-
+        p→ : (p : |P|) → (p ∈P (|f| $ a ∨' b)) → (p ∈P ((|f| a) ∨F (|f| b)))
+        p→ p p∈a∨b with to ⟨$⟩ p∈a∨b
+          where
+            open Equivalence (P-x∈∨⇔P∨ (|f| a) (|f| b) ((|f| a) ∨F (|f| b)) (≈F-reflexive PE.refl) p)
+        p→ p p∈a∨b | inj₁ (p∈a , ¬p⊑b) = ?
+        p→ p p∈a∨b | inj₂ (inj₁ (p∈b , ¬p⊑a)) = ?
+        p→ p p∈a∨b | inj₂ (inj₂ (p∈a , p∈b)) = ?
+{-
     decompose : (c : Carrier-FP) → 
               Σ[ l ∈ Carrier-FPL ] Σ[ r ∈ Carrier-FPR ] Σ[ tl ∈ Carrier-FP ] Σ[ tr ∈ Carrier-FP ]
               LPW.Pointwise (λ x → λ y → y ≡ inj₁ x) (proj₁ l) (proj₁ tl) ×
@@ -1921,6 +1972,9 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
     |g|-⊥ | ([] , []-FreeL) , ([] , []-FreeR) , ([] , []-Free) , ([] , []-Free) , [] , [] , aconcat =
       |gL|-⊥ , |gR|-⊥
         
+-}
+
+{-
     |g|-∨ : (a b : Carrier-FP) → (|g| $ a ∨F b) ≈' ((|g| a) ∨' (|g| b))
     --[[[
     |g|-∨ a b with decompose a | decompose b | decompose (a ∨F b)
@@ -1947,6 +2001,7 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
        jl≈al∨bl : jl ≈FL (al ∨FL bl)
        jl≈al∨bl = {!!}
     --]]]
+-}
 
 {-
     inv-FP→S→FP : (a : Carrier-FP) → ((|f| $ |g| a) ≈F a) 
@@ -1977,6 +2032,7 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
 
         p→ : (p : |P|) → (p ∈P (|f| $ |g| a)) → p ∈P a
         --[[[
+
         p→ p p∈fga with to ⟨$⟩ p∈fga
           where
             open Equivalence (|f|-prop (|g| a) p) 
@@ -2036,10 +2092,12 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
 
             p∈a : p ∈P a
             p∈a rewrite aconcat = ∈-++⁺ʳ ≈P-setoid (proj₁ al) p∈ar
+
         --]]]
   
         p← : (p : |P|) → (p ∈P a) → (p ∈P (|f| $ |g| a))
         --[[[
+
         p← (inj₁ l₀) inj₁l₀∈a = 
           E3.from ⟨$⟩ inj₁ (l₀ , (≈P-reflexive PE.refl) , l₀∈fLgLl)
           where
@@ -2120,6 +2178,7 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
             r₀∈fRgRr = E2.from ⟨$⟩ r₀∈r
 
             module E3 = Equivalence (|f|-prop (|g| a) (inj₂ r₀))
+
           --]]]
         
         sameElements : (p : |P|) → (p ∈P a) ⇔ (p ∈P (|f| $ |g| a))
