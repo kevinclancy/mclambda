@@ -58,6 +58,15 @@ _~_ = DeltaPoset._≈_ P
 ⊑-reflexive : _~_ ⇒ _⊑_
 ⊑-reflexive = DeltaPoset.reflexive⊑ P 
 
+⊑-trans : Transitive _⊑_
+⊑-trans = DeltaPoset.trans⊑ P
+
+⊑-respˡ-≈ :  _⊑_ Respectsˡ _~_
+⊑-respˡ-≈ = DeltaPoset.⊑-respˡ-≈ P
+
+⊑-respʳ-≈ :  _⊑_ Respectsʳ _~_
+⊑-respʳ-≈ = DeltaPoset.⊑-respʳ-≈ P
+
 _<_ : Rel DeltaCarrier _
 _<_ = DeltaPoset._<_ P
 
@@ -129,6 +138,9 @@ module _ where
 
 c1≈c2⇔sameElements : (c1 c2 : SemilatCarrier) → (c1 ≈ c2) ⇔ (∀ (a : DeltaCarrier) → (a ∈ c1) ⇔ (a ∈ c2))
 c1≈c2⇔sameElements c1 c2 = Core.l1~l2⇔sameElements c1 c2  
+
+p∈c1≈c2 : {p : DeltaCarrier} → {c1 c2 : SemilatCarrier} → c1 ≈ c2 → p ∈ c1 → p ∈ c2
+p∈c1≈c2 {p} {c1@(l1 , f1)} {c2@(l2 , f2)} c1≈c2 p∈c1 = Core.a∈l1~l2 {p} {l1} {l2} c1≈c2 p∈c1
 
 P∨ : {l1 l2 : List DeltaCarrier} → (f1 : IsFreeList l1) → (f2 : IsFreeList l2) → 
       (a : DeltaCarrier) → Set _

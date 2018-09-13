@@ -27,7 +27,7 @@ open import SemDeltaPoset
 open import FreeForgetfulAdjunction
 open import RelationalStructures
 open Util
-
+ 
 open Preorder
 {-
 -- agda-mode: ⁎ is \asterisk, first choice
@@ -580,6 +580,7 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
 
     _≈L_ = BoundedJoinSemilattice._≈_ bjsL
     ≈L-refl = BoundedJoinSemilattice.Eq.refl bjsL
+    ≈L-reflexive = BoundedJoinSemilattice.Eq.reflexive bjsL
     ≈L-sym = BoundedJoinSemilattice.Eq.sym bjsL
     ≈L-setoid : Setoid _ _
     ≈L-setoid = record
@@ -588,6 +589,7 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
       }
     _≈R_ = BoundedJoinSemilattice._≈_ bjsR
     ≈R-refl = BoundedJoinSemilattice.Eq.refl bjsR
+    ≈R-reflexive = BoundedJoinSemilattice.Eq.reflexive bjsR
     ≈R-sym = BoundedJoinSemilattice.Eq.sym bjsR
     ≈R-setoid : Setoid _ _
     ≈R-setoid = record
@@ -670,6 +672,7 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
     joinSemilatticeS = BoundedJoinSemilattice.joinSemiLattice S
 
     ≈'-refl = BoundedJoinSemilattice.Eq.refl S
+    ≈'-reflexive = BoundedJoinSemilattice.Eq.reflexive S
     ≈'-sym = BoundedJoinSemilattice.Eq.sym S
 
     ≈'-setoid : Setoid _ _
@@ -812,21 +815,24 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
     open import FreeSemilattice P renaming 
       (⊥ to ⊥F ; _∨_ to _∨F_ ; _≈_ to _≈F_ ; _~_ to _~F_ ; ≈-refl to ≈F-refl ; SemilatCarrier to Carrier-FP ;
        ≈-reflexive to ≈F-reflexive ; FP-BJS to FP-BJS ; ∨-identityˡ to ∨F-identityˡ ; ∨-identityʳ to ∨F-identityʳ ; 
+       ⊑-refl to ⊑P-refl ; ⊑-reflexive to ⊑P-reflexive ; ⊑-trans to ⊑P-trans ; 
        ≈-sym to ≈F-sym ; ∨-congˡ to ∨F-congˡ ; ∨-congʳ to ∨F-congʳ ; ∨-assoc to ∨F-assoc ; ∨-comm to ∨F-comm ;
        _∈_ to _∈P_ ; _∈'_ to _∈P'_ ; FP-setoid to FP-setoid ; c1≈c2⇔sameElements to c1≈c2⇔sameElementsP ;
-       P∨ to P-P∨ ; x∈∨⇔P∨ to P-x∈∨⇔P∨) 
+       P∨ to P-P∨ ; x∈∨⇔P∨ to x∈∨⇔P∨-P) 
     open import FreeSemilattice deltaL renaming 
       (IsFreeList to IsFreeListL ; []-Free to []-FreeL ; ∷-Free to ∷-FreeL ; _≈_ to _≈FL_ ; ⊥ to ⊥FL ; 
        SemilatCarrier to Carrier-FPL ; _∨_ to _∨FL_ ; FP-BJS to FPL-BJS ; FP-setoid to FPL-setoid ;
        ∨-identityˡ to ∨FL-identityˡ ; ∨-identityʳ to ∨FL-identityʳ ; ⊑-refl to ⊑L₀-refl ; ⊑-reflexive to ⊑L₀-reflexive ;
+       ⊑-trans to ⊑L₀-trans ; ⊑-respˡ-≈ to ⊑L₀-respˡ-≈L₀ ; ⊑-respʳ-≈ to ⊑L₀-respʳ-≈L₀ ; 
        sng-free to sng-freeL ; _≤_ to _≤FL_ ; ≈-sym to ≈FL-sym ; _∈_ to _∈L_ ; _∈'_ to _∈L'_ ;
-       c1≈c2⇔sameElements to c1≈c2⇔sameElementsL )
+       c1≈c2⇔sameElements to c1≈c2⇔sameElementsL ; p∈c1≈c2 to p∈c1≈c2-L ; x∈∨⇔P∨ to x∈∨⇔P∨-L)
     open import FreeSemilattice deltaR renaming 
       (IsFreeList to IsFreeListR ; []-Free to []-FreeR ; ∷-Free to ∷-FreeR ; _≈_ to _≈FR_ ; ⊥ to ⊥FR ; 
        SemilatCarrier to Carrier-FPR ; _∨_ to _∨FR_ ; FP-BJS to FPR-BJS ; FP-setoid to FPR-setoid ;
-       ∨-identityˡ to ∨FR-identityˡ ; ∨-identityʳ to ∨FR-identityʳ ; ⊑-refl to ⊑L₀-refl ; ⊑-reflexive to ⊑R₀-reflexive ;
+       ∨-identityˡ to ∨FR-identityˡ ; ∨-identityʳ to ∨FR-identityʳ ; ⊑-refl to ⊑R₀-refl ; ⊑-reflexive to ⊑R₀-reflexive ;
+       ⊑-trans to ⊑R₀-trans ; ⊑-respˡ-≈ to ⊑R₀-respˡ-≈R₀ ; ⊑-respʳ-≈ to ⊑R₀-respʳ-≈R₀ ;
        sng-free to sng-freeR ; _≤_ to _≤FR_ ; ≈-sym to ≈FR-sym ; _∈_ to _∈R_ ; _∈'_ to _∈R'_ ;
-       c1≈c2⇔sameElements to c1≈c2⇔sameElementsR)
+       c1≈c2⇔sameElements to c1≈c2⇔sameElementsR ; p∈c1≈c2 to p∈c1≈c2-R ; x∈∨⇔P∨ to x∈∨⇔P∨-R)
 
     |fL| : |L| → Σ[ l ∈ List (DeltaPoset.Carrier deltaL) ] (IsFreeListL l)
     |fL| = proj₁ $ SemSemilat.f semSemilatL
@@ -1491,16 +1497,405 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
         open Equivalence (c1≈c2⇔sameElementsP (|f| ⊥') ⊥F)
 -}
 
+{-
+    -- there's a lot of repitition in here. it shouldn't be hard to refactor it.
     |f|-∨ : (a b : Carrier') → (|f| $ a ∨' b) ≈F ((|f| a) ∨F (|f| b))
-    |f|-∨ a@(aL , aR) b@(bL , bR) = {!!}
+    |f|-∨ a@(aL , aR) b@(bL , bR) = ≈F-sym {(|f| a) ∨F (|f| b)} {|f| $ a ∨' b} (ERES.from ⟨$⟩ sameElements)
       where
+        module ERES = Equivalence (c1≈c2⇔sameElementsP ((|f| a) ∨F (|f| b)) (|f| $ a ∨' b))
+        
         p→ : (p : |P|) → (p ∈P (|f| $ a ∨' b)) → (p ∈P ((|f| a) ∨F (|f| b)))
+        --[[[
+
         p→ p p∈a∨b with to ⟨$⟩ p∈a∨b
           where
-            open Equivalence (P-x∈∨⇔P∨ (|f| a) (|f| b) ((|f| a) ∨F (|f| b)) (≈F-reflexive PE.refl) p)
-        p→ p p∈a∨b | inj₁ (p∈a , ¬p⊑b) = ?
-        p→ p p∈a∨b | inj₂ (inj₁ (p∈b , ¬p⊑a)) = ?
-        p→ p p∈a∨b | inj₂ (inj₂ (p∈a , p∈b)) = ?
+            open Equivalence (|f|-prop (a ∨' b) p)
+        p→ (inj₁ p') p∈a∨b | inj₁ (l₀ , (₁∼₁ p'≈l₀) , l₀∈fL-aL∨bL) with to ⟨$⟩ l₀∈fLaL∨fLbL
+          where
+            l₀∈fLaL∨fLbL : l₀ ∈L ((|fL| aL) ∨FL (|fL| bL))
+            l₀∈fLaL∨fLbL = 
+              p∈c1≈c2-L {p = l₀} {c1 = |fL| $ aL ∨L bL} {c2 = (|fL| aL) ∨FL (|fL| bL)} (|fL|-∨ aL bL) l₀∈fL-aL∨bL 
+
+            open Equivalence (x∈∨⇔P∨-L (|fL| aL) (|fL| bL) ((|fL| aL) ∨FL (|fL| bL)) (LPW.refl ≈L₀-refl) l₀)
+        p→ p@(inj₁ p') p∈a∨b | inj₁ (l₀ , (₁∼₁ p'≈l₀) , l₀∈fL-aL∨bL) | inj₁ (l₀∈fLaL , ¬l₀⊑fLbL) = 
+          E.from ⟨$⟩ inj₁ (p∈fa , ¬p⊑fb)
+          where
+            module E = Equivalence (x∈∨⇔P∨-P (|f| a) (|f| b) ((|f| a) ∨F (|f| b)) (≈F-refl {(|f| a) ∨F (|f| b)}) p)
+
+            p∈fa : p ∈P (|f| a)
+            p∈fa = from ⟨$⟩ inj₁ (l₀ , (₁∼₁ p'≈l₀) , l₀∈fLaL) 
+              where
+                open Equivalence (|f|-prop a p)
+
+            ¬p⊑fb : ¬ Any (p ⊑P_) (proj₁ $ |f| b)
+            ¬p⊑fb p⊑fb = anyEliminate (proj₁ $ |f| b) elim p⊑fb
+              where
+                elim : AnyEliminator {ℓQ = l0} |P| ⊥ (p ⊑P_) (proj₁ $ |f| b)
+                elim (inj₂ x') f (₁∼₂ ()) x∈fb
+                elim (inj₁ x') f (₁∼₁ p'⊑x') x∈fb = ¬l₀⊑fLbL l₀⊑fLbL 
+                  where
+                    open Equivalence (|f|-prop b (inj₁ x'))
+
+                    l₀⊑fLbL : Any (l₀ ⊑L₀_) (proj₁ $ |fL| bL)
+                    l₀⊑fLbL with to ⟨$⟩ (LAny.map ≈P-reflexive x∈fb)
+                    l₀⊑fLbL | inj₁ (l₀' , (₁∼₁ x'≈l₀') , l₀'∈fLbL) = 
+                      LAny.map (λ l₀'≈· → ⊑L₀-respʳ-≈L₀ l₀'≈· l₀⊑l₀') l₀'∈fLbL 
+                      where
+                        l₀⊑l₀' : l₀ ⊑L₀ l₀'
+                        l₀⊑l₀' = ⊑L₀-trans (⊑L₀-reflexive $ ≈L₀-sym p'≈l₀) (⊑L₀-trans p'⊑x' (⊑L₀-reflexive x'≈l₀'))
+                    l₀⊑fLbL | inj₂ (r₀' , (₁∼₂ ()) , r₀'∈fRbR)
+        p→ p@(inj₁ p') p∈a∨b | inj₁ (l₀ , (₁∼₁ p'≈l₀) , l₀∈fL-aL∨bL) | inj₂ (inj₁ (l₀∈fLbL , ¬l₀⊑fLaL)) =
+          E.from ⟨$⟩ inj₂ (inj₁ $  p∈fb , ¬p⊑fa)
+          where
+            module E = Equivalence (x∈∨⇔P∨-P (|f| a) (|f| b) ((|f| a) ∨F (|f| b)) (≈F-refl {(|f| a) ∨F (|f| b)}) p)
+
+            p∈fb : p ∈P (|f| b)
+            p∈fb = from ⟨$⟩ inj₁ (l₀ , (₁∼₁ p'≈l₀) , l₀∈fLbL) 
+              where
+                open Equivalence (|f|-prop b p)
+
+            ¬p⊑fa : ¬ Any (p ⊑P_) (proj₁ $ |f| a)
+            ¬p⊑fa p⊑fa = anyEliminate (proj₁ $ |f| a) elim p⊑fa
+              where
+                elim : AnyEliminator {ℓQ = l0} |P| ⊥ (p ⊑P_) (proj₁ $ |f| a)
+                elim (inj₂ x') f (₁∼₂ ()) x∈fa
+                elim (inj₁ x') f (₁∼₁ p'⊑x') x∈fa = ¬l₀⊑fLaL l₀⊑fLaL 
+                  where
+                    open Equivalence (|f|-prop a (inj₁ x'))
+
+                    l₀⊑fLaL : Any (l₀ ⊑L₀_) (proj₁ $ |fL| aL)
+                    l₀⊑fLaL with to ⟨$⟩ (LAny.map ≈P-reflexive x∈fa)
+                    l₀⊑fLaL | inj₁ (l₀' , (₁∼₁ x'≈l₀') , l₀'∈fLaL) = 
+                      LAny.map (λ l₀'≈· → ⊑L₀-respʳ-≈L₀ l₀'≈· l₀⊑l₀') l₀'∈fLaL 
+                      where
+                        l₀⊑l₀' : l₀ ⊑L₀ l₀'
+                        l₀⊑l₀' = ⊑L₀-trans (⊑L₀-reflexive $ ≈L₀-sym p'≈l₀) (⊑L₀-trans p'⊑x' (⊑L₀-reflexive x'≈l₀'))
+                    l₀⊑fLaL | inj₂ (r₀' , (₁∼₂ ()) , r₀'∈fRbR)
+        p→ p@(inj₁ p') p∈a∨b | inj₁ (l₀ , (₁∼₁ p'≈l₀) , l₀∈fL-aL∨bL) | inj₂ (inj₂ (l₀∈fLaL , l₀∈fLbL)) =
+          E.from ⟨$⟩ inj₂ (inj₂ $ p∈fa , p∈fb) 
+          where
+            module E = Equivalence (x∈∨⇔P∨-P (|f| a) (|f| b) ((|f| a) ∨F (|f| b)) (≈F-refl {(|f| a) ∨F (|f| b)}) p)
+            
+            p∈fa : p ∈P (|f| a)
+            p∈fa = from ⟨$⟩ inj₁ (l₀ , (₁∼₁ p'≈l₀) , l₀∈fLaL) 
+              where
+                open Equivalence (|f|-prop a p)
+
+            p∈fb : p ∈P (|f| b)
+            p∈fb = from ⟨$⟩ inj₁ (l₀ , (₁∼₁ p'≈l₀) , l₀∈fLbL) 
+              where
+                open Equivalence (|f|-prop b p)
+        p→ p@(inj₁ p') p∈a∨b | inj₂ (l₀ , (₁∼₂ ()) , l₀∈fL-aL∨bL)
+        p→ p@(inj₂ p') p∈a∨b | inj₂ (r₀ , (₂∼₂ p'≈r₀) , r₀∈fR-aR∨bR) with to ⟨$⟩ r₀∈fRaR∨fRbR
+          where
+            r₀∈fRaR∨fRbR : r₀ ∈R ((|fR| aR) ∨FR (|fR| bR))
+            r₀∈fRaR∨fRbR = 
+              p∈c1≈c2-R {p = r₀} {c1 = |fR| $ aR ∨R bR} {c2 = (|fR| aR) ∨FR (|fR| bR)} (|fR|-∨ aR bR) r₀∈fR-aR∨bR 
+
+            open Equivalence (x∈∨⇔P∨-R (|fR| aR) (|fR| bR) ((|fR| aR) ∨FR (|fR| bR)) (LPW.refl ≈R₀-refl) r₀)
+        p→ p@(inj₂ p') p∈a∨b | inj₂ (r₀ , (₂∼₂ p'≈r₀) , r₀∈fR-aR∨bR) | inj₁ (r₀∈fRaR , ¬r₀⊑fRbR) =
+          E.from ⟨$⟩ inj₁ (p∈fa , ¬p⊑fb)
+          where
+            module E = Equivalence (x∈∨⇔P∨-P (|f| a) (|f| b) ((|f| a) ∨F (|f| b)) (≈F-refl {(|f| a) ∨F (|f| b)}) p)
+
+            p∈fa : p ∈P (|f| a)
+            p∈fa = from ⟨$⟩ inj₂ (r₀ , (₂∼₂ p'≈r₀) , r₀∈fRaR) 
+              where
+                open Equivalence (|f|-prop a p)
+
+            ¬p⊑fb : ¬ Any (p ⊑P_) (proj₁ $ |f| b)
+            ¬p⊑fb p⊑fb = anyEliminate (proj₁ $ |f| b) elim p⊑fb
+              where
+                elim : AnyEliminator {ℓQ = l0} |P| ⊥ (p ⊑P_) (proj₁ $ |f| b)
+                elim (inj₂ x') f (₂∼₂ p'⊑x') x∈fb = ¬r₀⊑fRbR r₀⊑fRbR
+                  where
+                    open Equivalence (|f|-prop b (inj₂ x'))
+
+                    r₀⊑fRbR : Any (r₀ ⊑R₀_) (proj₁ $ |fR| bR)
+                    r₀⊑fRbR with to ⟨$⟩ (LAny.map ≈P-reflexive x∈fb)
+                    r₀⊑fRbR | inj₁ (l₀' , () , l₀'∈fLbL)
+                    r₀⊑fRbR | inj₂ (r₀' , (₂∼₂ x'≈r₀') , r₀'∈fRbR) = 
+                      LAny.map (λ r₀'≈· → ⊑R₀-respʳ-≈R₀ r₀'≈· r₀⊑r₀') r₀'∈fRbR 
+                      where
+                        r₀⊑r₀' : r₀ ⊑R₀ r₀'
+                        r₀⊑r₀' = ⊑R₀-trans (⊑R₀-reflexive $ ≈R₀-sym p'≈r₀) (⊑R₀-trans p'⊑x' (⊑R₀-reflexive x'≈r₀'))
+        p→ p@(inj₂ p') p∈a∨b | inj₂ (r₀ , (₂∼₂ p'≈r₀) , r₀∈fR-aR∨bR) | inj₂ (inj₁ (r₀∈fRbR , ¬r₀⊑fRaR)) =
+          E.from ⟨$⟩ inj₂ (inj₁ $ p∈fb , ¬p⊑fa)
+          where
+            module E = Equivalence (x∈∨⇔P∨-P (|f| a) (|f| b) ((|f| a) ∨F (|f| b)) (≈F-refl {(|f| a) ∨F (|f| b)}) p)
+
+            p∈fb : p ∈P (|f| b)
+            p∈fb = from ⟨$⟩ inj₂ (r₀ , (₂∼₂ p'≈r₀) , r₀∈fRbR) 
+              where
+                open Equivalence (|f|-prop b p)
+
+            ¬p⊑fa : ¬ Any (p ⊑P_) (proj₁ $ |f| a)
+            ¬p⊑fa p⊑fa = anyEliminate (proj₁ $ |f| a) elim p⊑fa
+              where
+                elim : AnyEliminator {ℓQ = l0} |P| ⊥ (p ⊑P_) (proj₁ $ |f| a)
+                elim (inj₂ x') f (₂∼₂ p'⊑x') x∈fa = ¬r₀⊑fRaR r₀⊑fRaR
+                  where
+                    open Equivalence (|f|-prop a (inj₂ x'))
+
+                    r₀⊑fRaR : Any (r₀ ⊑R₀_) (proj₁ $ |fR| aR)
+                    r₀⊑fRaR with to ⟨$⟩ (LAny.map ≈P-reflexive x∈fa)
+                    r₀⊑fRaR | inj₁ (l₀' , () , l₀'∈fLaL)
+                    r₀⊑fRaR | inj₂ (r₀' , (₂∼₂ x'≈r₀') , r₀'∈fRaR) = 
+                      LAny.map (λ r₀'≈· → ⊑R₀-respʳ-≈R₀ r₀'≈· r₀⊑r₀') r₀'∈fRaR 
+                      where
+                        r₀⊑r₀' : r₀ ⊑R₀ r₀'
+                        r₀⊑r₀' = ⊑R₀-trans (⊑R₀-reflexive $ ≈R₀-sym p'≈r₀) (⊑R₀-trans p'⊑x' (⊑R₀-reflexive x'≈r₀'))
+        p→ p@(inj₂ p') p∈a∨b | inj₂ (r₀ , (₂∼₂ p'≈r₀) , r₀∈fR-aR∨bR) | inj₂ (inj₂ (r₀∈fRaR , r₀∈fRbR)) =
+          E.from ⟨$⟩ inj₂ (inj₂ $ p∈fa , p∈fb)
+          where
+            module E = Equivalence (x∈∨⇔P∨-P (|f| a) (|f| b) ((|f| a) ∨F (|f| b)) (≈F-refl {(|f| a) ∨F (|f| b)}) p)
+
+            p∈fa : p ∈P (|f| a)
+            p∈fa = from ⟨$⟩ inj₂ (r₀ , (₂∼₂ p'≈r₀) , r₀∈fRaR) 
+              where
+                open Equivalence (|f|-prop a p)
+
+            p∈fb : p ∈P (|f| b)
+            p∈fb = from ⟨$⟩ inj₂ (r₀ , (₂∼₂ p'≈r₀) , r₀∈fRbR) 
+              where
+                open Equivalence (|f|-prop b p)
+        p→ (inj₂ p') p∈a∨b | inj₁ (r₀ , () , r₀∈fR-aR∨bR)
+
+        --]]]
+
+        p← : (p : |P|) → (p ∈P ((|f| a) ∨F (|f| b))) → (p ∈P (|f| $ a ∨' b))
+        --[[[
+        -- there's a lot of repitition in here. it shouldn't be hard to refactor it.
+        p← p p∈fa∨fb with to ⟨$⟩ p∈fa∨fb
+          where 
+            open Equivalence (x∈∨⇔P∨-P (|f| a) (|f| b) ((|f| a) ∨F (|f| b)) (≈F-refl {(|f| a) ∨F (|f| b)}) p)
+        p← p p∈fa∨fb | inj₁ (p∈fa , ¬p⊑fb) with to ⟨$⟩ p∈fa
+          where
+            open Equivalence (|f|-prop a p)
+        p← p@(inj₁ p') p∈fa∨fb | inj₁ (p∈fa , ¬p⊑fb) | inj₁ (l₀ , (₁∼₁ p'≈l₀) , l₀∈fLaL) = 
+          ∈-resp-≈ ≈P-setoid (₁∼₁ $ ≈L₀-sym p'≈l₀) inj₁l₀∈f-a∨b
+          where
+            open import Data.List.Membership.Setoid.Properties using (∈-resp-≈)
+
+            l₀∈fLaL∨fLbL : l₀ ∈L ((|fL| aL) ∨FL (|fL| bL))
+            --[[[
+            l₀∈fLaL∨fLbL = from ⟨$⟩ (inj₁ $ l₀∈fLaL , ¬l₀⊑fLbL) 
+              where
+                open Equivalence (x∈∨⇔P∨-L (|fL| aL) (|fL| bL) ((|fL| aL) ∨FL (|fL| bL)) (LPW.refl ≈L₀-refl) l₀)
+                   
+                ¬l₀⊑fLbL : ¬ Any (l₀ ⊑L₀_) (proj₁ $ |fL| bL)
+                ¬l₀⊑fLbL l₀⊑fLbL = anyEliminate (proj₁ $ |fL| bL) elim l₀⊑fLbL 
+                  where
+                    elim : AnyEliminator {ℓQ = l0} |L₀| ⊥ (l₀ ⊑L₀_) (proj₁ $ |fL| bL)
+                    elim x f l₀⊑x x∈fLbL = 
+                      ⊥-elim $ ¬p⊑fb (LAny.map (λ inj₁x≈· → ⊑P-trans p⊑inj₁x (⊑P-reflexive inj₁x≈·)) inj₁x∈fb) 
+                      where
+                        module EFB = Equivalence (|f|-prop b (inj₁ x))
+
+                        inj₁x∈fb : (inj₁ x) ∈P (|f| b)
+                        inj₁x∈fb = EFB.from ⟨$⟩ inj₁ (x , ≈P-refl , (LAny.map ≈L₀-reflexive x∈fLbL))
+
+                        p⊑inj₁x : p ⊑P (inj₁ x)
+                        p⊑inj₁x = ₁∼₁ (⊑L₀-trans (⊑L₀-reflexive p'≈l₀) l₀⊑x)
+              --]]]
+            l₀∈fL-aL∨bL : l₀ ∈L (|fL| $ aL ∨L bL)
+            --[[[
+            l₀∈fL-aL∨bL = 
+              p∈c1≈c2-L {l₀} {(|fL| aL) ∨FL (|fL| bL)} {|fL| $ aL ∨L bL} 
+                         (≈FL-sym {|fL| $ aL ∨L bL} {(|fL| aL) ∨FL (|fL| bL)} (|fL|-∨ aL bL)) l₀∈fLaL∨fLbL 
+            --]]]
+            inj₁l₀∈f-a∨b : (inj₁ l₀) ∈P (|f| $ a ∨' b)
+            --[[[
+            inj₁l₀∈f-a∨b = from ⟨$⟩ (inj₁ $ l₀ , ≈P-refl , l₀∈fL-aL∨bL)
+              where
+                open Equivalence (|f|-prop (a ∨' b) (inj₁ l₀))
+            --]]]
+        p← p@(inj₁ p') p∈fa∨fb | inj₁ (p∈fa , ¬p⊑fb) | inj₂ (r₀ , (₁∼₂ ()) , r₀∈fRaR)
+        p← p@(inj₂ p') p∈fa∨fb | inj₁ (p∈fa , ¬p⊑fb) | inj₂ (r₀ , (₂∼₂ p'≈r₀) , r₀∈fRaR) = 
+          ∈-resp-≈ ≈P-setoid (₂∼₂ $ ≈R₀-sym p'≈r₀) inj₂r₀∈f-a∨b
+          where
+            open import Data.List.Membership.Setoid.Properties using (∈-resp-≈)
+
+            r₀∈fRaR∨fRbR : r₀ ∈R ((|fR| aR) ∨FR (|fR| bR))
+            --[[[
+            r₀∈fRaR∨fRbR = from ⟨$⟩ (inj₁ $ r₀∈fRaR , ¬r₀⊑fRbR) 
+              where
+                open Equivalence (x∈∨⇔P∨-R (|fR| aR) (|fR| bR) ((|fR| aR) ∨FR (|fR| bR)) (LPW.refl ≈R₀-refl) r₀)
+                   
+                ¬r₀⊑fRbR : ¬ Any (r₀ ⊑R₀_) (proj₁ $ |fR| bR)
+                ¬r₀⊑fRbR r₀⊑fRbR = anyEliminate (proj₁ $ |fR| bR) elim r₀⊑fRbR 
+                  where
+                    elim : AnyEliminator {ℓQ = l0} |R₀| ⊥ (r₀ ⊑R₀_) (proj₁ $ |fR| bR)
+                    elim x f r₀⊑x x∈fRbR = 
+                      ⊥-elim $ ¬p⊑fb (LAny.map (λ inj₂x≈· → ⊑P-trans p⊑inj₂x (⊑P-reflexive inj₂x≈·)) inj₂x∈fb) 
+                      where
+                        module EFB = Equivalence (|f|-prop b (inj₂ x))
+
+                        inj₂x∈fb : (inj₂ x) ∈P (|f| b)
+                        inj₂x∈fb = EFB.from ⟨$⟩ inj₂ (x , ≈P-refl , (LAny.map ≈R₀-reflexive x∈fRbR))
+
+                        p⊑inj₂x : p ⊑P (inj₂ x)
+                        p⊑inj₂x = ₂∼₂ (⊑R₀-trans (⊑R₀-reflexive p'≈r₀) r₀⊑x)
+              --]]]
+            r₀∈fR-aR∨bR : r₀ ∈R (|fR| $ aR ∨R bR)
+            --[[[
+            r₀∈fR-aR∨bR = 
+              p∈c1≈c2-R {r₀} {(|fR| aR) ∨FR (|fR| bR)} {|fR| $ aR ∨R bR} 
+                         (≈FR-sym {|fR| $ aR ∨R bR} {(|fR| aR) ∨FR (|fR| bR)} (|fR|-∨ aR bR)) r₀∈fRaR∨fRbR 
+            --]]]
+            inj₂r₀∈f-a∨b : (inj₂ r₀) ∈P (|f| $ a ∨' b)
+            --[[[
+            inj₂r₀∈f-a∨b = from ⟨$⟩ (inj₂ $ r₀ , ≈P-refl , r₀∈fR-aR∨bR)
+              where
+                open Equivalence (|f|-prop (a ∨' b) (inj₂ r₀))
+            --]]]
+        p← p@(inj₂ p') p∈fa∨fb | inj₁ (p∈fa , ¬p⊑fb) | inj₁ (l₀ , () , l₀∈fLaL)
+                
+        p← p p∈fa∨fb | inj₂ (inj₁ (p∈fb , ¬p⊑fa)) with to ⟨$⟩ p∈fb
+          where
+            open Equivalence (|f|-prop b p)
+        p← p@(inj₁ p') p∈fa∨fb | inj₂ (inj₁ (p∈fb , ¬p⊑fa)) | inj₁ (l₀ , (₁∼₁ p'≈l₀) , l₀∈fLbL) = 
+          ∈-resp-≈ ≈P-setoid (₁∼₁ $ ≈L₀-sym p'≈l₀) inj₁l₀∈f-a∨b
+          where
+            open import Data.List.Membership.Setoid.Properties using (∈-resp-≈)
+
+            l₀∈fLaL∨fLbL : l₀ ∈L ((|fL| aL) ∨FL (|fL| bL))
+            --[[[
+            l₀∈fLaL∨fLbL = from ⟨$⟩ (inj₂ $ inj₁ $ l₀∈fLbL , ¬l₀⊑fLaL) 
+              where
+                open Equivalence (x∈∨⇔P∨-L (|fL| aL) (|fL| bL) ((|fL| aL) ∨FL (|fL| bL)) (LPW.refl ≈L₀-refl) l₀)
+                   
+                ¬l₀⊑fLaL : ¬ Any (l₀ ⊑L₀_) (proj₁ $ |fL| aL)
+                ¬l₀⊑fLaL l₀⊑fLaL = anyEliminate (proj₁ $ |fL| aL) elim l₀⊑fLaL 
+                  where
+                    elim : AnyEliminator {ℓQ = l0} |L₀| ⊥ (l₀ ⊑L₀_) (proj₁ $ |fL| aL)
+                    elim x f l₀⊑x x∈fLbL = 
+                      ⊥-elim $ ¬p⊑fa (LAny.map (λ inj₁x≈· → ⊑P-trans p⊑inj₁x (⊑P-reflexive inj₁x≈·)) inj₁x∈fa) 
+                      where
+                        module EFA = Equivalence (|f|-prop a (inj₁ x))
+
+                        inj₁x∈fa : (inj₁ x) ∈P (|f| a)
+                        inj₁x∈fa = EFA.from ⟨$⟩ inj₁ (x , ≈P-refl , (LAny.map ≈L₀-reflexive x∈fLbL))
+
+                        p⊑inj₁x : p ⊑P (inj₁ x)
+                        p⊑inj₁x = ₁∼₁ (⊑L₀-trans (⊑L₀-reflexive p'≈l₀) l₀⊑x)
+              --]]]
+            l₀∈fL-aL∨bL : l₀ ∈L (|fL| $ aL ∨L bL)
+            --[[[
+            l₀∈fL-aL∨bL = 
+              p∈c1≈c2-L {l₀} {(|fL| aL) ∨FL (|fL| bL)} {|fL| $ aL ∨L bL} 
+                         (≈FL-sym {|fL| $ aL ∨L bL} {(|fL| aL) ∨FL (|fL| bL)} (|fL|-∨ aL bL)) l₀∈fLaL∨fLbL 
+            --]]]
+            inj₁l₀∈f-a∨b : (inj₁ l₀) ∈P (|f| $ a ∨' b)
+            --[[[
+            inj₁l₀∈f-a∨b = from ⟨$⟩ (inj₁ $ l₀ , ≈P-refl , l₀∈fL-aL∨bL)
+              where
+                open Equivalence (|f|-prop (a ∨' b) (inj₁ l₀))
+            --]]]
+        p← p@(inj₁ p') p∈fa∨fb | inj₂ (inj₁ (p∈fb , ¬p⊑fa)) | inj₂ (r₀ , (₁∼₂ ()) , r₀∈fRbR)
+        p← p@(inj₂ p') p∈fa∨fb | inj₂ (inj₁ (p∈fb , ¬p⊑fa)) | inj₂ (r₀ , (₂∼₂ p'≈r₀) , r₀∈fRbR) = 
+          ∈-resp-≈ ≈P-setoid (₂∼₂ $ ≈R₀-sym p'≈r₀) inj₂r₀∈f-a∨b
+          where
+            open import Data.List.Membership.Setoid.Properties using (∈-resp-≈)
+
+            r₀∈fRaR∨fRbR : r₀ ∈R ((|fR| aR) ∨FR (|fR| bR))
+            --[[[
+            r₀∈fRaR∨fRbR = from ⟨$⟩ (inj₂ $ inj₁ $ r₀∈fRbR , ¬r₀⊑fRaR) 
+              where
+                open Equivalence (x∈∨⇔P∨-R (|fR| aR) (|fR| bR) ((|fR| aR) ∨FR (|fR| bR)) (LPW.refl ≈R₀-refl) r₀)
+                   
+                ¬r₀⊑fRaR : ¬ Any (r₀ ⊑R₀_) (proj₁ $ |fR| aR)
+                ¬r₀⊑fRaR r₀⊑fRaR = anyEliminate (proj₁ $ |fR| aR) elim r₀⊑fRaR 
+                  where
+                    elim : AnyEliminator {ℓQ = l0} |R₀| ⊥ (r₀ ⊑R₀_) (proj₁ $ |fR| aR)
+                    elim x f r₀⊑x x∈fRaR = 
+                      ⊥-elim $ ¬p⊑fa (LAny.map (λ inj₂x≈· → ⊑P-trans p⊑inj₂x (⊑P-reflexive inj₂x≈·)) inj₂x∈fa) 
+                      where
+                        module EFB = Equivalence (|f|-prop a (inj₂ x))
+
+                        inj₂x∈fa : (inj₂ x) ∈P (|f| a)
+                        inj₂x∈fa = EFB.from ⟨$⟩ inj₂ (x , ≈P-refl , (LAny.map ≈R₀-reflexive x∈fRaR))
+
+                        p⊑inj₂x : p ⊑P (inj₂ x)
+                        p⊑inj₂x = ₂∼₂ (⊑R₀-trans (⊑R₀-reflexive p'≈r₀) r₀⊑x)
+              --]]]
+            r₀∈fR-aR∨bR : r₀ ∈R (|fR| $ aR ∨R bR)
+            --[[[
+            r₀∈fR-aR∨bR = 
+              p∈c1≈c2-R {r₀} {(|fR| aR) ∨FR (|fR| bR)} {|fR| $ aR ∨R bR} 
+                         (≈FR-sym {|fR| $ aR ∨R bR} {(|fR| aR) ∨FR (|fR| bR)} (|fR|-∨ aR bR)) r₀∈fRaR∨fRbR 
+            --]]]
+            inj₂r₀∈f-a∨b : (inj₂ r₀) ∈P (|f| $ a ∨' b)
+            --[[[
+            inj₂r₀∈f-a∨b = from ⟨$⟩ (inj₂ $ r₀ , ≈P-refl , r₀∈fR-aR∨bR)
+              where
+                open Equivalence (|f|-prop (a ∨' b) (inj₂ r₀))
+            --]]]
+        p← p@(inj₂ p') p∈fa∨fb | inj₂ (inj₁ (p∈fa , ¬p⊑fb)) | inj₁ (l₀ , () , l₀∈fLbL)
+        p← p p∈fa∨fb | inj₂ (inj₂ (p∈fa , p∈fb)) with EFA.to ⟨$⟩ p∈fa | EFB.to ⟨$⟩ p∈fb  
+          where
+            module EFA = Equivalence (|f|-prop a p)
+            module EFB = Equivalence (|f|-prop b p)
+        p← (inj₁ p') p∈fa∨fb | inj₂ (inj₂ (p∈fa , p∈fb)) | inj₁ (l₀ , (₁∼₁ p'≈l₀) , l₀∈fLaL) | inj₁ (l₀' , (₁∼₁ p'≈l₀') , l₀'∈fLbL) =
+          ∈-resp-≈ ≈P-setoid (₁∼₁ $ ≈L₀-sym p'≈l₀) inj₁l₀∈f-a∨b
+          where
+            open import Data.List.Membership.Setoid.Properties using (∈-resp-≈)
+
+            l₀∈fLaL∨fLbL : l₀ ∈L ((|fL| aL) ∨FL (|fL| bL))
+            --[[[
+            l₀∈fLaL∨fLbL = 
+              from ⟨$⟩ (inj₂ (inj₂ (l₀∈fLaL , ∈-resp-≈ ≈L₀-setoid (≈L₀-trans (≈L₀-sym p'≈l₀') p'≈l₀) l₀'∈fLbL))) 
+              where
+                open Equivalence (x∈∨⇔P∨-L (|fL| aL) (|fL| bL) ((|fL| aL) ∨FL (|fL| bL)) (LPW.refl ≈L₀-refl) l₀)
+            --]]]
+            l₀∈fL-aL∨bL : l₀ ∈L (|fL| (aL ∨L bL))
+            --[[[
+            l₀∈fL-aL∨bL = 
+              p∈c1≈c2-L {l₀} {(|fL| aL) ∨FL (|fL| bL)} {|fL| (aL ∨L bL)} 
+                         (≈FL-sym {|fL| (aL ∨L bL)} {(|fL| aL) ∨FL (|fL| bL)} (|fL|-∨ aL bL)) l₀∈fLaL∨fLbL 
+            --]]]
+            inj₁l₀∈f-a∨b : (inj₁ l₀) ∈P (|f| (a ∨' b))
+            --[[[
+            inj₁l₀∈f-a∨b = from ⟨$⟩ (inj₁ $ l₀ , ≈P-refl , l₀∈fL-aL∨bL)
+              where
+                open Equivalence (|f|-prop (a ∨' b) (inj₁ l₀))
+            --]]]      
+        p← (inj₁ p') p∈fa∨fb | inj₂ (inj₂ (p∈fa , p∈fb)) | inj₂ (r₀ , (₁∼₂ ()) , r₀∈fRaR) | _    
+        p← (inj₁ p') p∈fa∨fb | inj₂ (inj₂ (p∈fa , p∈fb)) | _ | inj₂ (r₀ , (₁∼₂ ()) , r₀∈fRbR)
+        p← (inj₂ p') p∈fa∨fb | inj₂ (inj₂ (p∈fa , p∈fb)) | inj₂ (r₀ , (₂∼₂ p'≈r₀) , r₀∈fRaR) | inj₂ (r₀' , (₂∼₂ p'≈r₀') , r₀'∈fRbR) =
+          ∈-resp-≈ ≈P-setoid (₂∼₂ $ ≈R₀-sym p'≈r₀) inj₂r₀∈f-a∨b
+          where
+            open import Data.List.Membership.Setoid.Properties using (∈-resp-≈)
+
+            r₀∈fRaR∨fRbR : r₀ ∈R ((|fR| aR) ∨FR (|fR| bR))
+            --[[[
+            r₀∈fRaR∨fRbR = 
+              from ⟨$⟩ (inj₂ (inj₂ $ r₀∈fRaR , (∈-resp-≈ ≈R₀-setoid (≈R₀-trans (≈R₀-sym p'≈r₀') p'≈r₀) r₀'∈fRbR))) 
+              where
+                open Equivalence (x∈∨⇔P∨-R (|fR| aR) (|fR| bR) ((|fR| aR) ∨FR (|fR| bR)) (LPW.refl ≈R₀-refl) r₀)
+            --]]]
+            r₀∈fR-aR∨bR : r₀ ∈R (|fR| (aR ∨R bR))
+            --[[[
+            r₀∈fR-aR∨bR = 
+              p∈c1≈c2-R {r₀} {(|fR| aR) ∨FR (|fR| bR)} {|fR| (aR ∨R bR)} 
+                         (≈FR-sym {|fR| (aR ∨R bR)} {(|fR| aR) ∨FR (|fR| bR)} (|fR|-∨ aR bR)) r₀∈fRaR∨fRbR 
+            --]]]
+            inj₂r₀∈f-a∨b : (inj₂ r₀) ∈P (|f| (a ∨' b))
+            --[[[
+            inj₂r₀∈f-a∨b = from ⟨$⟩ (inj₂ $ r₀ , ≈P-refl , r₀∈fR-aR∨bR)
+              where
+                open Equivalence (|f|-prop (a ∨' b) (inj₂ r₀))
+            --]]]      
+        p← (inj₂ p') p∈fa∨fb | inj₂ (inj₂ (p∈fa , p∈fb)) | inj₁ (l₀ , () , l₀∈fLaL) | _    
+        p← (inj₂ p') p∈fa∨fb | inj₂ (inj₂ (p∈fa , p∈fb)) | _ | inj₁ (l₀ , () , l₀∈fLbL)
+        --]]]
+
+        sameElements : (p : |P|) → (p ∈P ((|f| a) ∨F (|f| b))) ⇔ (p ∈P (|f| $ a ∨' b))
+        --[[[
+        sameElements p = equivalence (p← p) (p→ p) 
+        --]]]
+-}
+
 {-
     decompose : (c : Carrier-FP) → 
               Σ[ l ∈ Carrier-FPL ] Σ[ r ∈ Carrier-FPR ] Σ[ tl ∈ Carrier-FP ] Σ[ tr ∈ Carrier-FP ]
