@@ -376,7 +376,6 @@ module _ {ℓ₁ ℓ₂ ℓ₃ : Level} {A : JoinSemilattice ℓ₁ ℓ₂ ℓ�
       b≤a∨b : b ≤A a ∨A b
       b≤a∨b = proj₁ $ proj₂ $ supremum a b 
 
-
 private
   inj-clash' : {ℓA ℓB : Level} → {A : Set ℓA} → {B : Set ℓB} → (a : A) → (b : B) → (c : A ⊎ B) → 
                (inj₁ a ≡ c) → (inj₂ b ≡ c) → ⊥

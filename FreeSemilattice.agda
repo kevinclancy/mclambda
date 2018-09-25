@@ -3,6 +3,7 @@ open import Data.List.All
 open import Data.List.Any
 open import Data.Product
 open import Data.Sum
+open import Function using (_$_)
 open import Relation.Nullary
 open import Relation.Binary
 open import Relation.Binary.Lattice
@@ -67,6 +68,14 @@ _~_ = DeltaPoset._≈_ P
 ⊑-respʳ-≈ :  _⊑_ Respectsʳ _~_
 ⊑-respʳ-≈ = DeltaPoset.⊑-respʳ-≈ P
 
+⊑-decPoset : DecPoset _ _ _ 
+⊑-decPoset = record 
+  { Carrier = DeltaCarrier
+  ; _≈_ = _~_
+  ; _≤_ = _⊑_
+  ; isDecPartialOrder = DeltaPoset.isDecPartialOrder P
+  }
+
 _<_ : Rel DeltaCarrier _
 _<_ = DeltaPoset._<_ P
 
@@ -81,6 +90,9 @@ _≈_ = Core._≈_
 
 ≈-reflexive : _≡_ ⇒ _≈_
 ≈-reflexive = SemilatEq.reflexive 
+
+≈-trans : Transitive _≈_
+≈-trans {i} {j} {k} i≈j j≈k = SemilatEq.trans {i} {j} {k} i≈j j≈k
 
 FP-setoid : Setoid _ _
 FP-setoid = Core.FP-Setoid
@@ -151,6 +163,8 @@ x∈∨⇔P∨ : (c1 c2 c3 : SemilatCarrier) →
 
 x∈∨⇔P∨ (l1 , f1) (l2 , f2) (l3 , f3) eq x = Core.x∈∨⇔P∨ f1 f2 f3 eq x
 
-
-
-
+concat-F : (a : SemilatCarrier) → (b : SemilatCarrier) → 
+            (All (λ x → All (x <_) $ proj₁ b) $ proj₁ a) →
+            (All (λ x → All (x ∥_) $ proj₁ b) $ proj₁ a) → 
+            Σ[ c ∈ SemilatCarrier ] proj₁ c ≡ (proj₁ a) ++ (proj₁ b) 
+concat-F = Core.concat-FP
