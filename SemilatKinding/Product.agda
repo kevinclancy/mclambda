@@ -2802,7 +2802,7 @@ decompR a | l , r , tl , tr , eql , eqr , concat =
 
        r₀← : (r₀ : |R₀|) → (r₀ ∈R (ar ∨FR br)) → (r₀ ∈R jr)
        --[[[
-       r₀← r₀ r₀∈ar∨br = {!!} -- r₀∈jr
+       r₀← r₀ r₀∈ar∨br = r₀∈jr
          where
            inj₂r₀∈atr∨btr : (inj₂ r₀) ∈P (atr ∨F btr)
            inj₂r₀∈atr∨btr with to ⟨$⟩ r₀∈ar∨br
