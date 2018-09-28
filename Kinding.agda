@@ -10,7 +10,7 @@ open import Data.Product
 open import Data.Empty
 open import Data.Nat
 open import Data.Vec
-
+open import Relation.Binary.PropositionalEquality as PE
 
 data IsPoset : τ → Set
 data IsToset : τ → Set
@@ -54,6 +54,40 @@ data IsSemilat where
   ProductSemilat : {τL τR τL₀ τR₀ : τ} → IsSemilat τL τL₀ → IsSemilat τR τR₀ → IsSemilat (τProduct τL τR) (τSum τL₀ τR₀)
   --IVarSemilat : {τ : τ} → IsToset τ → IsSemilat (τIVar τ) (τCapsule qAny τ)
   --PartialSemilat : {τ τ₀ : τ} → IsSemilat τ τ₀ → IsSemilat (τPartial τ) (τPartial τ₀)
+
+isPosetUnique : {τ₀ : τ} → (p : IsPoset τ₀) → (q : IsPoset τ₀) → p ≡ q
+isPosetUnique {.(τFun _ _ _)} (FunPoset isPosetCod isPosetDom) (FunPoset isPosetCod' isPosetDom') = 
+  PE.cong₂ (λ x y → FunPoset x y) eqL eqR
+  where
+    eqL : isPosetCod ≡ isPosetCod'
+    eqL = isPosetUnique isPosetCod isPosetCod'
+
+    eqR : isPosetDom ≡ isPosetDom'
+    eqR = isPosetUnique isPosetDom isPosetDom'
+isPosetUnique {.(τProduct _ _)} (ProductPoset isPosetL isPosetR) (ProductPoset isPosetL' isPosetR') =
+  PE.cong₂ (λ x y → ProductPoset x y) eqL eqR
+  where
+    eqL : isPosetL ≡ isPosetL'
+    eqL = isPosetUnique isPosetL isPosetL'
+
+    eqR : isPosetR ≡ isPosetR'
+    eqR = isPosetUnique isPosetR isPosetR'
+isPosetUnique {.(τSum _ _)} (SumPoset isPosetL isPosetR) (SumPoset isPosetL' isPosetR') = 
+  PE.cong₂ (λ x y → SumPoset x y) eqL eqR
+  where
+    eqL : isPosetL ≡ isPosetL'
+    eqL = isPosetUnique isPosetL isPosetL'
+
+    eqR : isPosetR ≡ isPosetR'
+    eqR = isPosetUnique isPosetR isPosetR'
+isPosetUnique {.τUnit} UnitPoset UnitPoset = PE.refl
+isPosetUnique {.τNat} NatPoset NatPoset = PE.refl
+isPosetUnique {.τBool} BoolPoset BoolPoset = PE.refl
+
+semilat→poset : {τ τ₀ : τ} → (p : IsSemilat τ τ₀) → IsPoset τ
+semilat→poset NatSemilat = NatPoset
+semilat→poset BoolSemilat = BoolPoset
+semilat→poset (ProductSemilat isSemilatL isSemilatR) = ProductPoset (semilat→poset isSemilatL) (semilat→poset isSemilatR)  
 
 semilat→delta : {τ τ₀ : τ} → (p : IsSemilat τ τ₀) → IsDeltaPoset τ₀
 semilat→delta NatSemilat = NatDelta

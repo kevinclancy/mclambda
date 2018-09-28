@@ -6,6 +6,7 @@ open import Level
 open import Syntax
 open import Kinding
 open import Util
+open import SemPoset
 
 module SemilatKinding.Product 
   {τL τ₀L τR τ₀R : τ}
@@ -140,6 +141,15 @@ S = record
     } 
   }
 
+US : Carrier' ≡ (Poset.Carrier ⟦ (ProductPoset (semilat→poset isSemilatL) (semilat→poset isSemilatR)) ⁎⟧)
+US = PE.cong₂ (λ x y → x × y) USL USR
+  where
+    USL : |L| ≡ Poset.Carrier ⟦ semilat→poset isSemilatL ⁎⟧
+    USL = SemSemilat.US semSemilatL
+
+    USR : |R| ≡ Poset.Carrier ⟦ semilat→poset isSemilatR ⁎⟧
+    USR = SemSemilat.US semSemilatR
+    
 joinSemilatticeS : JoinSemilattice l0 l0 l0
 joinSemilatticeS = BoundedJoinSemilattice.joinSemiLattice S
 
@@ -698,6 +708,7 @@ P-|f| (aL , aR) x = (Σ[ y ∈ |L₀| ] (x ≈P inj₁ y) × (y ∈L |fL| aL)) �
 
 |f|-aux : (a : Carrier') → Σ[ c ∈ Carrier-FP ] ∀ (x : |P|) → x ∈P c ⇔ P-|f| a x 
 --[[[
+
 |f|-aux (aL , aR) =
   let
     res , _ = concat-F (resL-list , resL-free) (resR-list , resR-free) min incomp
@@ -856,6 +867,7 @@ P-|f| (aL , aR) x = (Σ[ y ∈ |L₀| ] (x ≈P inj₁ y) × (y ∈L |fL| aL)) �
 
     res-prop⇔ : (x : |P|) → (x ∈P res) ⇔ P-|f| (aL , aR) x
     res-prop⇔ x = equivalence (res-prop→ x) (res-prop← x)
+
 --]]]
 
 |f| : Carrier' → Carrier-FP
@@ -3207,9 +3219,11 @@ inv-S→FP→S (aL , aR) | l , r , atl , atr , aeql , aeqr , aconcat =
 
 --]]]
 
+
 sem : SemSemilat l0 l0 l0 l0 l0 l0 l0 (ProductSemilat isSemilatL isSemilatR)
 sem = record
   { S = S
+  ; US = US
   ; P = P
   ; i = |i| , |i|-mono , |i|-injective
   ; f = |f| , |f|-≈ , |f|-⊥ , |f|-∨

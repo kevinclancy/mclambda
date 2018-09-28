@@ -1,12 +1,13 @@
 module FinPoset where
 
-open import Function using (_∘_ ; _$_)
+open import Function using (_$_)
 open import Data.Nat as N renaming (_≤′_ to _N≤_ ; _<′_ to _N<_) hiding (_≤_ ; _≤?_)
 open import Data.Nat.Properties as NP using ()
 open import Data.Star as S
 open import Data.Star.Properties as SP
 open import Data.List as L
 open import Data.List.Any as LA
+open import Data.List.All as LAll
 open import Data.Bool as B
 open import Util renaming (_≤′?_ to _N≤?_)
 open import Relation.Binary.PropositionalEquality as PE
@@ -199,3 +200,18 @@ module FinPoset
       ; _≤_ = _≤_
       ; isDecPartialOrder = ≤-isDecPartialOrder
       }
+
+    makeInterpretation : (Sem : A → A → Set) → (_∘_ : ∀ {a₁} {a₂} {a₃} → Sem a₁ a₂ → Sem a₂ a₃ → Sem a₁ a₃) →
+                         (ref : ∀ {a₁} → Sem a₁ a₁) →
+                         (All (λ cov → Sem (Cover.lo cov) (Cover.hi cov)) covers) → (∀ {a₁} {a₂} → a₁ ≤ a₂ → Sem a₁ a₂) 
+    makeInterpretation Sem _∘_ ref coverSems {a₁} {.a₁} ε = ref
+    makeInterpretation Sem _∘_ ref coverSems {a₁} {a₂} (_◅_ {.a₁} {a₃} {.a₂} a₁≺a₃ a₃≤a₂) = sem13 ∘ sem32
+      where
+        sem13 : Sem a₁ a₃
+        sem13 = anyEliminate covers elim a₁≺a₃
+          where
+            elim : AnyEliminator {ℓQ = l0} (Cover A depth) (Sem a₁ a₃) (CoverMatches a₁ a₃) covers
+            elim a f (a-lo≡a₁@PE.refl , a-hi≡a₃@PE.refl) a∈≡covers = LAll.lookup coverSems a∈≡covers 
+
+        sem32 : Sem a₃ a₂
+        sem32 = makeInterpretation Sem _∘_ ref coverSems a₃≤a₂

@@ -5,7 +5,7 @@ open import Syntax
 open import Kinding
 open import Util
 
-open import SemilatKinding.Core
+open import SemilatKinding.Core public
 
 ⟦_⁂⟧ : ∀ {τ τ₀ : τ} → (isSemilat : IsSemilat τ τ₀) → SemSemilat l0 l0 l0 l0 l0 l0 l0 isSemilat   
 ⟦ BoolSemilat ⁂⟧  = sem

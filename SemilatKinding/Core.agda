@@ -10,19 +10,23 @@ open import Level
 open import FreeForgetfulAdjunction
 open import RelationalStructures
 open import SemDeltaPoset
+open import SemPoset
 
 open import Relation.Binary
 open import Relation.Binary.Lattice
 open import Function.Inverse
 open import Data.Product
 open import Function using (_$_)
-
+open import Relation.Binary.PropositionalEquality
 
 record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Level) {τ τ₀ : τ} (isSemilat : IsSemilat τ τ₀)
                    : Set (Level.suc $ cₛ ⊔ ℓₛ₁ ⊔ ℓₛ₂ ⊔ cₚ ⊔ ℓ⊑ₚ ⊔ ℓ<ₚ ⊔ ℓ~ₚ) where
   field
     -- direct representation of semilattice
-    S : BoundedJoinSemilattice cₛ ℓₛ₁ ℓₛ₂
+    S : BoundedJoinSemilattice l0 ℓₛ₁ ℓₛ₂
+    
+    US : (BoundedJoinSemilattice.Carrier S) ≡ (Poset.Carrier ⟦ (semilat→poset isSemilat) ⁎⟧)
+
     -- delta poset (freely generates S up-to-isomorphism)
     P : DeltaPoset {cₚ} {ℓ⊑ₚ} {ℓ<ₚ} {ℓ~ₚ}
     -- injection of τ₀ deltaPoset interpretation into P
