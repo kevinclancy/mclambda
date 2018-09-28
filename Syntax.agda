@@ -7,12 +7,12 @@ open import Data.Nat
 --types
 data τ : Set where
   τFun : (dom : τ) → (scalar : q) → (cod : τ) → τ
-  τDict : (dom : τ) → (cod : τ) → τ   
-  τCapsule : (scalar : q) → (underlying : τ) → τ 
+  --τDict : (dom : τ) → (cod : τ) → τ   
+  --τCapsule : (scalar : q) → (underlying : τ) → τ 
   τProduct : (τL : τ) → (τR : τ) → τ
   τSum : (τL : τ) → (τR : τ) → τ
-  τIVar : τ → τ
-  τPartial : τ → τ
+  --τIVar : τ → τ
+  --τPartial : τ → τ
   τUnit : τ
   τBool : τ 
   τNat : τ
