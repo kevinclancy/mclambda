@@ -50,12 +50,12 @@ data _∣_⊢_∣_ where
             (Γ ∣ R ⊢ pair ∣ (τProduct τ₁ τ₂)) → (Γ ∣ R ⊢ (Proj1 pair) ∣ τ₁)
 
   TyProj2 : {n : ℕ} {Γ : Vec wfτ n} {R : Vec q n} {pair : e} {τ₁ τ₂ : τ} → 
-            (Γ ∣ R ⊢ pair ∣ (τProduct τ₁ τ₂)) → (Γ ∣ R ⊢ (Proj1 pair) ∣ τ₁)
+            (Γ ∣ R ⊢ pair ∣ (τProduct τ₁ τ₂)) → (Γ ∣ R ⊢ (Proj1 pair) ∣ τ₂)
 
-  TyInl : {n : ℕ} {Γ : Vec wfτ n} {R : Vec q n} {body : e} {τL τR : τ} →
+  TyInl : {n : ℕ} {Γ : Vec wfτ n} {R : Vec q n} {body : e} {τL τR : τ} {τR-wf : IsPoset τR} →
           (Γ ∣ R ⊢ body ∣ τL) → (Γ ∣ R ⊢ Inl τL τR body ∣ τSum τL τR)
 
-  TyInr : {n : ℕ} {Γ : Vec wfτ n} {R : Vec q n} {body : e} {τL τR : τ} →
+  TyInr : {n : ℕ} {Γ : Vec wfτ n} {R : Vec q n} {body : e} {τL τR : τ} {τL-wf : IsPoset τL} →
           (Γ ∣ R ⊢ body ∣ τR) → (Γ ∣ R ⊢ Inr τL τR body ∣ τSum τL τR)
 
   TyCase : {n : ℕ} {Γ : Vec wfτ n} {R₀ R₁ R₂ : Vec q n} {e₀ e₁ e₂ : e} {τ₁ τ₂ τRes : τ} {τ₁-wf : IsPoset τ₁} 
@@ -65,3 +65,22 @@ data _∣_⊢_∣_ where
            (Γ ∣ (((q₁ q+ q₂) qR∘ R₀) R+ (R₁ R+ R₂)) ⊢ Case e₀ e₁ e₂ ∣ τRes) 
 
  
+τRes-wf :  {n : ℕ} → {Γ₀ : Vec wfτ n} → {R₀ : Vec q n} → {e₀ : e} → {τRes : τ} → (Γ₀ ∣ R₀ ⊢ e₀ ∣ τRes) → (IsPoset τRes) 
+τRes-wf (TyBot {p = τRes-semilat}) = semilat→poset τRes-semilat
+τRes-wf (TyJoin {_} {_} {R₁} d1 d2) = τRes-wf d1
+τRes-wf (TyAbs {τ = τ} {σ-wf = σ-wf} d) = FunPoset σ-wf τ-wf
+  where
+    τ-wf : IsPoset τ
+    τ-wf = τRes-wf d 
+τRes-wf (TyPair d1 d2) = ProductPoset (τRes-wf d1) (τRes-wf d2)
+τRes-wf (TyProj1 d) with τRes-wf d
+τRes-wf (TyProj1 d) | ProductPoset wf1 wf2 = wf1
+τRes-wf (TyProj2 d) with τRes-wf d
+τRes-wf (TyProj2 d) | ProductPoset wf1 wf2 = wf2
+τRes-wf (TyInl {τR-wf = τR-wf} d) = SumPoset (τRes-wf d) τR-wf
+τRes-wf (TyInr {τL-wf = τL-wf} d) = SumPoset τL-wf (τRes-wf d)
+τRes-wf (TyCase _ d _) = τRes-wf d 
+{-
+τRes-wf Γ₀ R₀ .(Inr _ _ _) .(τSum _ _) (TyInr zzz) = {!!}
+τRes-wf Γ₀ .(zipWith _q+_ (V.map (_q∘_ (_ q+ _)) _) (zipWith _q+_ _ _)) .(Case _ _ _) τRes (TyCase zzz zzz₁ zzz₂) = {!!}
+-}

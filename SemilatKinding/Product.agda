@@ -141,13 +141,13 @@ S = record
     } 
   }
 
-US : Carrier' ≡ (Poset.Carrier ⟦ (ProductPoset (semilat→poset isSemilatL) (semilat→poset isSemilatR)) ⁎⟧)
-US = PE.cong₂ (λ x y → x × y) USL USR
+US : (BoundedJoinSemilattice.poset S) ≡ ⟦ (ProductPoset (semilat→poset isSemilatL) (semilat→poset isSemilatR)) ⁎⟧
+US = PE.cong₂ (λ x y → ×-poset x y) USL USR
   where
-    USL : |L| ≡ Poset.Carrier ⟦ semilat→poset isSemilatL ⁎⟧
+    USL : (BoundedJoinSemilattice.poset bjsL) ≡ ⟦ semilat→poset isSemilatL ⁎⟧
     USL = SemSemilat.US semSemilatL
 
-    USR : |R| ≡ Poset.Carrier ⟦ semilat→poset isSemilatR ⁎⟧
+    USR : (BoundedJoinSemilattice.poset bjsR) ≡ ⟦ semilat→poset isSemilatR ⁎⟧
     USR = SemSemilat.US semSemilatR
     
 joinSemilatticeS : JoinSemilattice l0 l0 l0

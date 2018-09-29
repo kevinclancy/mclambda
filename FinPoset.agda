@@ -45,7 +45,7 @@ module FinPoset
  
      CoverMatches : (A₀ A₁ : A) → Pred (Cover A depth) ℓ₀
      CoverMatches A₀ A₁ = (λ cov → (Cover.lo cov ≡ A₀) × (Cover.hi cov ≡ A₁))
-    
+
     -- Cover relation generated from covers
     -- TODO: prove this is well-founded
     _≺_ : Rel A ℓ₀
@@ -201,7 +201,7 @@ module FinPoset
       ; isDecPartialOrder = ≤-isDecPartialOrder
       }
 
-    makeInterpretation : (Sem : A → A → Set) → (_∘_ : ∀ {a₁} {a₂} {a₃} → Sem a₁ a₂ → Sem a₂ a₃ → Sem a₁ a₃) →
+    makeInterpretation : ∀ {c} → (Sem : A → A → Set c) → (_∘_ : ∀ {a₁} {a₂} {a₃} → Sem a₁ a₂ → Sem a₂ a₃ → Sem a₁ a₃) →
                          (ref : ∀ {a₁} → Sem a₁ a₁) →
                          (All (λ cov → Sem (Cover.lo cov) (Cover.hi cov)) covers) → (∀ {a₁} {a₂} → a₁ ≤ a₂ → Sem a₁ a₂) 
     makeInterpretation Sem _∘_ ref coverSems {a₁} {.a₁} ε = ref
