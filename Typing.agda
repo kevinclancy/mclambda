@@ -43,6 +43,10 @@ data _∣_⊢_∣_ where
   TyAbs : {n : ℕ} {Γ : Vec wfτ n} {R : Vec q n} {q : q} {body : e} {σ τ : τ} {σ-wf : IsPoset σ} → 
           (((σ , σ-wf) ∷ Γ) ∣ (q ∷ R) ⊢ body ∣ τ) → (Γ ∣ R ⊢ (Abs body) ∣ (τFun σ q τ))    
 
+  TyApp : {n : ℕ} {Γ : Vec wfτ n} {R₁ R₂ : Vec q n} {q₀ : q} {e₁ e₂ : e} {σ₀ τ₀ : τ} →
+          (Γ ∣ R₁ ⊢ e₁ ∣ τFun σ₀ q₀ τ₀) → (Γ ∣ R₂ ⊢ e₂ ∣ σ₀) → 
+          (Γ ∣ (R₁ R+ (q₀ qR∘ R₂)) ⊢ e₂ ∣ τ₀)
+
   TyPair : {n : ℕ} {Γ : Vec wfτ n} {R₁ : Vec q n} {R₂ : Vec q n} {e₁ e₂ : e} {τ₁ τ₂ : τ} →
            (Γ ∣ R₁ ⊢ e₁ ∣ τ₁) → (Γ ∣ R₂ ⊢ e₂ ∣ τ₂) → (Γ ∣ R₁ R+ R₂ ⊢ (Pair e₁ e₂) ∣ (τProduct τ₁ τ₂))
   
@@ -72,6 +76,8 @@ data _∣_⊢_∣_ where
   where
     τ-wf : IsPoset τ
     τ-wf = τRes-wf d 
+τRes-wf (TyApp d₁ d₂) with τRes-wf d₁
+τRes-wf (TyApp d₁ d₂) | (FunPoset domPoset codPoset) = codPoset
 τRes-wf (TyPair d1 d2) = ProductPoset (τRes-wf d1) (τRes-wf d2)
 τRes-wf (TyProj1 d) with τRes-wf d
 τRes-wf (TyProj1 d) | ProductPoset wf1 wf2 = wf1
