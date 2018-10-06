@@ -133,9 +133,9 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
   ; monotone = λ {_} {_} _ → codP.refl
   }
   where
-    open import SemSemilat
+    open import SemSemilatKinding
     open import Relation.Binary.Lattice
-    open SemSemilat.SemSemilat ⟦ τ₀-semilat ⁂⟧
+    open SemSemilat ⟦ τ₀-semilat ⁂⟧
     open BoundedJoinSemilattice S
 
     module codP = Poset ⟦ τ₀-wf ⁎⟧ 
@@ -150,10 +150,10 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
 --[[[
   ⟨ wk1 , wk2 ⟩ >> (f₁ ⟨×⟩ f₂) >> _∨'_
   where
-    open import SemSemilat
+    open import SemSemilatKinding
     open import Relation.Binary.Lattice
     open import Data.Product.Relation.Pointwise.NonDependent
-    open SemSemilat.SemSemilat ⟦ τ₀-semilat ⁂⟧
+    open SemSemilat ⟦ τ₀-semilat ⁂⟧
     open BoundedJoinSemilattice S
     module codP = IsPartialOrder (Poset.isPartialOrder ⟦ τ₀-wf ⁎⟧)
 
@@ -383,4 +383,54 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
       ⟨ ⟦Γ₀∣···⟧⇒⟦Γ₀∣R₁⟧ >> ⟦Γ₀∣R₁⟧⇒⟦q₁τ₁⇒τ₀⟧ , ⟦Γ₀∣···⟧⇒⟦Γ₀∣R₂⟧ >> ⟦Γ₀∣R₂⟧⇒⟦q₂τ₂⇒τ₀⟧ ⟩ >> [[+]]
 --]]]
 
+⟦_⊢⟧ {τ₀-wf = τ₀-wf} (TyInl {n} {Γ₀} {R₀} {e} {τL} {τR} {τR-wf} Γ₀∣R₀⊢e∣τL) 
+  with τL-wf | isPosetUnique τ₀-wf (SumPoset τL-wf τR-wf)
+  where
+    τL-wf : IsPoset τL
+    τL-wf = τRes-wf Γ₀∣R₀⊢e∣τL
+⟦_⊢⟧ {τ₀-wf = _} (TyInl {n} {Γ₀} {R₀} {e} {τL} {τR} {τR-wf} Γ₀∣R₀⊢e∣τL) | τL-wf | PE.refl =
+  ⟦Γ₀∣R₀⟧⇒⟦τL⟧ >> κ₁ 
+  where
+    ⟦Γ₀∣R₀⟧⇒⟦τL⟧ : ⟦ Γ₀ Γ∣ R₀ R⟧ ⇒ ⟦ τL-wf ⁎⟧' 
+    ⟦Γ₀∣R₀⟧⇒⟦τL⟧ = ⟦_⊢⟧ {τ₀-wf = τL-wf} Γ₀∣R₀⊢e∣τL 
+    
+⟦_⊢⟧ {τ₀-wf = τ₀-wf} (TyInr {n} {Γ₀} {R₀} {e} {τL} {τR} {τL-wf} Γ₀∣R₀⊢e∣τR) 
+  with τR-wf | isPosetUnique τ₀-wf (SumPoset τL-wf τR-wf)
+  where
+    τR-wf : IsPoset τR
+    τR-wf = τRes-wf Γ₀∣R₀⊢e∣τR
+⟦_⊢⟧ {τ₀-wf = _} (TyInr {n} {Γ₀} {R₀} {e} {τL} {τR} {τL-wf} Γ₀∣R₀⊢e∣τR) | τR-wf | PE.refl =
+  ⟦Γ₀∣R₀⟧⇒⟦τR⟧ >> κ₂ 
+  where
+    ⟦Γ₀∣R₀⟧⇒⟦τR⟧ : ⟦ Γ₀ Γ∣ R₀ R⟧ ⇒ ⟦ τR-wf ⁎⟧' 
+    ⟦Γ₀∣R₀⟧⇒⟦τR⟧ = ⟦_⊢⟧ {τ₀-wf = τR-wf} Γ₀∣R₀⊢e∣τR 
 
+⟦_⊢⟧ {τ₀-wf = _} (TyHom {n} {Γ₀} {R₀} {e₀} {τ₁} {τ₁'} {τ₂} {τ₂'} {τ₁⁂} {τ₂⁂} {τ₁'-wf} τ₁'∷Γ∣+∷R₀⊢e₀∣τ₂) =
+  {!!}
+  where
+    open import SemSemilatKinding
+    open import RelationalStructures
+    open import FreeForgetfulAdjunction
+
+    semilat₁ : SemSemilat _ _ _ _ _ _ _ τ₁⁂
+    semilat₁ = ⟦ τ₁⁂ ⁂⟧
+
+    open SemSemilat semilat₁ renaming (P to P₁ ; i to i₁)
+
+    τ₁-wf : IsPoset τ₁
+    τ₁-wf = semilat→poset τ₁⁂
+
+    τ₁'-wf' : IsPoset τ₁'
+    τ₁'-wf' = delta→poset (semilat→delta τ₁⁂)
+
+    τ₂-wf : IsPoset τ₂
+    τ₂-wf = semilat→poset τ₂⁂
+
+    τ₁'-wf≡t₁'-wf' : τ₁'-wf ≡ τ₁'-wf'
+    τ₁'-wf≡t₁'-wf' = isPosetUnique τ₁'-wf τ₁'-wf'
+    
+    ⟦Γ∣R₀⊢e₀∣τ₁'⇒τ₂⟧ : ⟦ Γ₀ Γ∣ R₀ R⟧ ⇒ (⇒-preorder ⟦ τ₁'-wf' ⁎⟧' ⟦ τ₂-wf ⁎⟧') 
+    ⟦Γ∣R₀⊢e₀∣τ₁'⇒τ₂⟧ rewrite τ₁'-wf≡t₁'-wf' = Λ (⟦_⊢⟧ {τ₀-wf = τ₂-wf} τ₁'∷Γ∣+∷R₀⊢e₀∣τ₂)
+
+    ⟦Γ∣R₀⊢e₀∣P⇒τ₂⟧ : ⟦ Γ₀ Γ∣ R₀ R⟧ ⇒ (⇒-preorder (DeltaPoset.preorder P₁) ⟦ τ₂-wf ⁎⟧')
+    ⟦Γ∣R₀⊢e₀∣P⇒τ₂⟧ = ⟦Γ∣R₀⊢e₀∣τ₁'⇒τ₂⟧ >> precomp (↣+-to-⇒ i₁)

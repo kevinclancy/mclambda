@@ -4,7 +4,7 @@ open import Function using (_∘_ ; _$_)
 open import Function.Equality using (_⟨$⟩_)
 
 open import Data.Maybe hiding (Eq)
-open import Data.Bool
+open import Data.Bool hiding (_∨_)
 open import Data.Product
 open import Data.Sum
 open import Agda.Builtin.Equality
@@ -387,3 +387,83 @@ inj-clash : {ℓA ℓB : Level} → {A : Set ℓA} → {B : Set ℓB} → (a : A
 
 inj-clash a b eq = inj-clash' a b (inj₁ a) PE.refl (PE.sym eq)  
   
+preorder→setoid : ∀ {ℓ₀ ℓ₁ ℓ₂} → (P : Preorder ℓ₀ ℓ₁ ℓ₂) → Setoid _ _
+preorder→setoid P = record
+  { Carrier = Preorder.Carrier P
+  ; _≈_ = Preorder._≈_ P
+  ; isEquivalence = Preorder.isEquivalence P
+  }
+
+
+module _ {S : BoundedJoinSemilattice l0 l0 l0} where
+  open import Relation.Binary.Properties.JoinSemilattice
+  open import Relation.Binary.Properties.BoundedJoinSemilattice
+  open BoundedJoinSemilattice S renaming 
+    (_≤_ to _≤ₛ_ ; _∨_ to _∨ₛ_ ; ⊥ to ⊥ₛ ; _≈_ to _≈ₛ_ ; reflexive to reflexiveₛ ; joinSemiLattice to joinSemilatticeₛ ;
+     antisym to antisymₛ ; trans to ≤ₛ-trans)
+  open BoundedJoinSemilattice.Eq S renaming (refl to reflₛ ; sym to symₛ)
+  ∨-resp-≈ˡ : {a b c : Carrier} → (a≈b : a ≈ₛ b) → (a ∨ₛ c ≈ₛ b ∨ₛ c)
+  ∨-resp-≈ˡ {a} {b} {c} a≈b = antisymₛ a∨c≤b∨c b∨c≤a∨c
+    where
+      a∨c≤b∨c : a ∨ₛ c ≤ₛ b ∨ₛ c
+      a∨c≤b∨c = ∨-monotonic joinSemilatticeₛ (reflexiveₛ a≈b) (reflexiveₛ reflₛ)
+
+      b∨c≤a∨c : b ∨ₛ c ≤ₛ a ∨ₛ c
+      b∨c≤a∨c = ∨-monotonic joinSemilatticeₛ (reflexiveₛ $ symₛ a≈b) (reflexiveₛ reflₛ)
+
+  ∨-resp-≈ʳ : {a b c : Carrier} → (b≈c : b ≈ₛ c) → (a ∨ₛ b ≈ₛ a ∨ₛ c)
+  ∨-resp-≈ʳ {a} {b} {c} b≈c = antisymₛ a∨b≤a∨c a∨c≤a∨b 
+    where
+      a∨b≤a∨c : a ∨ₛ b ≤ₛ a ∨ₛ c
+      a∨b≤a∨c = ∨-monotonic joinSemilatticeₛ (reflexiveₛ reflₛ) (reflexiveₛ b≈c) 
+
+      a∨c≤a∨b : a ∨ₛ c ≤ₛ a ∨ₛ b
+      a∨c≤a∨b = ∨-monotonic joinSemilatticeₛ (reflexiveₛ reflₛ) (reflexiveₛ $ symₛ b≈c)
+
+  ∨-list : List Carrier → Carrier
+  ∨-list (c ∷ cs) = c ∨ₛ (∨-list cs)
+  ∨-list [] = ⊥ₛ
+  
+  ∨-to-list : (a b : Carrier) → (a ∨ₛ b ≈ₛ ∨-list (a ∷ b ∷ []))
+  ∨-to-list a b = ∨-resp-≈ʳ $ symₛ $ identityʳ S b
+  
+  ∨-list-≤-single : (s : Carrier) → (l : List Carrier) → (LA.Any (s ≤ₛ_) l) → s ≤ₛ (∨-list l)
+  ∨-list-≤-single s [] s≤[] = ⊥-elim $ ¬Any[] s≤[]
+  ∨-list-≤-single s (s' ∷ l') (here s≤s') = ≤ₛ-trans s≤s' (proj₁ $ supremum s' $ ∨-list l')
+  ∨-list-≤-single s (s' ∷ l') (there s≤l') = ≤ₛ-trans (∨-list-≤-single s l' s≤l') (proj₁ $ proj₂ $ supremum s' (∨-list l'))
+  
+  ∨-list-upper : (l : List Carrier) → (LL.All (_≤ₛ (∨-list l)) l)
+  ∨-list-upper [] = []
+  ∨-list-upper (s ∷ l') = 
+    (proj₁ $ supremum s (∨-list l')) ∷  
+    LL.map (λ ·≤∨l' → ≤ₛ-trans ·≤∨l' (proj₁ $ proj₂ $ supremum s (∨-list l') )) (∨-list-upper l')  
+  
+  ∨-list-sup  : (l : List Carrier) → (s : Carrier) → (∨-list l ≤ₛ s) → LL.All (_≤ₛ s) l
+  ∨-list-sup [] s ∨l≤s = []
+  ∨-list-sup (x ∷ l') s x∨l'≤s = q ∷ (∨-list-sup l' s p)
+    where
+      q : x ≤ₛ s
+      q = ≤ₛ-trans (proj₁ $ supremum x (∨-list l')) x∨l'≤s
+
+      p : ∨-list l' ≤ₛ s
+      p = ≤ₛ-trans (proj₁ $ proj₂ $ supremum x (∨-list l')) x∨l'≤s
+  
+  ∨-list-≤ : (l₁ : List Carrier) → (l₂ : List Carrier) → LL.All (λ · → LA.Any (· ≤ₛ_) l₂) l₁ → (∨-list l₁) ≤ₛ (∨-list l₂)
+  ∨-list-≤ [] [] l₁≤l₂ = reflexiveₛ reflₛ
+  ∨-list-≤ [] (s₂ ∷ l₂) [] = minimum (s₂ ∨ₛ ∨-list l₂)
+  ∨-list-≤ (x ∷ l₁) [] (px ∷ l₁≤l₂') = ⊥-elim $ ¬Any[] px
+  ∨-list-≤ (s₁ ∷ l₁) (s₂ ∷ l₂) (s₁≤s₂l₂ ∷ l₁≤s₂l₂) = 
+    (proj₂ $ proj₂ $ supremum s₁ (∨-list l₁)) (s₂ ∨ₛ (∨-list l₂)) s₁≤∨s₂l₂ ∨l₁≤∨s₂l₂ 
+    where
+      ∨l₁≤∨s₂l₂ : ∨-list l₁ ≤ₛ s₂ ∨ₛ ∨-list l₂
+      ∨l₁≤∨s₂l₂ = ∨-list-≤ l₁ (s₂ ∷ l₂) l₁≤s₂l₂
+
+      s₁≤∨s₂l₂ : s₁ ≤ₛ (s₂ ∨ₛ ∨-list l₂)
+      s₁≤∨s₂l₂ = ∨-list-≤-single s₁ (s₂ ∷ l₂) s₁≤s₂l₂
+
+{-
+  ∨-list-≤← : (l₁ : List Carrier) → (l₂ : List Carrier) → (∨-list l₁) ≤ₛ (∨-list l₂) → LL.All (λ · → (· ≈ₛ ⊥ₛ) ⊎ LA.Any (· ≤ₛ_) l₂) l₁
+  ∨-list-≤← [] l₂ ∨l₁≤∨l₂ = []
+  ∨-list-≤← (x ∷ l₁) [] ∨l₁≤∨l₂ = {!!}
+  ∨-list-≤← (x ∷ l₁) (x₁ ∷ l₂) ∨l₁≤∨l₂ = {!!}
+-}

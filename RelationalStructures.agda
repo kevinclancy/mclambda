@@ -37,6 +37,14 @@ record DeltaPoset {c ℓ⊑ ℓ< ℓ≈ : Level} : Set (Level.suc $ c ⊔ ℓ⊑
 
   module Eq = IsStrictTotalOrder.Eq isStrictTotalOrder
 
+  preorder : Preorder c ℓ≈ ℓ⊑
+  preorder = record
+    { Carrier = Carrier
+    ; _∼_ = _⊑_
+    ; _≈_ = _≈_
+    ; isPreorder = IsDecPartialOrder.isPreorder isDecPartialOrder
+    }
+
   strictTotalOrder : StrictTotalOrder c ℓ≈ ℓ<
   strictTotalOrder = record
     { Carrier = Carrier

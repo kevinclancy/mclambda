@@ -67,8 +67,13 @@ data _∣_⊢_∣_ where
            (Γ ∣ R₀ ⊢ e₀ ∣ τSum τ₁ τ₂) → (((τ₁ , τ₁-wf) ∷ Γ) ∣ (q₁ ∷ R₁) ⊢ e₁ ∣ τRes) → 
            (((τ₂ , τ₂-wf) ∷ Γ) ∣ (q₂ ∷ R₂) ⊢ e₂ ∣ τRes) →
            (Γ ∣ (((q₁ q+ q₂) qR∘ R₀) R+ (R₁ R+ R₂)) ⊢ Case e₀ e₁ e₂ ∣ τRes) 
-
  
+  TyHom : {n : ℕ} {Γ₀ : Vec wfτ n} {R₀ : Vec q n} {e₀ : e} {τ₁ τ₁' τ₂ τ₂' : τ} →
+          {τ₁⁂ : IsSemilat τ₁ τ₁'} → {τ₂⁂ : IsSemilat τ₂ τ₂'} → {wf-τ₁' : IsPoset τ₁'} → 
+          (((τ₁' , wf-τ₁') ∷ Γ₀) ∣ (qMono ∷ R₀) ⊢ e₀ ∣ τ₂) → 
+          (Γ₀ ∣ R₀ ⊢ e₀ ∣ (τFun τ₁ qMono τ₂))
+
+
 τRes-wf :  {n : ℕ} → {Γ₀ : Vec wfτ n} → {R₀ : Vec q n} → {e₀ : e} → {τRes : τ} → (Γ₀ ∣ R₀ ⊢ e₀ ∣ τRes) → (IsPoset τRes) 
 τRes-wf (TyBot {p = τRes-semilat}) = semilat→poset τRes-semilat
 τRes-wf (TyJoin {_} {_} {R₁} d1 d2) = τRes-wf d1
@@ -85,7 +90,9 @@ data _∣_⊢_∣_ where
 τRes-wf (TyProj2 d) | ProductPoset wf1 wf2 = wf2
 τRes-wf (TyInl {τR-wf = τR-wf} d) = SumPoset (τRes-wf d) τR-wf
 τRes-wf (TyInr {τL-wf = τL-wf} d) = SumPoset τL-wf (τRes-wf d)
-τRes-wf (TyCase _ d _) = τRes-wf d 
+τRes-wf (TyCase _ d _) = τRes-wf d
+τRes-wf (TyHom {τ₁⁂ = τ₁⁂} {τ₂⁂ = τ₂⁂} τ₁∷Γ@+∷R₀⊢e₀∣τ₂) = FunPoset (semilat→poset τ₁⁂) (semilat→poset τ₂⁂) 
+ 
 {-
 τRes-wf Γ₀ R₀ .(Inr _ _ _) .(τSum _ _) (TyInr zzz) = {!!}
 τRes-wf Γ₀ .(zipWith _q+_ (V.map (_q∘_ (_ q+ _)) _) (zipWith _q+_ _ _)) .(Case _ _ _) τRes (TyCase zzz zzz₁ zzz₂) = {!!}

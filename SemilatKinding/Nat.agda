@@ -24,6 +24,7 @@ open import Syntax
 open import Kinding
 open import Util
 open import SemDeltaPoset
+open import SemPoset
 open import FreeForgetfulAdjunction
 open import BoolPoset
 open import FinPoset
@@ -131,13 +132,13 @@ P = record
 |i| : (DeltaPoset.Carrier P) → (DeltaPoset.Carrier ⟦ NatDelta ⁑⟧)
 |i| (n , p) = n
 
-|i|-monotone : Monotone P ⟦ NatDelta ⁑⟧ |i|
+|i|-monotone : Monotone (DeltaPoset.preorder P) ⟦ delta→poset NatDelta ⁎⟧' |i|
 |i|-monotone {n , _} {n' , _} n⊑n' = n⊑n'
 
-|i|-monic : Injective (DeltaPoset.≈-setoid P) (DeltaPoset.≈-setoid ⟦ NatDelta ⁑⟧) |i|
+|i|-monic : Injective (DeltaPoset.≈-setoid P) (preorder→setoid ⟦ delta→poset NatDelta ⁎⟧') |i|
 |i|-monic {a , _} {a' , _} fa≈fa' = fa≈fa' 
 
-i : P ↣+ ⟦ NatDelta ⁑⟧
+i : (DeltaPoset.preorder P) ↣+ ⟦ delta→poset NatDelta ⁎⟧'
 i = (|i| , (λ {a} → λ {a'} → |i|-monotone {a} {a'}) , (λ {a} → λ {a'} → |i|-monic {a} {a'}))
 
 open DeltaPoset P

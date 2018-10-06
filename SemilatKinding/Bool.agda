@@ -26,6 +26,7 @@ open import SemDeltaPoset
 open import FreeForgetfulAdjunction
 open import BoolPoset
 open import FinPoset
+open import SemPoset
 
 lowerˡ : ∀ (a b : Bool) → a B≤ a B∨ b
 lowerˡ false false = ε
@@ -78,10 +79,10 @@ P = ⟦ UnitDelta ⁑⟧
 |i| : (DeltaPoset.Carrier P) → (DeltaPoset.Carrier ⟦ UnitDelta ⁑⟧)
 |i| tt = tt
 
-|i|-monotone : Monotone P ⟦ UnitDelta ⁑⟧ |i|
-|i|-monotone {tt} {tt} tt⊑tt = ε
+|i|-monotone : Monotone (DeltaPoset.preorder P) ⟦ delta→poset UnitDelta ⁎⟧' |i|
+|i|-monotone {tt} {tt} tt⊑tt = record {}
 
-|i|-monic : Injective (DeltaPoset.≈-setoid P) (DeltaPoset.≈-setoid ⟦ UnitDelta ⁑⟧) |i|
+|i|-monic : Injective (DeltaPoset.≈-setoid P) (preorder→setoid ⟦ delta→poset UnitDelta ⁎⟧') |i|
 |i|-monic {tt} {tt} _ = PE.refl 
 
 open DeltaPoset P

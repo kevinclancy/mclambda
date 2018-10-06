@@ -30,7 +30,7 @@ record SemSemilat (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Lev
     -- delta poset (freely generates S up-to-isomorphism)
     P : DeltaPoset {cₚ} {ℓ⊑ₚ} {ℓ<ₚ} {ℓ~ₚ}
     -- injection of τ₀ deltaPoset interpretation into P
-    i : P ↣+ ⟦ semilat→delta isSemilat ⁑⟧ 
+    i : (DeltaPoset.preorder P) ↣+ ⟦ delta→poset $ semilat→delta isSemilat ⁎⟧' 
     -- factorization into free semilattice
     f : S ⇉ FP P
     -- defactorization out of free semilattice

@@ -96,6 +96,12 @@ semilat→delta BoolSemilat = UnitDelta
 --  DiscreteProductDelta domIsToset (semilat→delta codIsSemilat) 
 semilat→delta (ProductSemilat isSemilatL isSemilatR) = 
   SumDelta (semilat→delta isSemilatL) (semilat→delta isSemilatR)
+
+delta→poset : {τ₀ : τ} → IsDeltaPoset τ₀ → IsPoset τ₀
+delta→poset UnitDelta = UnitPoset
+delta→poset NatDelta = NatPoset
+delta→poset (SumDelta deltaL deltaR) = SumPoset (delta→poset deltaL) (delta→poset deltaR) 
+
 --semilat→delta (IVarSemilat contentIsToset) = 
 --  DiscreteDelta contentIsToset
 --semilat→delta (PartialSemilat contentIsSemilat) = 

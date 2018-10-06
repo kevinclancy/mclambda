@@ -255,40 +255,40 @@ compareP = DeltaPoset.compare P
 _∥P_ : |P| → |P| → Set
 _∥P_ = DeltaPoset._∥_ P
 
-iL : (SemSemilat.P semSemilatL) ↣+ ⟦ semilat→delta isSemilatL ⁑⟧  
+iL : (DeltaPoset.preorder $ SemSemilat.P semSemilatL) ↣+ ⟦ delta→poset $ semilat→delta isSemilatL ⁎⟧'  
 iL = SemSemilat.i semSemilatL
 
-|iL| : DeltaPoset.Carrier (SemSemilat.P semSemilatL) → DeltaPoset.Carrier ⟦ semilat→delta isSemilatL ⁑⟧
+|iL| : DeltaPoset.Carrier (SemSemilat.P semSemilatL) → Preorder.Carrier ⟦ delta→poset $ semilat→delta isSemilatL ⁎⟧'
 |iL| = proj₁ iL
 
-iL-mono : Monotone (SemSemilat.P semSemilatL) ⟦ semilat→delta isSemilatL ⁑⟧ |iL|
+iL-mono : Monotone (DeltaPoset.preorder $ SemSemilat.P semSemilatL) ⟦ delta→poset $ semilat→delta isSemilatL ⁎⟧' |iL|
 iL-mono = proj₁ $ proj₂ iL
 
-iL-injective : Injective (DeltaPoset.≈-setoid deltaL) (DeltaPoset.≈-setoid $ ⟦ semilat→delta isSemilatL ⁑⟧) |iL|
+iL-injective : Injective (DeltaPoset.≈-setoid deltaL) (preorder→setoid ⟦ delta→poset $ semilat→delta isSemilatL ⁎⟧') |iL|
 iL-injective = proj₂ $ proj₂ iL
 
-iR : (SemSemilat.P semSemilatR) ↣+ ⟦ semilat→delta isSemilatR ⁑⟧ 
+iR : (DeltaPoset.preorder $ SemSemilat.P semSemilatR) ↣+ ⟦ delta→poset $ semilat→delta isSemilatR ⁎⟧' 
 iR = SemSemilat.i semSemilatR
 
-|iR| : DeltaPoset.Carrier (SemSemilat.P semSemilatR) → DeltaPoset.Carrier ⟦ semilat→delta isSemilatR ⁑⟧ 
+|iR| : DeltaPoset.Carrier (SemSemilat.P semSemilatR) → Preorder.Carrier ⟦ delta→poset $ semilat→delta isSemilatR ⁎⟧' 
 |iR| = proj₁ iR
 
-iR-mono : Monotone (SemSemilat.P semSemilatR) ⟦ semilat→delta isSemilatR ⁑⟧ |iR|
+iR-mono : Monotone (DeltaPoset.preorder $ SemSemilat.P semSemilatR) ⟦ delta→poset $ semilat→delta isSemilatR ⁎⟧' |iR|
 iR-mono = proj₁ $ proj₂ iR
 
-iR-injective : Injective (DeltaPoset.≈-setoid deltaR) (DeltaPoset.≈-setoid $ ⟦ semilat→delta isSemilatR ⁑⟧) |iR|
+iR-injective : Injective (DeltaPoset.≈-setoid deltaR) (preorder→setoid ⟦ delta→poset $ semilat→delta isSemilatR ⁎⟧') |iR|
 iR-injective = proj₂ $ proj₂ iR
 
-|i| : DeltaPoset.Carrier P → DeltaPoset.Carrier ⟦ semilat→delta $ ProductSemilat isSemilatL isSemilatR ⁑⟧ 
+|i| : DeltaPoset.Carrier P → Preorder.Carrier ⟦ delta→poset $ semilat→delta $ ProductSemilat isSemilatL isSemilatR ⁎⟧' 
 |i| = [_,_] (λ x → x |>′ |iL| |>′ inj₁) (λ x → x |>′ |iR| |>′ inj₂)
 
-|i|-mono : Monotone P ⟦ semilat→delta $ ProductSemilat isSemilatL isSemilatR ⁑⟧ |i|
+|i|-mono : Monotone (DeltaPoset.preorder P) ⟦ delta→poset $ semilat→delta $ ProductSemilat isSemilatL isSemilatR ⁎⟧' |i|
 |i|-mono {inj₁ a'} {inj₁ b'} (₁∼₁ a'⊑b') = ₁∼₁ $ iL-mono a'⊑b'
 |i|-mono {inj₁ a'} {inj₂ b'} (₁∼₂ ())
 |i|-mono {inj₂ a'} {inj₁ x} ()
 |i|-mono {inj₂ a'} {inj₂ b'} (₂∼₂ a'⊑b') = ₂∼₂ $ iR-mono a'⊑b'
 
-|i|-injective : Injective (DeltaPoset.≈-setoid P) (DeltaPoset.≈-setoid ⟦ semilat→delta $ ProductSemilat isSemilatL isSemilatR ⁑⟧) |i|
+|i|-injective : Injective (DeltaPoset.≈-setoid P) (preorder→setoid ⟦ delta→poset $ semilat→delta $ ProductSemilat isSemilatL isSemilatR ⁎⟧') |i|
 |i|-injective {inj₁ a'} {inj₁ b'} (₁∼₁ ia'≈ib') = ₁∼₁ $ iL-injective ia'≈ib'
 |i|-injective {inj₁ a'} {inj₂ b'} (₁∼₂ ())
 |i|-injective {inj₂ a'} {inj₁ b'} ()

@@ -5,11 +5,12 @@ open import Data.Product.Relation.Pointwise.NonDependent
 open import Data.Sum
 open import Data.Sum.Relation.Pointwise
 open import Relation.Binary hiding (_⇒_)
+open import Relation.Binary.Lattice
 open import Function as F using (_$_)
 open import Level
 
 open import Util
-
+open import RelationalStructures
 open Preorder
 
 record _⇒_ {p₁ p₂ p₃ p₄ p₅ p₆}
@@ -305,3 +306,59 @@ ev {A} {B} =
     monotone : (Preorder._∼_ (×-preorder (⇒-preorder A C) (⇒-preorder B C))) =[ fun ]⇒ (Preorder._∼_ (⇒-preorder preorder-A⊎B C))
     monotone {a⇒c₁ , b⇒c₁} {a⇒c₂ , b⇒c₂} (a⇒c₁≤a⇒c₂ , b⇒c₁≤b⇒c₂) {inj₁ a} = a⇒c₁≤a⇒c₂ {a}
     monotone {a⇒c₁ , b⇒c₁} {a⇒c₂ , b⇒c₂} (a⇒c₁≤a⇒c₂ , b⇒c₁≤b⇒c₂) {inj₂ b} = b⇒c₁≤b⇒c₂ {b}
+
+κ₁ : {P Q : Preorder l0 l0 l0} → P ⇒ (⊎-preorder P Q)
+κ₁ {P} {Q} =
+  record
+  { fun = fun
+  ; monotone = monotone
+  }
+  where
+    open Preorder
+    fun : (Carrier P) → (Carrier (⊎-preorder P Q))
+    fun p = inj₁ p
+
+    monotone : (_∼_ P) =[ fun ]⇒ (_∼_ (⊎-preorder P Q))
+    monotone {p₁} {p₂} p₁∼p₂ = ₁∼₁ p₁∼p₂
+
+κ₂ : {P Q : Preorder l0 l0 l0} → Q ⇒ (⊎-preorder P Q)
+κ₂ {P} {Q} =
+  record
+  { fun = fun
+  ; monotone = monotone
+  }
+  where
+    open Preorder
+    fun : (Carrier Q) → (Carrier (⊎-preorder P Q))
+    fun q = inj₂ q
+
+    monotone : (_∼_ Q) =[ fun ]⇒ (_∼_ (⊎-preorder P Q))
+    monotone {p₁} {p₂} p₁∼p₂ = ₂∼₂ p₁∼p₂
+
+precomp : {P Q R : Preorder l0 l0 l0} → (P ⇒ Q) → (⇒-preorder Q R) ⇒ (⇒-preorder P R)
+precomp {P} {Q} {R} (record {fun = p→q ; monotone = p→q-monotone}) =
+  record
+  { fun = fun
+  ; monotone = λ {f₁} {f₂} → monotone {f₁} {f₂}
+  }
+  where
+    open Preorder
+    |P| = Carrier P
+    |Q| = Carrier Q
+    |R| = Carrier R
+    
+    fun : (Q ⇒ R) → (P ⇒ R)
+    fun (record {fun = q→r ; monotone = q→r-monotone}) =
+      record
+      { fun = p→r
+      ; monotone = p→r-monotone
+      }
+      where
+        p→r : |P| → |R|
+        p→r p = q→r (p→q p)
+
+        p→r-monotone : (_∼_ P) =[ p→r ]⇒ (_∼_ R)
+        p→r-monotone {p₁} {p₂} p₁≤p₂ = q→r-monotone (p→q-monotone p₁≤p₂) 
+
+    monotone : (_∼_ $ ⇒-preorder Q R) =[ fun ]⇒ (_∼_ $ ⇒-preorder P R)
+    monotone {f₁} {f₂} f₁≤f₂ {p} = f₁≤f₂

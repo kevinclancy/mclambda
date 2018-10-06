@@ -1,5 +1,5 @@
 
-module SemSemilat where
+module SemSemilatKinding where
 
 open import Syntax
 open import Kinding
