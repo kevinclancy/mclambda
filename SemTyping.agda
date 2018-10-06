@@ -405,9 +405,11 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
     ⟦Γ₀∣R₀⟧⇒⟦τR⟧ : ⟦ Γ₀ Γ∣ R₀ R⟧ ⇒ ⟦ τR-wf ⁎⟧' 
     ⟦Γ₀∣R₀⟧⇒⟦τR⟧ = ⟦_⊢⟧ {τ₀-wf = τR-wf} Γ₀∣R₀⊢e∣τR 
 
-⟦_⊢⟧ {τ₀-wf = _} (TyHom {n} {Γ₀} {R₀} {e₀} {τ₁} {τ₁'} {τ₂} {τ₂'} {τ₁⁂} {τ₂⁂} {τ₁'-wf} τ₁'∷Γ∣+∷R₀⊢e₀∣τ₂) =
-  {!!}
+⟦_⊢⟧ {τ₀-wf = FunPoset τ₁-wf τ₂-wf} 
+     (TyHom {n} {Γ₀} {R₀} {e₀} {τ₁} {τ₁'} {τ₂} {τ₂'} {τ₁⁂} {τ₂⁂} {τ₁'-wf} τ₁'∷Γ∣+∷R₀⊢e₀∣τ₂) =
+  ⟦Γ∣R₀⟧⇒⟦P⇒S⟧ >> (♯ P₁ S₂) >> precomp-f 
   where
+    open import Relation.Binary.Lattice
     open import SemSemilatKinding
     open import RelationalStructures
     open import FreeForgetfulAdjunction
@@ -415,22 +417,37 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
     semilat₁ : SemSemilat _ _ _ _ _ _ _ τ₁⁂
     semilat₁ = ⟦ τ₁⁂ ⁂⟧
 
-    open SemSemilat semilat₁ renaming (P to P₁ ; i to i₁)
+    semilat₂ : SemSemilat _ _ _ _ _ _ _ τ₂⁂
+    semilat₂ = ⟦ τ₂⁂ ⁂⟧ 
 
-    τ₁-wf : IsPoset τ₁
-    τ₁-wf = semilat→poset τ₁⁂
+    open SemSemilat semilat₂ renaming (S to S₂ ; US to US₂)
+    open SemSemilat semilat₁ renaming (P to P₁ ; i to i₁ ; f to f₁ ; g to g₁ ; US to US₁ ; S to S₁)
+    open import FreeSemilattice P₁ renaming (preorder to FP₁' ; FP-BJS to FP₁-BJS) 
+    open BoundedJoinSemilattice S₂ renaming (preorder to S₂')
+
+    τ₁-wf' : IsPoset τ₁
+    τ₁-wf' = semilat→poset τ₁⁂
 
     τ₁'-wf' : IsPoset τ₁'
     τ₁'-wf' = delta→poset (semilat→delta τ₁⁂)
 
-    τ₂-wf : IsPoset τ₂
-    τ₂-wf = semilat→poset τ₂⁂
+    τ₂-wf' : IsPoset τ₂
+    τ₂-wf' = semilat→poset τ₂⁂
+
+    τ₂-wf≡τ₂-wf' : τ₂-wf ≡ τ₂-wf' 
+    τ₂-wf≡τ₂-wf' = isPosetUnique τ₂-wf τ₂-wf'
+
+    τ₁-wf≡τ₁-wf' : τ₁-wf ≡ τ₁-wf'
+    τ₁-wf≡τ₁-wf' = isPosetUnique τ₁-wf τ₁-wf'
 
     τ₁'-wf≡t₁'-wf' : τ₁'-wf ≡ τ₁'-wf'
     τ₁'-wf≡t₁'-wf' = isPosetUnique τ₁'-wf τ₁'-wf'
     
-    ⟦Γ∣R₀⊢e₀∣τ₁'⇒τ₂⟧ : ⟦ Γ₀ Γ∣ R₀ R⟧ ⇒ (⇒-preorder ⟦ τ₁'-wf' ⁎⟧' ⟦ τ₂-wf ⁎⟧') 
-    ⟦Γ∣R₀⊢e₀∣τ₁'⇒τ₂⟧ rewrite τ₁'-wf≡t₁'-wf' = Λ (⟦_⊢⟧ {τ₀-wf = τ₂-wf} τ₁'∷Γ∣+∷R₀⊢e₀∣τ₂)
+    ⟦Γ∣R₀⟧⇒⟦τ₁'⇒τ₂⟧ : ⟦ Γ₀ Γ∣ R₀ R⟧ ⇒ (⇒-preorder ⟦ τ₁'-wf' ⁎⟧' ⟦ τ₂-wf ⁎⟧') 
+    ⟦Γ∣R₀⟧⇒⟦τ₁'⇒τ₂⟧ rewrite τ₁'-wf≡t₁'-wf' = Λ (⟦_⊢⟧ {τ₀-wf = τ₂-wf} τ₁'∷Γ∣+∷R₀⊢e₀∣τ₂)
 
-    ⟦Γ∣R₀⊢e₀∣P⇒τ₂⟧ : ⟦ Γ₀ Γ∣ R₀ R⟧ ⇒ (⇒-preorder (DeltaPoset.preorder P₁) ⟦ τ₂-wf ⁎⟧')
-    ⟦Γ∣R₀⊢e₀∣P⇒τ₂⟧ = ⟦Γ∣R₀⊢e₀∣τ₁'⇒τ₂⟧ >> precomp (↣+-to-⇒ i₁)
+    precomp-f : (⇒-preorder FP₁' S₂') ⇒ (⇒-preorder ⟦ τ₁-wf ⁎⟧' ⟦ τ₂-wf ⁎⟧')   
+    precomp-f rewrite τ₁-wf≡τ₁-wf' | τ₂-wf≡τ₂-wf' | US₂ | (PE.sym US₁) = precomp ((⇉-to-⇒ {S = S₁} {T = FP₁-BJS} f₁))
+
+    ⟦Γ∣R₀⟧⇒⟦P⇒S⟧ : ⟦ Γ₀ Γ∣ R₀ R⟧ ⇒ (⇒-preorder (DeltaPoset.preorder P₁) (BoundedJoinSemilattice.preorder S₂))
+    ⟦Γ∣R₀⟧⇒⟦P⇒S⟧ rewrite US₂ | PE.sym τ₂-wf≡τ₂-wf' = ⟦Γ∣R₀⟧⇒⟦τ₁'⇒τ₂⟧ >> precomp (↣+-to-⇒ i₁)

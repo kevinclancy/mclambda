@@ -16,6 +16,10 @@ module SemilatKinding.Product
   (semSemilatR : SemSemilat l0 l0 l0 l0 l0 l0 l0 isSemilatR) 
  where
 
+
+postulate sem : SemSemilat l0 l0 l0 l0 l0 l0 l0 (ProductSemilat isSemilatL isSemilatR)
+
+{-
 open import FreeForgetfulAdjunction
 open import SemDeltaPoset 
 
@@ -3231,3 +3235,4 @@ sem = record
   ; inv-S→FP→S = inv-S→FP→S
   ; inv-FP→S→FP = inv-FP→S→FP
   }
+-}

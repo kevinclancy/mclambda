@@ -7,7 +7,7 @@ open import Function using (_$_)
 open import Relation.Nullary
 open import Relation.Binary
 open import Relation.Binary.Lattice
-open import Relation.Binary.PropositionalEquality as PE
+open import Relation.Binary.PropositionalEquality as PE hiding (preorder)
 open import Level renaming (_⊔_ to _v_) 
 open import Function.Equivalence as FE
 open import Algebra.FunctionProperties
@@ -42,6 +42,9 @@ FP-JS = record
     { isPartialOrder = IsJoinSemilattice.isPartialOrder (BoundedJoinSemilattice.isJoinSemilattice FP-BJS)
     ; supremum = BoundedJoinSemilattice.supremum FP-BJS }
   }
+
+preorder : Preorder _ _ _
+preorder = BoundedJoinSemilattice.preorder FP-BJS
 
 open import Relation.Binary.Properties.BoundedJoinSemilattice FP-BJS
 open import Relation.Binary.Properties.JoinSemilattice FP-JS renaming (∨-assoc to ∨-assoc' ; ∨-comm to ∨-comm')

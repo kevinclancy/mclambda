@@ -98,10 +98,10 @@ FP P = FP-BJS
     open import FreeSemilattice.Semilattice P
 
 ⇉-mono : ∀ {c ℓ₁ ℓ₂ c' ℓ₁' ℓ₂'} → {S : BoundedJoinSemilattice c ℓ₁ ℓ₂} → {T : BoundedJoinSemilattice c' ℓ₁' ℓ₂'} → 
-          (h : S ⇉ T) → (a b : BoundedJoinSemilattice.Carrier S) → (BoundedJoinSemilattice._≤_ S a b) → 
+          (h : S ⇉ T) → {a b : BoundedJoinSemilattice.Carrier S} → (BoundedJoinSemilattice._≤_ S a b) → 
           (BoundedJoinSemilattice._≤_ T (proj₁ h $ a) (proj₁ h $ b))
 
-⇉-mono {S = S} {T = T} h a b a≤b =
+⇉-mono {S = S} {T = T} h {a} {b} a≤b =
   begin
     (|h| a) ≈⟨ PT.Eq.sym $ P-BJT.identityʳ $ |h| a ⟩
     (|h| a) ∨T ⊥T ≤⟨ P-JT.∨-monotonic (PT.reflexive PT.Eq.refl) (BJT.minimum $ |h| b)  ⟩
@@ -130,263 +130,251 @@ FP P = FP-BJS
     ⊥T = BoundedJoinSemilattice.⊥ T
   
 
-_♯ : {P : DeltaPoset {l0} {l0} {l0}} → {S : BoundedJoinSemilattice l0 l0 l0} → 
-      _⇒_ {l0} {l0} (DeltaPoset.preorder P) (BoundedJoinSemilattice.preorder S) → 
-      _⇒_ {l0} (BoundedJoinSemilattice.preorder (FP P))  (BoundedJoinSemilattice.preorder S)
-_♯ {P} {S} P⇒S = 
+⇉-to-⇒ : ∀ {c ℓ₁ ℓ₂ c' ℓ₁' ℓ₂'} → {S : BoundedJoinSemilattice c ℓ₁ ℓ₂} → {T : BoundedJoinSemilattice c' ℓ₁' ℓ₂'} → 
+          (h : S ⇉ T) → (BoundedJoinSemilattice.preorder S) ⇒ (BoundedJoinSemilattice.preorder T)
+⇉-to-⇒ {S = S} {T = T} h = 
   record
-  { fun = f
-  ; monotone = λ {a₁} {a₂} → f-mono {a₁} {a₂}
+  { fun = proj₁ h
+  ; monotone = λ {x} {y} → ⇉-mono {S = S} {T = T} h {x} {y}
+  }
+
+♯ : (P : DeltaPoset {l0} {l0} {l0}) → (S : BoundedJoinSemilattice l0 l0 l0) → 
+      _⇒_ {l0} {l0} (⇒-preorder (DeltaPoset.preorder P) (BoundedJoinSemilattice.preorder S))
+      (⇒-preorder (BoundedJoinSemilattice.preorder (FP P))  (BoundedJoinSemilattice.preorder S))
+♯ P S = 
+  record
+  { fun = fun
+  ; monotone = λ {x} {y} → fun-mono {x} {y}
   }
   where
     open import Data.List renaming (map to mapList)
-    open import Relation.Binary
+    open import Relation.Binary hiding (_⇒_)
     open import Relation.Binary.Lattice
     open import Relation.Binary.Properties.JoinSemilattice
     open import Relation.Binary.Properties.BoundedJoinSemilattice
     open DeltaPoset P renaming (Carrier to |P| ; _⊑_ to _⊑ₚ_ ; reflexive to ⊑ₚ-reflexive ; sym≈ to ≈ₚ-sym ; 
-                                 reflexive≈ to ≈ₚ-reflexive ; _≈_ to _≈ₚ_ ; ≈-setoid to ≈ₚ-setoid )
+                                 refl≈ to ≈ₚ-refl ;  
+                                 reflexive≈ to ≈ₚ-reflexive ; _≈_ to _≈ₚ_ ; ≈-setoid to ≈ₚ-setoid ;
+                                 preorder to ⊑ₚ-preorder ; refl⊑ to ⊑ₚ-refl)
     open import FreeSemilattice P renaming (
-      SemilatCarrier to |A| ; _≈_ to _≈ₐ_ ; _≤_ to _≤ₐ_ ; ⊥ to ⊥ₐ ; _∨_ to _∨ₐ_ ; ∨-assoc to ∨-assocₐ ;
-      ∨-comm to ∨-commₐ ; FP-setoid to ≈ₐ-setoid ; ≈-refl to ≈ₐ-refl ; ≈-reflexive to ≈ₐ-reflexive)
+      SemilatCarrier to |A| ; FP-BJS to A ; _≈_ to _≈ₐ_ ; _≤_ to _≤ₐ_ ; ⊥ to ⊥ₐ ; _∨_ to _∨ₐ_ ; ∨-assoc to ∨-assocₐ ;
+      ∨-comm to ∨-commₐ ; FP-setoid to ≈ₐ-setoid ; ≈-refl to ≈ₐ-refl ; ≈-reflexive to ≈ₐ-reflexive ;
+      preorder to ≤ₐ-preorder )
     open BoundedJoinSemilattice S renaming 
       (Carrier to |S| ; _≈_ to _≈ₛ_ ; refl to ≤ₛ-refl ; _≤_ to _≤ₛ_ ; reflexive to ≤ₛ-reflexive ; antisym to ≤ₛ-antisym ; 
        trans to ≤ₛ-trans ; preorder to ≤ₛ-preorder  ; 
-       joinSemiLattice to joinSemilatticeₛ ; ⊥ to ⊥ₛ ; _∨_ to _∨ₛ_ ; poset to posetₛ)
+       joinSemiLattice to joinSemilatticeₛ ; ⊥ to ⊥ₛ ; _∨_ to _∨ₛ_ ; poset to posetₛ )
     open BoundedJoinSemilattice.Eq S renaming (sym to ≈ₛ-sym ; refl to ≈ₛ-refl ; reflexive to ≈ₛ-reflexive)
     open import Data.List.Relation.Pointwise
+
 
     ≈ₛ-setoid : Setoid _ _
     ≈ₛ-setoid = preorder→setoid $ BoundedJoinSemilattice.preorder S
 
-    g = _⇒_.fun P⇒S
-    g-mono = _⇒_.monotone P⇒S
-    g-pres : g Preserves _≈ₚ_ ⟶ _≈ₛ_
+    fun-aux : (⊑ₚ-preorder ⇒ ≤ₛ-preorder) → (A ⇉ S)  
     --[[[
-    g-pres {p₁} {p₂} p₁≈p₂ = ≤ₛ-antisym (g-mono p₁⊑p₂) (g-mono p₂⊑p₁)
+    fun-aux (record { fun = g ; monotone = g-mono }) =
+      f , f-≈ , f-⊥ , f-∨
       where
-        p₁⊑p₂ : p₁ ⊑ₚ p₂
-        p₁⊑p₂ = ⊑ₚ-reflexive p₁≈p₂
-        
-        p₂⊑p₁ : p₂ ⊑ₚ p₁
-        p₂⊑p₁ = ⊑ₚ-reflexive (≈ₚ-sym p₁≈p₂)
-    --]]]
-    f : |A| → |S|
-    f (ds , f) = ∨-list {S} (mapList g ds)
-
-    f-≈ : ∀ (a1 a2 : |A|) → a1 ≈ₐ a2 → (f a1) ≈ₛ (f a2)
-    --[[[
-    f-≈ ([] , f1) ([] , f2) a₁≈a₂ = BoundedJoinSemilattice.Eq.refl S
-    f-≈ ([] , f1) (p₂ ∷ l₂ , f2) ()
-    f-≈ (p₁ ∷ l₁ , f1) ([] , f2) ()
-    f-≈ (p₁ ∷ l₁ , ∷-Free _ _ _ _ f₁') (p₂ ∷ l₂ , ∷-Free _ _ _ _ f₂') (p₁≈p₂ ∷ l₁≈l₂) =
-      ≤ₛ-antisym (∨-monotonic joinSemilatticeₛ gp₁≤gp₂ $ ≤ₛ-reflexive r) 
-                (∨-monotonic joinSemilatticeₛ gp₂≤gp₁ $ ≤ₛ-reflexive $ BoundedJoinSemilattice.Eq.sym S r) 
-      where
-        gp₁≤gp₂ : g p₁ ≤ₛ g p₂
-        gp₁≤gp₂ = g-mono (⊑ₚ-reflexive p₁≈p₂)
-
-        gp₂≤gp₁ : g p₂ ≤ₛ g p₁
-        gp₂≤gp₁ = g-mono (⊑ₚ-reflexive (≈ₚ-sym p₁≈p₂))
-
-        r : f (l₁ , f₁') ≈ₛ f (l₂ , f₂')
-        r = f-≈ (l₁ , f₁') (l₂ , f₂') l₁≈l₂  
-    --]]]
-
-    f-⊥ : (f ⊥ₐ) ≈ₛ ⊥ₛ
-    f-⊥ = BoundedJoinSemilattice.Eq.refl S
-
-    f-mono : ∀ {a₁ a₂ : |A|} → a₁ ≤ₐ a₂ → (f a₁) ≤ₛ (f a₂)
-    --[[[
-    f-mono {.[] , _} {a₂} [] = minimum (f a₂)
-    f-mono {p₁ ∷ l₁ , ∷-Free _ _ _ _ f₁'} {a₂} (p₁≤a₂ ∷ l₁≤a₂) = 
-      (proj₂ $ proj₂ $ supremum (g p₁) (f $ l₁ , f₁')) (f a₂) gp₁≤fa₂ fl₁≤fa₂  
-      where
-        fl₁≤fa₂ : (f $ l₁ , f₁') ≤ₛ (f a₂)
-        fl₁≤fa₂ = f-mono {l₁ , f₁'} {a₂} l₁≤a₂
-
-        gp₁≤fa₂ : (g p₁) ≤ₛ (f a₂)
-        gp₁≤fa₂ = anyEliminate (proj₁ a₂) elim p₁≤a₂
-          where
-            elim : AnyEliminator {ℓQ = l0} |P| (g p₁ ≤ₛ f a₂) (p₁ ⊑ₚ_) (proj₁ a₂)
-            elim z _ p₁⊑z z∈a₂ = ≤ₛ-trans (g-mono p₁⊑z) gz≤fa₂
-              where
-                open import Data.List.Membership.Propositional.Properties
-                gz≤fa₂ : (g z) ≤ₛ (f a₂)
-                gz≤fa₂ = LA.lookup {A = |S|} {P = _≤ₛ (f a₂)} 
-                                   (∨-list-upper {S} (mapList g (proj₁ a₂))) 
-                                   (∈-map⁺ z∈a₂)
-    --]]]
-
-    f-∨ : ∀ (a₁ a₂ : |A|) → f (a₁ ∨ₐ a₂) ≈ₛ (f a₁) ∨ₛ (f a₂)
-    --[[[
-    f-∨ a₁ a₂ = ≤ₛ-antisym f-a₁∨a₂≤fa₁∨fa₂ fa₁∨fa₂≤f-a₁∨a₂
-      where
-        f-a₁∨a₂≤fa₁∨fa₂ : f (a₁ ∨ₐ a₂) ≤ₛ (f a₁) ∨ₛ (f a₂)
+        g-pres : g Preserves _≈ₚ_ ⟶ _≈ₛ_
         --[[[
-        f-a₁∨a₂≤fa₁∨fa₂ = 
-          begin
-            f (a₁ ∨ₐ a₂) 
-              ≤⟨ ∨-list-≤ {S} (mapList g (proj₁ $ a₁ ∨ₐ a₂)) ((f a₁) ∷ (f a₂) ∷ []) p ⟩ 
-            ∨-list {S} ((f a₁) ∷ (f a₂) ∷ []) 
-              ≈⟨ ≈ₛ-sym $ ∨-to-list {S} (f a₁) (f a₂) ⟩ 
-            (f a₁) ∨ₛ (f a₂)
-           ∎
+        g-pres {p₁} {p₂} p₁≈p₂ = ≤ₛ-antisym (g-mono p₁⊑p₂) (g-mono p₂⊑p₁)
           where
-            open import Relation.Binary.Lattice
-            open import Relation.Binary.PartialOrderReasoning (BoundedJoinSemilattice.poset S)
-            open import Data.List.Membership.Setoid.Properties
+            p₁⊑p₂ : p₁ ⊑ₚ p₂
+            p₁⊑p₂ = ⊑ₚ-reflexive p₁≈p₂
 
-            open import Data.List.Membership.Setoid ≈ₛ-setoid renaming (_∈_ to _∈ₛ_)
+            p₂⊑p₁ : p₂ ⊑ₚ p₁
+            p₂⊑p₁ = ⊑ₚ-reflexive (≈ₚ-sym p₁≈p₂)
+        --]]]
+        f : |A| → |S|
+        f (ds , f) = ∨-list {S} (mapList g ds)
 
-            q : {v : |S|} → (v ∈≡ (mapList g (proj₁ (a₁ ∨ₐ a₂)))) → Any (v ≤ₛ_) (f a₁ ∷ f a₂ ∷ [])
+        f-≈ : ∀ (a1 a2 : |A|) → a1 ≈ₐ a2 → (f a1) ≈ₛ (f a2)
+        --[[[
+        f-≈ ([] , f1) ([] , f2) a₁≈a₂ = BoundedJoinSemilattice.Eq.refl S
+        f-≈ ([] , f1) (p₂ ∷ l₂ , f2) ()
+        f-≈ (p₁ ∷ l₁ , f1) ([] , f2) ()
+        f-≈ (p₁ ∷ l₁ , ∷-Free _ _ _ _ f₁') (p₂ ∷ l₂ , ∷-Free _ _ _ _ f₂') (p₁≈p₂ ∷ l₁≈l₂) =
+          ≤ₛ-antisym (∨-monotonic joinSemilatticeₛ gp₁≤gp₂ $ ≤ₛ-reflexive r) 
+                    (∨-monotonic joinSemilatticeₛ gp₂≤gp₁ $ ≤ₛ-reflexive $ BoundedJoinSemilattice.Eq.sym S r) 
+          where
+            gp₁≤gp₂ : g p₁ ≤ₛ g p₂
+            gp₁≤gp₂ = g-mono (⊑ₚ-reflexive p₁≈p₂)
+
+            gp₂≤gp₁ : g p₂ ≤ₛ g p₁
+            gp₂≤gp₁ = g-mono (⊑ₚ-reflexive (≈ₚ-sym p₁≈p₂))
+
+            r : f (l₁ , f₁') ≈ₛ f (l₂ , f₂')
+            r = f-≈ (l₁ , f₁') (l₂ , f₂') l₁≈l₂  
+        --]]]
+
+        f-⊥ : (f ⊥ₐ) ≈ₛ ⊥ₛ
+        f-⊥ = BoundedJoinSemilattice.Eq.refl S
+
+        f-mono : ∀ {a₁ a₂ : |A|} → a₁ ≤ₐ a₂ → (f a₁) ≤ₛ (f a₂)
+        --[[[
+        f-mono {.[] , _} {a₂} [] = minimum (f a₂)
+        f-mono {p₁ ∷ l₁ , ∷-Free _ _ _ _ f₁'} {a₂} (p₁≤a₂ ∷ l₁≤a₂) = 
+          (proj₂ $ proj₂ $ supremum (g p₁) (f $ l₁ , f₁')) (f a₂) gp₁≤fa₂ fl₁≤fa₂  
+          where
+            fl₁≤fa₂ : (f $ l₁ , f₁') ≤ₛ (f a₂)
+            fl₁≤fa₂ = f-mono {l₁ , f₁'} {a₂} l₁≤a₂
+
+            gp₁≤fa₂ : (g p₁) ≤ₛ (f a₂)
+            gp₁≤fa₂ = anyEliminate (proj₁ a₂) elim p₁≤a₂
+              where
+                elim : AnyEliminator {ℓQ = l0} |P| (g p₁ ≤ₛ f a₂) (p₁ ⊑ₚ_) (proj₁ a₂)
+                elim z _ p₁⊑z z∈a₂ = ≤ₛ-trans (g-mono p₁⊑z) gz≤fa₂
+                  where
+                    open import Data.List.Membership.Propositional.Properties
+                    gz≤fa₂ : (g z) ≤ₛ (f a₂)
+                    gz≤fa₂ = LA.lookup {A = |S|} {P = _≤ₛ (f a₂)} 
+                                       (∨-list-upper {S} (mapList g (proj₁ a₂))) 
+                                       (∈-map⁺ z∈a₂)
+        --]]]
+
+        f-∨ : ∀ (a₁ a₂ : |A|) → f (a₁ ∨ₐ a₂) ≈ₛ (f a₁) ∨ₛ (f a₂)
+        --[[[
+        f-∨ a₁ a₂ = ≤ₛ-antisym f-a₁∨a₂≤fa₁∨fa₂ fa₁∨fa₂≤f-a₁∨a₂
+          where
+            f-a₁∨a₂≤fa₁∨fa₂ : f (a₁ ∨ₐ a₂) ≤ₛ (f a₁) ∨ₛ (f a₂)
             --[[[
-            q {v} v∈≡g-a₁∨a₂ with ∈-map⁻ ≈ₚ-setoid ≈ₛ-setoid (LAny.map ≈ₛ-reflexive v∈≡g-a₁∨a₂)
-            q {v} v∈≡g-a₁∨a₂ | (p , p∈a₁∨a₂ , v≡gp) with (to ⟨$⟩ p∈a₁∨a₂)
+            f-a₁∨a₂≤fa₁∨fa₂ = 
+              begin
+                f (a₁ ∨ₐ a₂) 
+                  ≤⟨ ∨-list-≤ {S} (mapList g (proj₁ $ a₁ ∨ₐ a₂)) ((f a₁) ∷ (f a₂) ∷ []) p ⟩ 
+                ∨-list {S} ((f a₁) ∷ (f a₂) ∷ []) 
+                  ≈⟨ ≈ₛ-sym $ ∨-to-list {S} (f a₁) (f a₂) ⟩ 
+                (f a₁) ∨ₛ (f a₂)
+               ∎
               where
-                open Equivalence (x∈∨⇔P∨ a₁ a₂ (a₁ ∨ₐ a₂) (≈ₐ-refl {a₁ ∨ₐ a₂}) p)
-            q {v} v∈≡g-a₁∨a₂ | p , p∈a₁∨a₂ , v≈gp | inj₁ (p∈a₁ , ¬p⊑a₂) =
-              here (Preorder.∼-respˡ-≈ ≤ₛ-preorder (≈ₛ-sym v≈gp) gp≤fa₁)
-              where
-                gp∈ga₁ : (g p) ∈ₛ (mapList g $ proj₁ a₁)
-                gp∈ga₁ = ∈-map⁺ ≈ₚ-setoid ≈ₛ-setoid {f = g} g-pres p∈a₁
+                open import Relation.Binary.Lattice
+                open import Relation.Binary.PartialOrderReasoning (BoundedJoinSemilattice.poset S)
+                open import Data.List.Membership.Setoid.Properties
 
-                gp≤ga₁ : Any ((g p) ≤ₛ_) (mapList g $ proj₁ a₁)
-                gp≤ga₁ = LAny.map ≤ₛ-reflexive gp∈ga₁
+                open import Data.List.Membership.Setoid ≈ₛ-setoid renaming (_∈_ to _∈ₛ_)
 
-                gp≤fa₁ : (g p) ≤ₛ (f a₁) 
-                gp≤fa₁ = anyEliminate (mapList g $ proj₁ a₁) elim gp≤ga₁
+                q : {v : |S|} → (v ∈≡ (mapList g (proj₁ (a₁ ∨ₐ a₂)))) → Any (v ≤ₛ_) (f a₁ ∷ f a₂ ∷ [])
+                --[[[
+                q {v} v∈≡g-a₁∨a₂ with ∈-map⁻ ≈ₚ-setoid ≈ₛ-setoid (LAny.map ≈ₛ-reflexive v∈≡g-a₁∨a₂)
+                q {v} v∈≡g-a₁∨a₂ | (p , p∈a₁∨a₂ , v≡gp) with (to ⟨$⟩ p∈a₁∨a₂)
                   where
-                    elim : AnyEliminator {ℓQ = l0} |S| ((g p) ≤ₛ (f a₁)) ((g p) ≤ₛ_) (mapList g $ proj₁ a₁)
-                    elim z f gp≤z z∈≡ga₁ = ≤ₛ-trans gp≤z (LA.lookup (∨-list-upper {S} (mapList g $ proj₁ a₁)) z∈≡ga₁)
-
-            q {v} v∈≡g-a₁∨a₂ | p , p∈a₁∨a₂ , v≈gp | inj₂ (inj₁ (p∈a₂ , ¬p⊑a₁)) = 
-              there $ here (Preorder.∼-respˡ-≈ ≤ₛ-preorder (≈ₛ-sym v≈gp) gp≤fa₂)
-              where
-                gp∈ga₂ : (g p) ∈ₛ (mapList g $ proj₁ a₂)
-                gp∈ga₂ = ∈-map⁺ ≈ₚ-setoid ≈ₛ-setoid {f = g} g-pres p∈a₂
-
-                gp≤ga₂ : Any ((g p) ≤ₛ_) (mapList g $ proj₁ a₂)
-                gp≤ga₂ = LAny.map ≤ₛ-reflexive gp∈ga₂
-
-                gp≤fa₂ : (g p) ≤ₛ (f a₂) 
-                gp≤fa₂ = anyEliminate (mapList g $ proj₁ a₂) elim gp≤ga₂
+                    open Equivalence (x∈∨⇔P∨ a₁ a₂ (a₁ ∨ₐ a₂) (≈ₐ-refl {a₁ ∨ₐ a₂}) p)
+                q {v} v∈≡g-a₁∨a₂ | p , p∈a₁∨a₂ , v≈gp | inj₁ (p∈a₁ , ¬p⊑a₂) =
+                  here (Preorder.∼-respˡ-≈ ≤ₛ-preorder (≈ₛ-sym v≈gp) gp≤fa₁)
                   where
-                    elim : AnyEliminator {ℓQ = l0} |S| ((g p) ≤ₛ (f a₂)) ((g p) ≤ₛ_) (mapList g $ proj₁ a₂)
-                    elim z f gp≤z z∈≡ga₂ = ≤ₛ-trans gp≤z (LA.lookup (∨-list-upper {S} (mapList g $ proj₁ a₂)) z∈≡ga₂)
-            q {v} v∈≡g-a₁∨a₂ | p , p∈a₁∨a₂ , v≈gp | inj₂ (inj₂ (p∈a₁ , p∈a₂)) =
-              here (Preorder.∼-respˡ-≈ ≤ₛ-preorder (≈ₛ-sym v≈gp) gp≤fa₁)
-              where
-                gp∈ga₁ : (g p) ∈ₛ (mapList g $ proj₁ a₁)
-                gp∈ga₁ = ∈-map⁺ ≈ₚ-setoid ≈ₛ-setoid {f = g} g-pres p∈a₁
+                    gp∈ga₁ : (g p) ∈ₛ (mapList g $ proj₁ a₁)
+                    gp∈ga₁ = ∈-map⁺ ≈ₚ-setoid ≈ₛ-setoid {f = g} g-pres p∈a₁
 
-                gp≤ga₁ : Any ((g p) ≤ₛ_) (mapList g $ proj₁ a₁)
-                gp≤ga₁ = LAny.map ≤ₛ-reflexive gp∈ga₁
+                    gp≤ga₁ : Any ((g p) ≤ₛ_) (mapList g $ proj₁ a₁)
+                    gp≤ga₁ = LAny.map ≤ₛ-reflexive gp∈ga₁
 
-                gp≤fa₁ : (g p) ≤ₛ (f a₁) 
-                gp≤fa₁ = anyEliminate (mapList g $ proj₁ a₁) elim gp≤ga₁
+                    gp≤fa₁ : (g p) ≤ₛ (f a₁) 
+                    gp≤fa₁ = anyEliminate (mapList g $ proj₁ a₁) elim gp≤ga₁
+                      where
+                        elim : AnyEliminator {ℓQ = l0} |S| ((g p) ≤ₛ (f a₁)) ((g p) ≤ₛ_) (mapList g $ proj₁ a₁)
+                        elim z f gp≤z z∈≡ga₁ = ≤ₛ-trans gp≤z (LA.lookup (∨-list-upper {S} (mapList g $ proj₁ a₁)) z∈≡ga₁)
+
+                q {v} v∈≡g-a₁∨a₂ | p , p∈a₁∨a₂ , v≈gp | inj₂ (inj₁ (p∈a₂ , ¬p⊑a₁)) = 
+                  there $ here (Preorder.∼-respˡ-≈ ≤ₛ-preorder (≈ₛ-sym v≈gp) gp≤fa₂)
                   where
-                    elim : AnyEliminator {ℓQ = l0} |S| ((g p) ≤ₛ (f a₁)) ((g p) ≤ₛ_) (mapList g $ proj₁ a₁)
-                    elim z f gp≤z z∈≡ga₁ = ≤ₛ-trans gp≤z (LA.lookup (∨-list-upper {S} (mapList g $ proj₁ a₁)) z∈≡ga₁)
+                    gp∈ga₂ : (g p) ∈ₛ (mapList g $ proj₁ a₂)
+                    gp∈ga₂ = ∈-map⁺ ≈ₚ-setoid ≈ₛ-setoid {f = g} g-pres p∈a₂
+
+                    gp≤ga₂ : Any ((g p) ≤ₛ_) (mapList g $ proj₁ a₂)
+                    gp≤ga₂ = LAny.map ≤ₛ-reflexive gp∈ga₂
+
+                    gp≤fa₂ : (g p) ≤ₛ (f a₂) 
+                    gp≤fa₂ = anyEliminate (mapList g $ proj₁ a₂) elim gp≤ga₂
+                      where
+                        elim : AnyEliminator {ℓQ = l0} |S| ((g p) ≤ₛ (f a₂)) ((g p) ≤ₛ_) (mapList g $ proj₁ a₂)
+                        elim z f gp≤z z∈≡ga₂ = ≤ₛ-trans gp≤z (LA.lookup (∨-list-upper {S} (mapList g $ proj₁ a₂)) z∈≡ga₂)
+                q {v} v∈≡g-a₁∨a₂ | p , p∈a₁∨a₂ , v≈gp | inj₂ (inj₂ (p∈a₁ , p∈a₂)) =
+                  here (Preorder.∼-respˡ-≈ ≤ₛ-preorder (≈ₛ-sym v≈gp) gp≤fa₁)
+                  where
+                    gp∈ga₁ : (g p) ∈ₛ (mapList g $ proj₁ a₁)
+                    gp∈ga₁ = ∈-map⁺ ≈ₚ-setoid ≈ₛ-setoid {f = g} g-pres p∈a₁
+
+                    gp≤ga₁ : Any ((g p) ≤ₛ_) (mapList g $ proj₁ a₁)
+                    gp≤ga₁ = LAny.map ≤ₛ-reflexive gp∈ga₁
+
+                    gp≤fa₁ : (g p) ≤ₛ (f a₁) 
+                    gp≤fa₁ = anyEliminate (mapList g $ proj₁ a₁) elim gp≤ga₁
+                      where
+                        elim : AnyEliminator {ℓQ = l0} |S| ((g p) ≤ₛ (f a₁)) ((g p) ≤ₛ_) (mapList g $ proj₁ a₁)
+                        elim z f gp≤z z∈≡ga₁ = ≤ₛ-trans gp≤z (LA.lookup (∨-list-upper {S} (mapList g $ proj₁ a₁)) z∈≡ga₁)
             --]]]
 
-            p : All (λ · → Any (_≤ₛ_ ·) (f a₁ ∷ f a₂ ∷ [])) (mapList g (proj₁ (a₁ ∨ₐ a₂)))
-            p = LA.tabulate q  
-        --]]]
+                p : All (λ · → Any (_≤ₛ_ ·) (f a₁ ∷ f a₂ ∷ [])) (mapList g (proj₁ (a₁ ∨ₐ a₂)))
+                p = LA.tabulate q  
+            --]]]
 
-        fa₁∨fa₂≤f-a₁∨a₂ : (f a₁) ∨ₛ (f a₂) ≤ₛ f (a₁ ∨ₐ a₂)
-        --[[[
-        fa₁∨fa₂≤f-a₁∨a₂ = (proj₂ $ proj₂ $ supremum (f a₁) (f a₂)) (f $ a₁ ∨ₐ a₂) f-a₁≤f-a₁∨a₂ f-a₂≤f-a₁∨a₂
-          where
-            open BoundedJoinSemilattice FP-BJS renaming (supremum to sup) 
-            f-a₁≤f-a₁∨a₂ : (f a₁) ≤ₛ (f $ a₁ ∨ₐ a₂)
-            f-a₁≤f-a₁∨a₂ = f-mono {a₁} {a₁ ∨ₐ a₂} (proj₁ $ sup a₁ a₂)
-          
-            f-a₂≤f-a₁∨a₂ : (f a₂) ≤ₛ (f $ a₁ ∨ₐ a₂)
-            f-a₂≤f-a₁∨a₂ = f-mono {a₂} {a₁ ∨ₐ a₂} (proj₁ $ proj₂ $ sup a₁ a₂)
-        --]]]
+            fa₁∨fa₂≤f-a₁∨a₂ : (f a₁) ∨ₛ (f a₂) ≤ₛ f (a₁ ∨ₐ a₂)
+            --[[[
+
+            fa₁∨fa₂≤f-a₁∨a₂ = (proj₂ $ proj₂ $ supremum (f a₁) (f a₂)) (f $ a₁ ∨ₐ a₂) f-a₁≤f-a₁∨a₂ f-a₂≤f-a₁∨a₂
+              where
+                open BoundedJoinSemilattice A renaming (supremum to sup) 
+                f-a₁≤f-a₁∨a₂ : (f a₁) ≤ₛ (f $ a₁ ∨ₐ a₂)
+                f-a₁≤f-a₁∨a₂ = f-mono {a₁} {a₁ ∨ₐ a₂} (proj₁ $ sup a₁ a₂)
+
+                f-a₂≤f-a₁∨a₂ : (f a₂) ≤ₛ (f $ a₁ ∨ₐ a₂)
+                f-a₂≤f-a₁∨a₂ = f-mono {a₂} {a₁ ∨ₐ a₂} (proj₁ $ proj₂ $ sup a₁ a₂)
+
+            --]]]
+          --]]]
       --]]]
 
-{-
-    -- f is the adjoint complement of g
-    f : |A| → |S| -- (BoundedJoinSemilattice.Carrier {l0} (FP P)) → (BoundedJoinSemilattice.Carrier S)
-    f (d ∷ ds , ∷-Free _ _ _ _ f') = (_⇒_.fun P⇒S d) ∨ₛ (f $ ds , f')
-    f ([] , _) = BoundedJoinSemilattice.⊥ S
-
-    f-≈ : ∀ (a1 a2 : |A|) → a1 ≈ₐ a2 → (f a1) ≈ₛ (f a2)
-    f-≈ ([] , f1) ([] , f2) a₁≈a₂ = BoundedJoinSemilattice.Eq.refl S
-    f-≈ ([] , f1) (p₂ ∷ l₂ , f2) ()
-    f-≈ (p₁ ∷ l₁ , f1) ([] , f2) ()
-    f-≈ (p₁ ∷ l₁ , ∷-Free _ _ _ _ f₁') (p₂ ∷ l₂ , ∷-Free _ _ _ _ f₂') (p₁≈p₂ ∷ l₁≈l₂) =
-      antisymₛ (∨-monotonic joinSemilatticeₛ gp₁≤gp₂ $ reflexiveₛ r) 
-                (∨-monotonic joinSemilatticeₛ gp₂≤gp₁ $ reflexiveₛ $ BoundedJoinSemilattice.Eq.sym S r) 
+    fun : (⊑ₚ-preorder ⇒ ≤ₛ-preorder) → (≤ₐ-preorder ⇒ ≤ₛ-preorder)
+    --[[[
+    fun x = 
+      record
+      { fun = proj₁ hom
+      ; monotone = λ {x} {y} → ⇉-mono {S = A} {T = S} hom {x} {y}
+      }
       where
-        gp₁≤gp₂ : g p₁ ≤ₛ g p₂
-        gp₁≤gp₂ = g-mono (reflexiveₚ p₁≈p₂)
-
-        gp₂≤gp₁ : g p₂ ≤ₛ g p₁
-        gp₂≤gp₁ = g-mono (reflexiveₚ (sym≈ₚ p₁≈p₂))
-
-
-        r : f (l₁ , f₁') ≈ₛ f (l₂ , f₂')
-        r = f-≈ (l₁ , f₁') (l₂ , f₂') l₁≈l₂  
-
-
-
-    f-∨ : ∀ (a₁ a₂ : |A|) → f (a₁ ∨ₐ a₂) ≈ₛ (f a₁) ∨ₛ (f a₂)
-    --f-∨ ([] , []-Free) ([] , []-Free) = ≈ₛ-sym $ identityˡ S ⊥ₛ -- identityʳ S ⊥ₛ 
-    f-∨ ([] , _) a₂ = ≈ₛ-sym $ identityˡ S (f a₂) 
-    f-∨ a₁@(_ ∷ _ , _) ([] , []-Free) = 
+        hom = fun-aux x
+    --]]]
+        
+    fun-mono : (Preorder._∼_ $ ⇒-preorder ⊑ₚ-preorder ≤ₛ-preorder) 
+               =[ fun ]⇒ 
+               (Preorder._∼_ $ ⇒-preorder ≤ₐ-preorder ≤ₛ-preorder)
+    --[[[
+    fun-mono {f₁} {f₂} f₁≤f₂ {a} = 
       begin
-        f (a₁ ∨ₐ ⊥ₐ) 
-          ≈⟨ f-≈ (a₁ ∨ₐ ⊥ₐ) a₁ (identityˡ FP-BJS a₁) ⟩
-        f a₁ 
-          ≈⟨ ≈ₛ-sym $ identityʳ S (f a₁) ⟩ 
-        (f a₁) ∨ₛ ⊥ₛ 
+        |h₁| a 
+          ≡⟨ PE.refl ⟩
+        (∨-list {S} $ mapList |f₁| $ proj₁ a)
+          ∼⟨ ∨-list-pointwise-≤ (mapList |f₁| $ proj₁ a) (mapList |f₂| $ proj₁ a) (aux $ proj₁ a) ⟩ 
+        (∨-list {S} $ mapList |f₂| $ proj₁ a)
+          ≡⟨ PE.refl ⟩ 
+        |h₂| a
        ∎ 
       where
-        open import Relation.Binary.Lattice
-        open import Relation.Binary.EqReasoning (preorder→setoid $ BoundedJoinSemilattice.preorder S)
-    f-∨ a₁@(p₁ ∷ l₁ , ∷-Free _ _ _ _ f₁') a₂@(p₂ ∷ l₂ , ∷-Free _ _ _ _ f₂') with p₁ ∦? p₂
-    f-∨ a₁@(p₁ ∷ l₁ , ∷-Free _ _ _ _ f₁') a₂@(p₂ ∷ l₂ , ∷-Free _ _ _ _ f₂') | l⊑r p₁⊑p₂ ¬p₂⊑p₁ = 
-      begin
-        (f $ (l₁ , f₁') ∨ₐ a₂) 
-          ≈⟨ f-∨ (l₁ , f₁') a₂  ⟩
-        (f $ l₁ , f₁') ∨ₛ ((g p₂) ∨ₛ (f $ l₂ , f₂')) 
-          ≈⟨ ∨-resp-≈ʳ {S} $ ∨-resp-≈ˡ {S} $ ≈ₛ-sym $ connecting→ {A = joinSemilatticeₛ} (g p₁) (g p₂) gp₁≤gp₂ ⟩
-        (f $ l₁ , f₁') ∨ₛ (((g p₁) ∨ₛ (g p₂)) ∨ₛ (f $ l₂ , f₂')) 
-          ≈⟨ ≈ₛ-sym $ ∨-assoc joinSemilatticeₛ (f $ l₁ , f₁') ((g p₁) ∨ₛ (g p₂)) (f $ l₂ , f₂')  ⟩ 
-        ((f $ l₁ , f₁') ∨ₛ ((g p₁) ∨ₛ (g p₂))) ∨ₛ (f $ l₂ , f₂')
-          ≈⟨ ∨-resp-≈ˡ {S} $ ≈ₛ-sym $ ∨-assoc joinSemilatticeₛ (f $ l₁ , f₁') (g p₁) (g p₂) ⟩
-        (((f $ l₁ , f₁') ∨ₛ (g p₁)) ∨ₛ (g p₂)) ∨ₛ (f $ l₂ , f₂')
-          ≈⟨ ∨-resp-≈ˡ {S} $ ∨-resp-≈ˡ {S} $ ∨-comm joinSemilatticeₛ (f $ l₁ , f₁') (g p₁)  ⟩ 
-        (((g p₁) ∨ₛ (f $ l₁ , f₁')) ∨ₛ (g p₂)) ∨ₛ (f $ l₂ , f₂')
-          ≈⟨  ∨-assoc joinSemilatticeₛ ((g p₁) ∨ₛ (f $ l₁ , f₁')) (g p₂) (f $ l₂ , f₂')  ⟩ 
-        ((g p₁) ∨ₛ f (l₁ , f₁')) ∨ₛ (g p₂) ∨ₛ (f (l₂ , f₂')) 
-       ∎
-      where
-        open import Relation.Binary.Lattice
-        open import Relation.Binary.EqReasoning (preorder→setoid $ BoundedJoinSemilattice.preorder S)
+        open import Relation.Binary.PreorderReasoning ≤ₛ-preorder
+        open import Data.List.Relation.Pointwise as LPW
 
-        gp₁≤gp₂ : (g p₁) ≤ₛ (g p₂)
-        gp₁≤gp₂ = g-mono p₁⊑p₂
-    f-∨ a₁@(p₁ ∷ l₁ , ∷-Free _ _ _ _ f₁') a₂@(p₂ ∷ l₂ , ∷-Free _ _ _ _ f₂') | r⊑l ¬p₁⊑p₂ p₂⊑p₁ =
-      begin
-        (f $ a₁ ∨ₐ (l₂ , f₂')) 
-          ≈⟨ f-∨ a₁ (l₂ , f₂') ⟩
-        ((g p₁) ∨ₛ (f $ l₁ , f₁')) ∨ₛ (f $ l₂ , f₂')
-          ≈⟨ {!!} ⟩ 
-        ((g p₁) ∨ₛ f (l₁ , f₁')) ∨ₛ (g p₂) ∨ₛ (f (l₂ , f₂')) 
-       ∎
-      where
-        open import Relation.Binary.Lattice
-        open import Relation.Binary.EqReasoning (preorder→setoid $ BoundedJoinSemilattice.preorder S)
+        |f₁| = _⇒_.fun f₁
+        f₁-mono = _⇒_.monotone f₁
 
-        gp₁≤gp₂ : (g p₂) ≤ₛ (g p₁)
-        gp₁≤gp₂ = g-mono p₂⊑p₁
-    monotone : _≤ₐ_ =[ f ]⇒ _≤ₛ_
-    monotone {p₁} {p₂} p₁≤p₂ = {!!}
--}
+        |f₂| = _⇒_.fun f₂
+        f₂-mono = _⇒_.monotone f₂
+
+        h₁ = fun f₁
+        |h₁| = _⇒_.fun h₁
+        h₁-monotone = _⇒_.monotone h₁  
+        h₁-≈ = let _ , h₁-≈ , _ , _ = fun-aux f₁ in h₁-≈ 
+
+        h₂ = fun f₂
+        |h₂| = _⇒_.fun h₂
+        h₂-monotone = _⇒_.monotone h₂  
+        h₂-≈ = let _ , h₁-≈ , _ , _ = fun-aux f₁ in h₁-≈ 
+
+        aux : (x : List |P|) → Pointwise _≤ₛ_ (mapList |f₁| $ x) (mapList |f₂| $ x)
+        aux [] = []
+        aux (p ∷ l) = (f₁≤f₂ {p}) ∷ (aux l)
+    --]]]
+
 
 {-
 ⇉-resp-≈ : ∀ {c ℓ₁ ℓ₂ c' ℓ₁' ℓ₂'} → {S : BoundedJoinSemilattice c ℓ₁ ℓ₂} → {T : BoundedJoinSemilattice c' ℓ₁' ℓ₂'} →
