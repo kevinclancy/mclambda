@@ -24,122 +24,17 @@ open import Syntax
 open import Kinding
 open import Util
 open import SemDeltaPoset
-open import SemPoset
 open import FreeForgetfulAdjunction
 open import BoolPoset
 open import FinPoset
+open import SemKinding
 
 open import Data.Nat.Base as NB renaming (_⊔_ to _N⊔_)
 
-least : ∀ {m n : ℕ} → (z : ℕ) → (m ≤ z) → (n ≤ z) → (m N⊔ n ≤ z) 
-least {.0} {n} z z≤n n≤z = n≤z
-least {.(N.suc _)} {.0} .(N.suc _) (s≤s pm≤pz) z≤n = s≤s pm≤pz
-least {.(N.suc _)} {.(N.suc _)} .(N.suc _) (s≤s pm≤pz) (s≤s pn≤pz) = 
-  let
-    pm⊔pn≤pz = least _ pm≤pz pn≤pz 
-  in 
-    s≤s pm⊔pn≤pz
+semilatCore = ⟦ NatSemilat ⁂⟧ 
 
-S : BoundedJoinSemilattice l0 l0 l0
-S = record 
-  { Carrier = ℕ
-  ; _≈_ = _≡_
-  ; _≤_ = N._≤_
-  ; _∨_ = NB._⊔_
-  ; ⊥ = N.zero
-  ; isBoundedJoinSemilattice = record
-    { isJoinSemilattice = record
-      { isPartialOrder = ≤-isPartialOrder
-      ; supremum = λ x → λ y → (m≤m⊔n x y) , (n≤m⊔n x y) , least {x} {y}
-      }
-    ; minimum = λ n → N.z≤n {n} 
-    } 
-  }
-
-P : DeltaPoset {l0} {l0} {l0} {l0} 
-P = record
-  { Carrier = Σ[ n ∈ ℕ ] ¬ (n ≡ 0)
-  ; _⊑_ = _⊑₀_
-  ; _<_ = _<₀_
-  ; _≈_ = _≈₀_
-  ; isStrictTotalOrder = isStrictTotalOrder₀
-  ; isDecPartialOrder = isDecPartialOrder₀
-  ; unimodality = λ {a} → λ {b} → λ {c} → unimodality {a} {b} {c}
-  }
-  where
-    deltaPosetℕ = ⟦ NatDelta ⁑⟧ 
-
-    C = Σ[ n ∈ ℕ ] ¬ (n ≡ 0)
-
-    _⊑₀_ : C → C → Set _
-    (n1 , p1) ⊑₀ (n2 , p2) = n1 N.≤ n2
-
-    _<₀_ : C → C → Set _
-    (n1 , p1) <₀ (n2 , p2) = n1 N.< n2
-
-    _≈₀_ : C → C → Set _
-    (n1 , p1) ≈₀ (n2 , p2) = n1 ≡ n2
-
-    _∦₀_ : C → C → Set
-    a ∦₀ b = a ⊑₀ b ⊎ b ⊑₀ a
-
-    _∥₀_ : C → C → Set
-    a ∥₀ b = ¬ (a ∦₀ b)
-
-    unimodality : {a b c : C} → (a <₀ b) → (b <₀ c) → (a ∥₀ b) → (b ∥₀ c) → (a ∥₀ c)
-    unimodality = DeltaPoset.unimodality ⟦ NatDelta ⁑⟧ 
-
-    <₀-compare : Trichotomous _≈₀_ _<₀_
-    <₀-compare (a , _) (b , _) = <-cmp a b
-
-    ⊑₀-reflexive : _≈₀_ ⇒ _⊑₀_
-    ⊑₀-reflexive {a , _} {b , _} a≈b = ≤-reflexive {a} {b} a≈b
-
-    isEquiv₀ : IsEquivalence _≈₀_
-    isEquiv₀ = record
-      { refl = PE.refl
-      ; sym = PE.sym
-      ; trans = PE.trans
-      }
-
-    _≟₀_ : Decidable _≈₀_
-    (a , _) ≟₀ (b , _) = a N.≟ b
-
-    _⊑₀?_ : Decidable _⊑₀_
-    (a , _) ⊑₀? (b , _) = a N.≤? b
-
-    isStrictTotalOrder₀ : IsStrictTotalOrder _≈₀_ _<₀_
-    isStrictTotalOrder₀ = record
-      { isEquivalence = isEquiv₀
-      ; trans = <-trans
-      ; compare = <₀-compare
-      }
-
-    isDecPartialOrder₀ : IsDecPartialOrder _≈₀_ _⊑₀_
-    isDecPartialOrder₀ = record
-      { isPartialOrder = record
-        { isPreorder = record
-            { isEquivalence = isEquiv₀
-            ; reflexive = λ {a} → λ {b} → ⊑₀-reflexive {a} {b}
-            ; trans = ≤-trans
-            }
-        ; antisym = ≤-antisym
-        }
-      ; _≟_ = _≟₀_
-      ; _≤?_ = _⊑₀?_
-      }
-
-|i| : (DeltaPoset.Carrier P) → (DeltaPoset.Carrier ⟦ NatDelta ⁑⟧)
-|i| (n , p) = n
-
-|i|-monotone : Monotone (DeltaPoset.preorder P) ⟦ delta→poset NatDelta ⁎⟧' |i|
-|i|-monotone {n , _} {n' , _} n⊑n' = n⊑n'
-
-|i|-monic : Injective (DeltaPoset.≈-setoid P) (preorder→setoid ⟦ delta→poset NatDelta ⁎⟧') |i|
-|i|-monic {a , _} {a' , _} fa≈fa' = fa≈fa' 
-
-i : (DeltaPoset.preorder P) ↣+ ⟦ delta→poset NatDelta ⁎⟧'
-i = (|i| , (λ {a} → λ {a'} → |i|-monotone {a} {a'}) , (λ {a} → λ {a'} → |i|-monic {a} {a'}))
+P : DeltaPoset {l0} {l0} {l0} {l0}
+P = SemSemilatCore.P semilatCore
 
 open DeltaPoset P
 open import Data.List.Relation.Pointwise as PW
@@ -220,13 +115,9 @@ inv-FP→S→FP ((N.suc h , ¬h≡0) ∷ [] , _) = PE.refl ∷ []
 inv-FP→S→FP ((a , ¬a≡0) ∷ (b , ¬b≡0) ∷ _ , ∷-Free _ _ _ incomp _) = 
   ⊥-elim $ incomp (here $ NP.≤-total a b) 
 
-sem : SemSemilat l0 l0 l0 l0 l0 l0 l0 NatSemilat
+sem : SemSemilatIso l0 l0 l0 l0 l0 l0 l0 NatSemilat
 sem = record
-  { S = S
-  ; US = PE.refl
-  ; P = P
-  ; i = |i| , (λ {p} {p'} z → |i|-monotone {p} {p'} z) , (λ {a} {a'} z → |i|-monic {a} {a'} z)
-  ; f = |f| , |f|-≈ , |f|-⊥ , |f|-∨
+  { f = |f| , |f|-≈ , |f|-⊥ , |f|-∨
   ; g = |g| , |g|-≈ , |g|-⊥ , |g|-∨
   ; inv-S→FP→S = inv-S→FP→S
   ; inv-FP→S→FP = inv-FP→S→FP 

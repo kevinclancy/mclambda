@@ -26,64 +26,12 @@ open import SemDeltaPoset
 open import FreeForgetfulAdjunction
 open import BoolPoset
 open import FinPoset
-open import SemPoset
+open import SemKinding
 
-lowerˡ : ∀ (a b : Bool) → a B≤ a B∨ b
-lowerˡ false false = ε
-lowerˡ false true = (here $ PE.refl , PE.refl) ◅ ε
-lowerˡ true false = ε
-lowerˡ true true = ε
-
-lowerʳ : ∀ (a b : Bool) → b B≤ a B∨ b
-lowerʳ false false = ε
-lowerʳ false true = ε
-lowerʳ true false = (here $ PE.refl , PE.refl) ◅ ε
-lowerʳ true true = ε
-
-least : ∀ (a b : Bool) → (z : Bool) → (a B≤ z) → (b B≤ z) → (a B∨ b B≤ z) 
-least false false false a≤z b≤z = ε
-least false false true a≤z b≤z = (here $ PE.refl , PE.refl) ◅ ε
-least false true false a≤z (here () ◅ _)
-least false true false a≤z (there () ◅ _)
-least false true true a≤z b≤z = ε
-least true false false (here () ◅ _) b≤z
-least true false false (there () ◅ _) b≤z
-least true false true a≤z b≤z = ε
-least true true false (here () ◅ _) b≤z
-least true true false (there () ◅ _) b≤z
-least true true true a≤z b≤z = ε
-
-minimum : Minimum _B≤_ false
-minimum false = ε
-minimum true = (here $ PE.refl , PE.refl) ◅ ε
-
-S : BoundedJoinSemilattice l0 l0 l0
-S = record 
-  { Carrier = Bool
-  ; _≈_ = _≡_
-  ; _≤_ = _B≤_
-  ; _∨_ = _B∨_ 
-  ; ⊥ = false
-  ; isBoundedJoinSemilattice = record
-    { isJoinSemilattice = record
-      { isPartialOrder = B≤-isPartialOrder
-      ; supremum =  λ x → λ y → lowerˡ x y , lowerʳ x y , least x y
-      }
-    ; minimum = minimum 
-    } 
-  }
+semilatCore = ⟦ BoolSemilat ⁂⟧
 
 P : DeltaPoset {l0} {l0} {l0} {l0}
-P = ⟦ UnitDelta ⁑⟧ 
-
-|i| : (DeltaPoset.Carrier P) → (DeltaPoset.Carrier ⟦ UnitDelta ⁑⟧)
-|i| tt = tt
-
-|i|-monotone : Monotone (DeltaPoset.preorder P) ⟦ delta→poset UnitDelta ⁎⟧' |i|
-|i|-monotone {tt} {tt} tt⊑tt = record {}
-
-|i|-monic : Injective (DeltaPoset.≈-setoid P) (preorder→setoid ⟦ delta→poset UnitDelta ⁎⟧') |i|
-|i|-monic {tt} {tt} _ = PE.refl 
+P = SemSemilatCore.P semilatCore 
 
 open DeltaPoset P
 open import Data.List.Relation.Pointwise as PW
@@ -141,13 +89,9 @@ inv-FP→S→FP ([] , []-Free) = PW.refl PE.refl
 inv-FP→S→FP (tt ∷ [] , ∷-Free _ _ _ _ _) = PW.refl PE.refl
 inv-FP→S→FP (tt ∷ tt ∷ _ , ∷-Free _ _ _ incomp _) = ⊥-elim $ incomp $ here (inj₁ $ DeltaPoset.reflexive P PE.refl)
 
-sem : SemSemilat l0 l0 l0 l0 l0 l0 l0 BoolSemilat
+sem : SemSemilatIso l0 l0 l0 l0 l0 l0 l0 BoolSemilat
 sem = record
-  { S = S
-  ; US = PE.refl
-  ; P = P
-  ; i = |i| , |i|-monotone , |i|-monic
-  ; f = |f| , |f|-≈ , |f|-⊥ , |f|-∨
+  { f = |f| , |f|-≈ , |f|-⊥ , |f|-∨
   ; g = |g| , |g|-≈ , |g|-⊥ , |g|-∨
   ; inv-S→FP→S = inv-S→FP→S
   ; inv-FP→S→FP = inv-FP→S→FP 

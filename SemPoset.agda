@@ -12,6 +12,7 @@ open import Kinding
 open import Util
 open import SemScalars
 open import Preorders
+--open import SemSemilatKinding
 
 ⇒-poset : (P : Preorder l0 l0 l0) → (Q : Poset l0 l0 l0) → Poset l0 l0 l0
 --[[[
@@ -100,7 +101,11 @@ open import Preorders
 
 mutual
   ⟦_⁎⟧ : ∀ {τ : τ} → IsPoset τ → Poset l0 l0 l0
-  ⟦ FunPoset {q = q} domIsPoset codIsPoset ⁎⟧ = ⇒-poset (⟦ q q⟧ ⟦ domIsPoset ⁎⟧') ⟦ codIsPoset ⁎⟧  
+  ⟦ FunPoset {q = q} domIsPoset codIsPoset ⁎⟧ = ⇒-poset (⟦ q q⟧ ⟦ domIsPoset ⁎⟧') ⟦ codIsPoset ⁎⟧
+  ⟦ DictPoset domIsToset codIsSemilat ⁎⟧ = 
+    ▹-poset {!!} {!⟦ codIsSemilat ⁂⟧!} -- ⟦ domIsToset ⁑⟧ ⟦ codIsSemilat ⁂⟧   
+    where
+      open import Dictionary
   ⟦ ProductPoset isPosetL isPosetR ⁎⟧ = ×-poset ⟦ isPosetL ⁎⟧ ⟦ isPosetR ⁎⟧  
     where
       open import Data.Product

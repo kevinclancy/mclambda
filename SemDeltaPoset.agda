@@ -31,7 +31,7 @@ discreteDelta sto = deltaPoset
 
 postulate
   --TODO: implement this
-  ⟦_T⟧ : ∀ {τ : τ} → IsToset τ → StrictTotalOrder l0 l0 l0
+  ⟦_T⟧ : ∀ {τ : τ} → IsStoset τ → StrictTotalOrder l0 l0 l0
 
 -- agda-mode: ⁑ is \asterisk, second choice
 ⟦_⁑⟧ : ∀ {τ : τ} → IsDeltaPoset τ → DeltaPoset {l0} {l0} {l0} {l0}

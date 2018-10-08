@@ -37,6 +37,11 @@ data _∣_⊢_∣_ where
 --           (Γ ∣ R ⊢ eKey ∣ τKey) → (Γ ∣ S ⊢ eVal ∣ τVal) → (Γ ∣ T ⊢ eDict ∣ (τDict τKey τVal)) →
 --           (Γ ∣ ((qAny qR∘ R) R+ S) R+ T ⊢ (Cons eKey eVal eDict) ∣ (τDict τKey τVal)) 
 
+  TySng : {n : ℕ} → {Γ : Vec wfτ n} → {R₁ R₂ : Vec q n} → {eKey : e} → {τKey : τ} → {eVal : e} → {τVal : τ} → 
+          {τValDelta : τ} → (IsStoset τKey) → (IsSemilat τVal τValDelta) →
+          (Γ ∣ R₁ ⊢ eKey ∣ τKey) → (Γ ∣ R₂ ⊢ eVal ∣ τVal) →
+          (Γ ∣ (qAny qR∘ R₁) R+ R₂ ⊢ (Sng eKey eVal) ∣ (τDict τKey τVal)) 
+
   TyJoin : {n : ℕ} {Γ : Vec wfτ n} {R₁ : Vec q n} {R₂ : Vec q n} {e₁ e₂ : e} {τ τ₀ : τ} {p : IsSemilat τ τ₀} →
            (Γ ∣ R₁ ⊢ e₁ ∣ τ) → (Γ ∣ R₂ ⊢ e₂ ∣ τ) → (Γ ∣ R₁ R+ R₂ ⊢ (Join τ e₁ e₂) ∣ τ)  
           
@@ -92,7 +97,8 @@ data _∣_⊢_∣_ where
 τRes-wf (TyInr {τL-wf = τL-wf} d) = SumPoset τL-wf (τRes-wf d)
 τRes-wf (TyCase _ d _) = τRes-wf d
 τRes-wf (TyHom {τ₁⁂ = τ₁⁂} {τ₂⁂ = τ₂⁂} τ₁∷Γ@+∷R₀⊢e₀∣τ₂) = FunPoset (semilat→poset τ₁⁂) (semilat→poset τ₂⁂) 
- 
+τRes-wf (TySng keyIsStoset valIsSemilat d1 d2) = DictPoset keyIsStoset valIsSemilat
+
 {-
 τRes-wf Γ₀ R₀ .(Inr _ _ _) .(τSum _ _) (TyInr zzz) = {!!}
 τRes-wf Γ₀ .(zipWith _q+_ (V.map (_q∘_ (_ q+ _)) _) (zipWith _q+_ _ _)) .(Case _ _ _) τRes (TyCase zzz zzz₁ zzz₂) = {!!}

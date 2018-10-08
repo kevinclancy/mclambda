@@ -15,10 +15,11 @@ open import Syntax
 open import Kinding
 open import Typing
 open import Util
-open import SemPoset
 open import FinPoset
 open import Preorders
 open import SemScalars
+open import SemKinding
+open import SemilatIso
 
 _R≤_ : {n : ℕ} → (Vec q n) → (Vec q n) → Set
 R₁ R≤ R₂ = VPW.Pointwise _q≤_ R₁ R₂
@@ -125,6 +126,7 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
 
 ⟦_⊢⟧ : {n : ℕ} → {Γ₀ : Vec wfτ n} → {R₀ : Vec q n} → {e₀ : e} → {τ₀ : τ} → {τ₀-wf : IsPoset τ₀} → 
        (x : Γ₀ ∣ R₀ ⊢ e₀ ∣ τ₀) → ⟦ Γ₀ Γ∣ R₀ R⟧  ⇒ ⟦ τ₀-wf ⁎⟧' 
+{-
 --[[[
 ⟦_⊢⟧ {τ₀-wf = τ₀-wf} (TyBot {n} {Γ} {τ₀} {τ₀'} {τ₀-semilat}) = 
 --[[[
@@ -135,7 +137,7 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
   where
     open import SemSemilatKinding
     open import Relation.Binary.Lattice
-    open SemSemilat ⟦ τ₀-semilat ⁂⟧
+    open SemSemilatCore ⟦ τ₀-semilat ⁂⟧
     open BoundedJoinSemilattice S
 
     module codP = Poset ⟦ τ₀-wf ⁎⟧ 
@@ -153,7 +155,7 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
     open import SemSemilatKinding
     open import Relation.Binary.Lattice
     open import Data.Product.Relation.Pointwise.NonDependent
-    open SemSemilat ⟦ τ₀-semilat ⁂⟧
+    open SemSemilatCore ⟦ τ₀-semilat ⁂⟧
     open BoundedJoinSemilattice S
     module codP = IsPartialOrder (Poset.isPartialOrder ⟦ τ₀-wf ⁎⟧)
 
@@ -414,14 +416,18 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
     open import RelationalStructures
     open import FreeForgetfulAdjunction
 
-    semilat₁ : SemSemilat _ _ _ _ _ _ _ τ₁⁂
+    semilat₁ : SemSemilatCore _ _ _ _ _ _ _ τ₁⁂
     semilat₁ = ⟦ τ₁⁂ ⁂⟧
 
-    semilat₂ : SemSemilat _ _ _ _ _ _ _ τ₂⁂
+    semilatIso₁ : SemSemilatIso _ _ _ _ _ _ _ τ₁⁂
+    semilatIso₁ = ⟦ τ₁⁂ ⁂iso⟧
+
+    semilat₂ : SemSemilatCore _ _ _ _ _ _ _ τ₂⁂
     semilat₂ = ⟦ τ₂⁂ ⁂⟧ 
 
-    open SemSemilat semilat₂ renaming (S to S₂ ; US to US₂)
-    open SemSemilat semilat₁ renaming (P to P₁ ; i to i₁ ; f to f₁ ; g to g₁ ; US to US₁ ; S to S₁)
+    open SemSemilatCore semilat₂ renaming (S to S₂ ; US to US₂)
+    open SemSemilatCore semilat₁ renaming (P to P₁ ; i to i₁ ; US to US₁ ; S to S₁) 
+    open SemSemilatIso semilatIso₁ renaming (f to f₁ ; g to g₁)
     open import FreeSemilattice P₁ renaming (preorder to FP₁' ; FP-BJS to FP₁-BJS) 
     open BoundedJoinSemilattice S₂ renaming (preorder to S₂')
 
@@ -451,3 +457,25 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
 
     ⟦Γ∣R₀⟧⇒⟦P⇒S⟧ : ⟦ Γ₀ Γ∣ R₀ R⟧ ⇒ (⇒-preorder (DeltaPoset.preorder P₁) (BoundedJoinSemilattice.preorder S₂))
     ⟦Γ∣R₀⟧⇒⟦P⇒S⟧ rewrite US₂ | PE.sym τ₂-wf≡τ₂-wf' = ⟦Γ∣R₀⟧⇒⟦τ₁'⇒τ₂⟧ >> precomp (↣+-to-⇒ i₁)
+-}
+⟦_⊢⟧ {τ₀-wf = DictPoset _ _} 
+     (TySng {n} {Γ₀} {R₁} {R₂} {eKey} {τKey} {eVal} {τVal} {τVal'} 
+            isStosetKey isSemilatVal Γ∣R₁⊢eKey∣τKey  Γ∣R₂⊢eVal∣τVal) = 
+  {!!}
+  where
+    τKey-wf : IsPoset τKey
+    τKey-wf = stoset→poset isStosetKey
+
+    τVal-wf : IsPoset τVal
+    τVal-wf = semilat→poset isSemilatVal
+
+    ⟦Γ∣R₁⟧⇒⟦τKey⟧ : ⟦ Γ₀ Γ∣ R₁ R⟧ ⇒ ⟦ τKey-wf ⁎⟧'
+    ⟦Γ∣R₁⟧⇒⟦τKey⟧ = ⟦_⊢⟧ {τ₀-wf = τKey-wf} Γ∣R₁⊢eKey∣τKey
+
+    ⟦qAny⟧⟦Γ∣R₁⟧⇒⟦qAny⟧⟦τKey⟧ : (⟦ qAny q⟧ ⟦ Γ₀ Γ∣ R₁ R⟧) ⇒ (⟦ qAny q⟧ ⟦ τKey-wf ⁎⟧')
+    ⟦qAny⟧⟦Γ∣R₁⟧⇒⟦qAny⟧⟦τKey⟧ = ⟦ qAny q⇒⟧ ⟦Γ∣R₁⟧⇒⟦τKey⟧      
+
+    ⟦Γ∣R₂⟧⇒⟦τVal⟧ : ⟦ Γ₀ Γ∣ R₂ R⟧ ⇒ ⟦ τVal-wf ⁎⟧'
+    ⟦Γ∣R₂⟧⇒⟦τVal⟧ = ⟦_⊢⟧ {τ₀-wf = τVal-wf} Γ∣R₂⊢eVal∣τVal
+
+    

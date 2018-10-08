@@ -6,20 +6,15 @@ open import Level
 open import Syntax
 open import Kinding
 open import Util
-open import SemPoset
 
 module SemilatKinding.Product 
   {τL τ₀L τR τ₀R : τ}
   {isSemilatL : IsSemilat τL τ₀L}
   {isSemilatR : IsSemilat τR τ₀R}
-  (semSemilatL : SemSemilat l0 l0 l0 l0 l0 l0 l0 isSemilatL) 
-  (semSemilatR : SemSemilat l0 l0 l0 l0 l0 l0 l0 isSemilatR) 
+  (semSemilatL : SemSemilatIso l0 l0 l0 l0 l0 l0 l0 isSemilatL) 
+  (semSemilatR : SemSemilatIso l0 l0 l0 l0 l0 l0 l0 isSemilatR)
  where
 
-
-postulate sem : SemSemilat l0 l0 l0 l0 l0 l0 l0 (ProductSemilat isSemilatL isSemilatR)
-
-{-
 open import FreeForgetfulAdjunction
 open import SemDeltaPoset 
 
@@ -46,9 +41,18 @@ open import Function.Inverse
 open import Function using (_$_ ; _|>′_ ; const)
 open import Function.Equivalence  
 open import Function.Equality using (_⟨$⟩_) 
+open import SemKinding
 
-bjsL = SemSemilat.S semSemilatL
-bjsR = SemSemilat.S semSemilatR
+semilatCore = ⟦ ProductSemilat isSemilatL isSemilatR ⁂⟧ 
+
+P : DeltaPoset {l0} {l0} {l0} {l0}
+P = SemSemilatCore.P semilatCore
+
+deltaL = SemSemilatCore.P ⟦ isSemilatL ⁂⟧
+deltaR = SemSemilatCore.P ⟦ isSemilatR ⁂⟧
+
+bjsL = SemSemilatCore.S ⟦ isSemilatL ⁂⟧
+bjsR = SemSemilatCore.S ⟦ isSemilatR ⁂⟧
 
 |L| = BoundedJoinSemilattice.Carrier bjsL
 |R| = BoundedJoinSemilattice.Carrier bjsR
@@ -101,75 +105,6 @@ _∨'_ : Carrier' → Carrier' → Carrier'
 ⊥' : Carrier'
 ⊥' = (⊥L , ⊥R)
 
-minimum' : (z : Carrier') → ⊥' ≤' z
-minimum' (zL , zR) = BoundedJoinSemilattice.minimum bjsL zL , BoundedJoinSemilattice.minimum bjsR zR
-
-lowerL : (a b : Carrier') → a ≤' (a ∨' b)
-lowerL a@(aL , aR) b@(bL , bR) =
-  let
-    lowerL-L , _ , _ = BoundedJoinSemilattice.supremum bjsL aL bL 
-    lowerL-R , _ , _ = BoundedJoinSemilattice.supremum bjsR aR bR
-  in
-  lowerL-L , lowerL-R
-
-lowerR : (a b : Carrier') → b ≤' (a ∨' b)
-lowerR a@(aL , aR) b@(bL , bR) =
-  let
-    _ , lowerR-L , _ = BoundedJoinSemilattice.supremum bjsL aL bL 
-    _ , lowerR-R , _ = BoundedJoinSemilattice.supremum bjsR aR bR
-  in
-  lowerR-L , lowerR-R
-
-upper : (a b z : Carrier') → (a ≤' z) → (b ≤' z) → ((a ∨' b) ≤' z)
-upper a@(aL , aR) b@(bL , bR) z@(zL , zR) (aL≤zL ,  aR≤zR) (bL≤zL , bR≤zR) =
-  let
-    _ , _ , sup-L = BoundedJoinSemilattice.supremum bjsL aL bL 
-    _ , _ , sup-R = BoundedJoinSemilattice.supremum bjsR aR bR
-  in
-  sup-L zL aL≤zL bL≤zL , sup-R zR aR≤zR bR≤zR 
-
-S : BoundedJoinSemilattice l0 l0 l0
-S = record 
-  { Carrier = Carrier' 
-  ; _≈_ = _≈'_
-  ; _≤_ = _≤'_
-  ; _∨_ = _∨'_ 
-  ; ⊥ = ⊥'
-  ; isBoundedJoinSemilattice = record
-    { isJoinSemilattice = record
-      { isPartialOrder = ×-isPartialOrder (BoundedJoinSemilattice.isPartialOrder bjsL)
-                                          (BoundedJoinSemilattice.isPartialOrder bjsR)
-      ; supremum = λ x → λ y → lowerL x y , lowerR x y , upper x y
-      }
-    ; minimum = minimum' 
-    } 
-  }
-
-US : (BoundedJoinSemilattice.poset S) ≡ ⟦ (ProductPoset (semilat→poset isSemilatL) (semilat→poset isSemilatR)) ⁎⟧
-US = PE.cong₂ (λ x y → ×-poset x y) USL USR
-  where
-    USL : (BoundedJoinSemilattice.poset bjsL) ≡ ⟦ semilat→poset isSemilatL ⁎⟧
-    USL = SemSemilat.US semSemilatL
-
-    USR : (BoundedJoinSemilattice.poset bjsR) ≡ ⟦ semilat→poset isSemilatR ⁎⟧
-    USR = SemSemilat.US semSemilatR
-    
-joinSemilatticeS : JoinSemilattice l0 l0 l0
-joinSemilatticeS = BoundedJoinSemilattice.joinSemiLattice S
-
-≈'-refl = BoundedJoinSemilattice.Eq.refl S
-≈'-reflexive = BoundedJoinSemilattice.Eq.reflexive S
-≈'-sym = BoundedJoinSemilattice.Eq.sym S
-
-≈'-setoid : Setoid _ _
-≈'-setoid = record
-  { Carrier = Carrier'
-  ; isEquivalence = ×-isEquivalence (BoundedJoinSemilattice.isEquivalence bjsL) (BoundedJoinSemilattice.isEquivalence bjsR)
-  }
-
-deltaL = SemSemilat.P semSemilatL
-deltaR = SemSemilat.P semSemilatR
-
 |L₀| = DeltaPoset.Carrier deltaL
 |R₀| = DeltaPoset.Carrier deltaR
 
@@ -221,13 +156,6 @@ _<R₀_ = DeltaPoset._<_ deltaR
 <R₀-trans = DeltaPoset.trans< deltaR
 irreflR₀ = DeltaPoset.irrefl deltaR
 compareR₀ = DeltaPoset.compare deltaR
-unimL = DeltaPoset.unimodality deltaL
-unimR = DeltaPoset.unimodality deltaR
-
-P : DeltaPoset {l0} {l0} {l0} {l0}
-P = sumDeltaPoset
-  where
-    open import SumDelta deltaL deltaR
 
 |P| : Set
 |P| = DeltaPoset.Carrier P
@@ -259,45 +187,6 @@ compareP = DeltaPoset.compare P
 _∥P_ : |P| → |P| → Set
 _∥P_ = DeltaPoset._∥_ P
 
-iL : (DeltaPoset.preorder $ SemSemilat.P semSemilatL) ↣+ ⟦ delta→poset $ semilat→delta isSemilatL ⁎⟧'  
-iL = SemSemilat.i semSemilatL
-
-|iL| : DeltaPoset.Carrier (SemSemilat.P semSemilatL) → Preorder.Carrier ⟦ delta→poset $ semilat→delta isSemilatL ⁎⟧'
-|iL| = proj₁ iL
-
-iL-mono : Monotone (DeltaPoset.preorder $ SemSemilat.P semSemilatL) ⟦ delta→poset $ semilat→delta isSemilatL ⁎⟧' |iL|
-iL-mono = proj₁ $ proj₂ iL
-
-iL-injective : Injective (DeltaPoset.≈-setoid deltaL) (preorder→setoid ⟦ delta→poset $ semilat→delta isSemilatL ⁎⟧') |iL|
-iL-injective = proj₂ $ proj₂ iL
-
-iR : (DeltaPoset.preorder $ SemSemilat.P semSemilatR) ↣+ ⟦ delta→poset $ semilat→delta isSemilatR ⁎⟧' 
-iR = SemSemilat.i semSemilatR
-
-|iR| : DeltaPoset.Carrier (SemSemilat.P semSemilatR) → Preorder.Carrier ⟦ delta→poset $ semilat→delta isSemilatR ⁎⟧' 
-|iR| = proj₁ iR
-
-iR-mono : Monotone (DeltaPoset.preorder $ SemSemilat.P semSemilatR) ⟦ delta→poset $ semilat→delta isSemilatR ⁎⟧' |iR|
-iR-mono = proj₁ $ proj₂ iR
-
-iR-injective : Injective (DeltaPoset.≈-setoid deltaR) (preorder→setoid ⟦ delta→poset $ semilat→delta isSemilatR ⁎⟧') |iR|
-iR-injective = proj₂ $ proj₂ iR
-
-|i| : DeltaPoset.Carrier P → Preorder.Carrier ⟦ delta→poset $ semilat→delta $ ProductSemilat isSemilatL isSemilatR ⁎⟧' 
-|i| = [_,_] (λ x → x |>′ |iL| |>′ inj₁) (λ x → x |>′ |iR| |>′ inj₂)
-
-|i|-mono : Monotone (DeltaPoset.preorder P) ⟦ delta→poset $ semilat→delta $ ProductSemilat isSemilatL isSemilatR ⁎⟧' |i|
-|i|-mono {inj₁ a'} {inj₁ b'} (₁∼₁ a'⊑b') = ₁∼₁ $ iL-mono a'⊑b'
-|i|-mono {inj₁ a'} {inj₂ b'} (₁∼₂ ())
-|i|-mono {inj₂ a'} {inj₁ x} ()
-|i|-mono {inj₂ a'} {inj₂ b'} (₂∼₂ a'⊑b') = ₂∼₂ $ iR-mono a'⊑b'
-
-|i|-injective : Injective (DeltaPoset.≈-setoid P) (preorder→setoid ⟦ delta→poset $ semilat→delta $ ProductSemilat isSemilatL isSemilatR ⁎⟧') |i|
-|i|-injective {inj₁ a'} {inj₁ b'} (₁∼₁ ia'≈ib') = ₁∼₁ $ iL-injective ia'≈ib'
-|i|-injective {inj₁ a'} {inj₂ b'} (₁∼₂ ())
-|i|-injective {inj₂ a'} {inj₁ b'} ()
-|i|-injective {inj₂ a'} {inj₂ b'} (₂∼₂ ia'≈ib') = ₂∼₂ $ iR-injective ia'≈ib'
-
 open import FreeSemilattice P renaming 
   (⊥ to ⊥F ; _∨_ to _∨F_ ; _≈_ to _≈F_ ; _~_ to _~F_ ; ≈-refl to ≈F-refl ; SemilatCarrier to Carrier-FP ;
    ≈-reflexive to ≈F-reflexive ; FP-BJS to FP-BJS ; ∨-identityˡ to ∨F-identityˡ ; ∨-identityʳ to ∨F-identityʳ ; 
@@ -326,62 +215,62 @@ open import FreeSemilattice deltaR renaming
    concat-F to concat-FL)
 
 |fL| : |L| → Σ[ l ∈ List (DeltaPoset.Carrier deltaL) ] (IsFreeListL l)
-|fL| = proj₁ $ SemSemilat.f semSemilatL
+|fL| = proj₁ $ SemSemilatIso.f semSemilatL
 
 |fL|-≈ : ∀ (a b : |L|) → a ≈L b → (|fL| a) ≈FL (|fL| b)
-|fL|-≈ = proj₁ $ proj₂ $ SemSemilat.f semSemilatL
+|fL|-≈ = proj₁ $ proj₂ $ SemSemilatIso.f semSemilatL
 
 |fL|-⊥ : |fL| ⊥L ≈FL ⊥FL
-|fL|-⊥ = proj₁ $ proj₂ $ proj₂ $ SemSemilat.f semSemilatL
+|fL|-⊥ = proj₁ $ proj₂ $ proj₂ $ SemSemilatIso.f semSemilatL
 
 |fL|-∨ : ∀ (a b : |L|) → |fL| (a ∨L b) ≈FL ( (|fL| a) ∨FL (|fL| b) ) 
-|fL|-∨ = proj₂ $ proj₂ $ proj₂ $ SemSemilat.f semSemilatL
+|fL|-∨ = proj₂ $ proj₂ $ proj₂ $ SemSemilatIso.f semSemilatL
 
 |fR| : |R| → Σ[ l ∈ List (DeltaPoset.Carrier deltaR) ] (IsFreeListR l)
-|fR| = proj₁ $ SemSemilat.f semSemilatR
+|fR| = proj₁ $ SemSemilatIso.f semSemilatR
 
 |fR|-≈ : ∀ (a b : |R|) → a ≈R b → (|fR| a) ≈FR (|fR| b)
-|fR|-≈ = proj₁ $ proj₂ $ SemSemilat.f semSemilatR
+|fR|-≈ = proj₁ $ proj₂ $ SemSemilatIso.f semSemilatR
 
 |fR|-⊥ : |fR| ⊥R ≈FR ⊥FR
-|fR|-⊥ = proj₁ $ proj₂ $ proj₂ $ SemSemilat.f semSemilatR
+|fR|-⊥ = proj₁ $ proj₂ $ proj₂ $ SemSemilatIso.f semSemilatR
 
 |fR|-∨ : ∀ (a b : |R|) → |fR| (a ∨R b) ≈FR ( (|fR| a) ∨FR (|fR| b) ) 
-|fR|-∨ = proj₂ $ proj₂ $ proj₂ $ SemSemilat.f semSemilatR
+|fR|-∨ = proj₂ $ proj₂ $ proj₂ $ SemSemilatIso.f semSemilatR
 
-gL = SemSemilat.g semSemilatL
+gL = SemSemilatIso.g semSemilatL
 
 |gL| : Carrier-FPL → |L|
-|gL| = proj₁ $ SemSemilat.g semSemilatL
+|gL| = proj₁ $ SemSemilatIso.g semSemilatL
 
 |gL|-≈ : (a b : Carrier-FPL) → a ≈FL b → (|gL| a) ≈L (|gL| b) 
-|gL|-≈ = proj₁ $ proj₂ $ SemSemilat.g semSemilatL
+|gL|-≈ = proj₁ $ proj₂ $ SemSemilatIso.g semSemilatL
 
 |gL|-⊥ : (|gL| ⊥FL) ≈L ⊥L
-|gL|-⊥ = proj₁ $ proj₂ $ proj₂ $ SemSemilat.g semSemilatL
+|gL|-⊥ = proj₁ $ proj₂ $ proj₂ $ SemSemilatIso.g semSemilatL
 
 |gL|-∨ : ∀ (a b : Carrier-FPL) → |gL| (a ∨FL b) ≈L ( (|gL| a) ∨L (|gL| b) ) 
-|gL|-∨ = proj₂ $ proj₂ $ proj₂ $ SemSemilat.g semSemilatL
+|gL|-∨ = proj₂ $ proj₂ $ proj₂ $ SemSemilatIso.g semSemilatL
 
-L-inv-S→FP→S = SemSemilat.inv-S→FP→S semSemilatL
-L-inv-FP→S→FP = SemSemilat.inv-FP→S→FP semSemilatL
+L-inv-S→FP→S = SemSemilatIso.inv-S→FP→S semSemilatL
+L-inv-FP→S→FP = SemSemilatIso.inv-FP→S→FP semSemilatL
 
-gR = SemSemilat.g semSemilatR
+gR = SemSemilatIso.g semSemilatR
 
 |gR| : Carrier-FPR → |R|
-|gR| = proj₁ $ SemSemilat.g semSemilatR
+|gR| = proj₁ $ SemSemilatIso.g semSemilatR
 
 |gR|-≈ : (a b : Carrier-FPR) → a ≈FR b → (|gR| a) ≈R (|gR| b) 
-|gR|-≈ = proj₁ $ proj₂ $ SemSemilat.g semSemilatR
+|gR|-≈ = proj₁ $ proj₂ $ SemSemilatIso.g semSemilatR
 
 |gR|-⊥ : (|gR| ⊥FR) ≈R ⊥R
-|gR|-⊥ = proj₁ $ proj₂ $ proj₂ $ SemSemilat.g semSemilatR
+|gR|-⊥ = proj₁ $ proj₂ $ proj₂ $ SemSemilatIso.g semSemilatR
 
 |gR|-∨ : ∀ (a b : Carrier-FPR) → |gR| (a ∨FR b) ≈R ( (|gR| a) ∨R (|gR| b) ) 
-|gR|-∨ = proj₂ $ proj₂ $ proj₂ $ SemSemilat.g semSemilatR
+|gR|-∨ = proj₂ $ proj₂ $ proj₂ $ SemSemilatIso.g semSemilatR
 
-R-inv-S→FP→S = SemSemilat.inv-S→FP→S semSemilatR
-R-inv-FP→S→FP = SemSemilat.inv-FP→S→FP semSemilatR
+R-inv-S→FP→S = SemSemilatIso.inv-S→FP→S semSemilatR
+R-inv-FP→S→FP = SemSemilatIso.inv-FP→S→FP semSemilatR
 
 convL : (z : List |L₀|) → (f : IsFreeListL z) → 
         Σ[ l ∈ Carrier-FP ] (LPW.Pointwise (λ x → λ y → (y ≡ inj₁ x)) z (proj₁ l))
@@ -3224,15 +3113,10 @@ inv-S→FP→S (aL , aR) | l , r , atl , atr , aeql , aeqr , aconcat =
 --]]]
 
 
-sem : SemSemilat l0 l0 l0 l0 l0 l0 l0 (ProductSemilat isSemilatL isSemilatR)
+sem : SemSemilatIso l0 l0 l0 l0 l0 l0 l0 (ProductSemilat isSemilatL isSemilatR)
 sem = record
-  { S = S
-  ; US = US
-  ; P = P
-  ; i = |i| , |i|-mono , |i|-injective
-  ; f = |f| , |f|-≈ , |f|-⊥ , |f|-∨
+  { f = |f| , |f|-≈ , |f|-⊥ , |f|-∨
   ; g = |g| , |g|-≈ , |g|-⊥ , |g|-∨
   ; inv-S→FP→S = inv-S→FP→S
   ; inv-FP→S→FP = inv-FP→S→FP
   }
--}

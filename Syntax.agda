@@ -7,7 +7,7 @@ open import Data.Nat
 --types
 data τ : Set where
   τFun : (dom : τ) → (scalar : q) → (cod : τ) → τ
-  --τDict : (dom : τ) → (cod : τ) → τ   
+  τDict : (dom : τ) → (cod : τ) → τ   
   --τCapsule : (scalar : q) → (underlying : τ) → τ 
   τProduct : (τL : τ) → (τR : τ) → τ
   τSum : (τL : τ) → (τR : τ) → τ
@@ -22,7 +22,7 @@ data e : Set where
   Bot : τ → e
   Join : τ → e → e → e
   Extract : (dict : e) → (body : e) → e
-  Cons : (key : e) → (val : e) → (dict : e) → e
+  Sng : (key : e) → (val : e) → e
   Proj1 : (pair : e) → e
   Proj2 : (pair : e) → e
   Pair : (eL : e) → (eR : e) → e
