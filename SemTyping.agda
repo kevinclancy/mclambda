@@ -20,6 +20,115 @@ open import Preorders
 open import SemScalars
 open import SemKinding
 open import SemilatIso
+open import Relation.Binary.Lattice
+open import RelationalStructures
+open import FreeForgetfulAdjunction
+open import FreeSemilattice hiding (∷-Free ; []-Free ; FP-BJS)
+
+▹-sng' : (P : Poset l0 l0 l0) → (T : StrictTotalOrder l0 l0 l0) → 
+          (eq1 : Poset.Carrier P ≡ StrictTotalOrder.Carrier T) → (eq2 : Poset._≈_ P ≡ StrictTotalOrder._≈_ T) →
+          (S : BoundedJoinSemilattice l0 l0 l0) → 
+          (D : DeltaPoset {l0} {l0} {l0} {l0}) → (f : S ⇉ FreeSemilattice.FP-BJS D) → 
+          (×-preorder (⟦ qAny q⟧ P) (BoundedJoinSemilattice.preorder S)) ⇒ (▹-preorder T S)
+▹-sng' P T PE.refl S D f =
+  record
+  { fun = fun 
+  ; monotone = monotone
+  }
+  where
+    open import Data.List.All
+    open import SemilatIso
+    open import Dictionary
+    open import Relation.Binary.Lattice
+    open import Data.List
+    open import FreeSemilattice D 
+      renaming (⊥ to ⊥ₛ' ; _≈_ to _≈ₛ'_ ; ≈-trans to ≈ₛ'-trans ; ≈-sym to ≈ₛ'-sym ;
+                ≈-reflexive to ≈ₛ'-reflexive ; _≤_ to _≤ₛ'_)
+    open Preorder
+    open Poset P renaming (_≈_ to _≈ₚ_ ; _≤_ to _≤ₚ_)
+
+    open BoundedJoinSemilattice S renaming (_≈_ to _≈ₛ_ ; ⊥ to ⊥ₛ )
+
+    |P| = Poset.Carrier P
+    |S| = BoundedJoinSemilattice.Carrier S
+    |T| = StrictTotalOrder.Carrier T
+    |f| = proj₁ f
+    |f|-≈ = proj₁ $ proj₂ f
+
+    fun : |P| × |S| → Σ[ l ∈ (List $ |T| × |S|) ] (IsDict T S l)
+    --[[[
+    fun (p , s) with keep (|f| s) 
+    fun (p , s) | ([] , []-Free) , _ = [] , []-Dict
+    fun (p , s) | (h ∷ l' , ∷-Free .h .l' min incomp f') , fs≡h∷l' = 
+      ((p , s) ∷ []) , (∷-Dict (p , s) [] [] ¬s≈⊥ []-Dict)  
+      where
+        open import Relation.Nullary
+
+        ¬s≈⊥ : ¬ (s ≈ₛ ⊥ₛ)  
+        ¬s≈⊥ s≈⊥ with ⊥≈h∷l'
+          where
+            f⊥≈⊥ : (|f| ⊥ₛ) ≈ₛ' ⊥ₛ'
+            f⊥≈⊥ = proj₁ $ proj₂ $ proj₂ f
+
+            fs≈⊥ : (|f| s) ≈ₛ' ⊥ₛ'
+            fs≈⊥ = ≈ₛ'-trans {|f| s} {|f| ⊥ₛ} {⊥ₛ'}  (|f|-≈ s ⊥ₛ s≈⊥) f⊥≈⊥ 
+
+            ⊥≈h∷l' : ⊥ₛ' ≈ₛ' (h ∷ l' , ∷-Free h l' min incomp f')
+            ⊥≈h∷l' = 
+              ≈ₛ'-trans {⊥ₛ'} {|f| s} {h ∷ l' , ∷-Free h l' min incomp f'} 
+                (≈ₛ'-sym {|f| s} {⊥ₛ'} fs≈⊥) 
+                (≈ₛ'-reflexive fs≡h∷l')
+
+        ¬s≈⊥ s≈⊥ | ()
+    --]]]
+
+    monotone : (_∼_ $ ×-preorder (⟦ qAny q⟧ (Poset.preorder P))  (BoundedJoinSemilattice.preorder S))
+               =[ fun ]⇒ 
+               (_∼_ $ ▹-preorder T S)
+    monotone {p₁ , s₁} {p₂ , s₂} ((p₁≤p₂ , p₂≤p₁) , s₁≤s₂) with keep (|f| s₁) | keep (|f| s₂)
+    monotone {p₁ , s₁} {p₂ , s₂} ((p₁≤p₂ , p₂≤p₁) , s₁≤s₂) | ([] , []-Free) , _ | _ , _ = []
+    monotone {p₁ , s₁} {p₂ , s₂} ((p₁≤p₂ , p₂≤p₁) , s₁≤s₂) | 
+             (h1 ∷ t1 , ∷-Free h1 t1 min1 incomp1 f1) , q1 | 
+             ([] , []-Free) , q2 = 
+      ⊥-elim $ ¬Any[] (LAll.lookup p (here PE.refl))
+      where
+        open import Data.List.Any using (here)
+        open import Data.List.All as LAll
+        open import Data.List.Any.Properties
+        open import Data.Empty
+        fs1≤fs2 = ⇉-mono {S = S} {T = FP-BJS} f s₁≤s₂
+        p : (h1 ∷ t1 , ∷-Free h1 t1 min1 incomp1 f1) ≤ₛ' ([] , []-Free)
+        p = 
+          begin 
+            (h1 ∷ t1 , ∷-Free h1 t1 min1 incomp1 f1) ≡⟨ PE.sym q1 ⟩ 
+            (|f| s₁) ≤⟨ fs1≤fs2 ⟩ 
+            (|f| s₂) ≡⟨ q2 ⟩
+            ([] , []-Free)
+           ∎ 
+          where
+            open import Relation.Binary.PartialOrderReasoning (BoundedJoinSemilattice.poset FP-BJS)
+    monotone {p₁ , s₁} {p₂ , s₂} ((p₁≤p₂ , p₂≤p₁) , s₁≤s₂) | 
+             (h1 ∷ t1 , ∷-Free h1 t1 min1 incomp1 f1) , _ | 
+             (h2 ∷ t2 , ∷-Free h2 t2 min2 incomp2 f2) , _ = 
+      {!!} 
+      where
+        p₁≈p₂ : p₁ ≈ₚ p₂
+        p₁≈p₂ = ? 
+
+{-
+    monotone : (_∼_ $ ×-preorder (⟦ qAny q⟧ ⟦ τKey-wf ⁎⟧')  ⟦ τVal-wf ⁎⟧') =[ fun ]⇒ (_∼_ $ ▹-preorder (SemStoset.T ⟦ isStosetKey ⁑⟧) (SemSemilatCore.S ⟦ isSemilatVal ⁂⟧))
+    monotone {p₁ , s₁} {p₂ , s₂} ((p₁≤p₂ , p₂≤p₁) , s₁≤s₂) with s₁' | s₂' | keep (|f| s₁') | keep (|f| s₂')
+      where 
+        s₁' : |S|'
+        s₁' rewrite PE.sym $ SemSemilatCore.US ⟦ isSemilatVal ⁂⟧ = s₁
+
+        s₂' : |S|'
+        s₂' rewrite PE.sym $ SemSemilatCore.US ⟦ isSemilatVal ⁂⟧ = s₂
+    monotone {p₁ , s₁} {p₂ , s₂} ((p₁≤p₂ , p₂≤p₁) , s₁≤s₂) | s₁' | s₂' | ([] , []-Free) , q₁ | ([] , []-Free) , q₂ = {!Data.List.All.[]!}
+    monotone {p₁ , s₁} {p₂ , s₂} ((p₁≤p₂ , p₂≤p₁) , s₁≤s₂) | s₁' | s₂' | ([] , snd) , q₁ | (x ∷ fst₁ , snd₁) , q₂ = {!!}
+    monotone {p₁ , s₁} {p₂ , s₂} ((p₁≤p₂ , p₂≤p₁) , s₁≤s₂) | s₁' | s₂' | (x ∷ fst , snd) , q₁ | ([] , snd₁) , q₂ = {!!}
+    monotone {p₁ , s₁} {p₂ , s₂} ((p₁≤p₂ , p₂≤p₁) , s₁≤s₂) | s₁' | s₂' | (x ∷ fst , snd) , q₁ | (x₁ ∷ fst₁ , snd₁) , q₂ = {!!}
+-}
 
 _R≤_ : {n : ℕ} → (Vec q n) → (Vec q n) → Set
 R₁ R≤ R₂ = VPW.Pointwise _q≤_ R₁ R₂
@@ -478,4 +587,88 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
     ⟦Γ∣R₂⟧⇒⟦τVal⟧ : ⟦ Γ₀ Γ∣ R₂ R⟧ ⇒ ⟦ τVal-wf ⁎⟧'
     ⟦Γ∣R₂⟧⇒⟦τVal⟧ = ⟦_⊢⟧ {τ₀-wf = τVal-wf} Γ∣R₂⊢eVal∣τVal
 
-    
+    ▹-sng : (×-preorder (⟦ qAny q⟧ ⟦ τKey-wf ⁎⟧')  ⟦ τVal-wf ⁎⟧') ⇒ 
+            (▹-preorder (SemStoset.T ⟦ isStosetKey ⁑⟧) (SemSemilatCore.S ⟦ isSemilatVal ⁂⟧))
+    ▹-sng rewrite PE.sym $ SemSemilatCore.US ⟦ isSemilatVal ⁂⟧ = 
+      ▹-sng' ⟦ τKey-wf ⁎⟧' (SemStoset.T ⟦ isStosetKey ⁑⟧) (PE.sym $ SemStoset.eq ⟦ isStosetKey ⁑⟧)
+             (SemSemilatCore.S ⟦ isSemilatVal ⁂⟧) (SemSemilatCore.P ⟦ isSemilatVal ⁂⟧)
+             (SemSemilatIso.f ⟦ isSemilatVal ⁂iso⟧)
+{-
+    ▹-sng : (×-preorder (⟦ qAny q⟧ ⟦ τKey-wf ⁎⟧')  ⟦ τVal-wf ⁎⟧') ⇒ 
+            (▹-preorder (SemStoset.T ⟦ isStosetKey ⁑⟧) (SemSemilatCore.S ⟦ isSemilatVal ⁂⟧))
+    ▹-sng =
+      record
+      { fun = fun 
+      ; monotone = monotone
+      }
+      where
+        open import Data.List.All
+        open import SemilatIso
+        open import Dictionary
+        open import Relation.Binary.Lattice
+        open import Data.List
+        open SemSemilatIso ⟦ isSemilatVal ⁂iso⟧
+        open import FreeSemilattice (SemSemilatCore.P ⟦ isSemilatVal ⁂⟧) 
+          renaming (⊥ to ⊥ₛ' ; _≈_ to _≈ₛ'_ ; ≈-trans to ≈ₛ'-trans ; ≈-sym to ≈ₛ'-sym ;
+                    ≈-reflexive to ≈ₛ'-reflexive)
+        open Preorder
+
+        P = ⟦ τKey-wf ⁎⟧'
+        T = SemStoset.T ⟦ isStosetKey ⁑⟧
+        S = SemSemilatCore.S ⟦ isSemilatVal ⁂⟧
+        
+        open BoundedJoinSemilattice S renaming (_≈_ to _≈ₛ_ ; ⊥ to ⊥ₛ)
+
+        |P| = Preorder.Carrier P
+        |S|' = BoundedJoinSemilattice.Carrier S
+        |S| = Poset.Carrier ⟦ semilat→poset isSemilatVal ⁎⟧ 
+        |T| = StrictTotalOrder.Carrier T
+        |f| = proj₁ f
+        |f|-≈ = proj₁ $ proj₂ f
+        
+        fun : |P| × |S| → Σ[ l ∈ (List $ |T| × |S|') ] (IsDict T S l)
+        --[[[
+        fun (p , s) with t | s' | keep (|f| s') 
+          where
+            t : |T|
+            t rewrite PE.sym $ SemStoset.eq ⟦ isStosetKey ⁑⟧ = p
+            
+            s' : |S|'
+            s' rewrite PE.sym $ SemSemilatCore.US ⟦ isSemilatVal ⁂⟧ = s 
+        fun (p , s) | t | s' | ([] , []-Free) , _ = [] , []-Dict
+        fun (p , s) | t | s' | (h ∷ l' , ∷-Free .h .l' min incomp f') , fs≡h∷l' = 
+          ((t , s') ∷ []) , (∷-Dict (t , s') [] [] ¬s≈⊥ []-Dict)  
+          where
+            open import Relation.Nullary
+            
+            ¬s≈⊥ : ¬ (s' ≈ₛ ⊥ₛ)  
+            ¬s≈⊥ s≈⊥ with ⊥≈h∷l'
+              where
+                f⊥≈⊥ : (|f| ⊥ₛ) ≈ₛ' ⊥ₛ'
+                f⊥≈⊥ = proj₁ $ proj₂ $ proj₂ f
+
+                fs≈⊥ : (|f| s') ≈ₛ' ⊥ₛ'
+                fs≈⊥ = ≈ₛ'-trans {|f| s'} {|f| ⊥ₛ} {⊥ₛ'}  (|f|-≈ s' ⊥ₛ s≈⊥) f⊥≈⊥ 
+
+                ⊥≈h∷l' : ⊥ₛ' ≈ₛ' (h ∷ l' , ∷-Free h l' min incomp f')
+                ⊥≈h∷l' = 
+                  ≈ₛ'-trans {⊥ₛ'} {|f| s'} {h ∷ l' , ∷-Free h l' min incomp f'} 
+                    (≈ₛ'-sym {|f| s'} {⊥ₛ'} fs≈⊥) 
+                    ((≈ₛ'-reflexive fs≡h∷l'))
+            ¬s≈⊥ s≈⊥ | ()
+        --]]]
+        
+        monotone : (_∼_ $ ×-preorder (⟦ qAny q⟧ ⟦ τKey-wf ⁎⟧')  ⟦ τVal-wf ⁎⟧') =[ fun ]⇒ (_∼_ $ ▹-preorder (SemStoset.T ⟦ isStosetKey ⁑⟧) (SemSemilatCore.S ⟦ isSemilatVal ⁂⟧))
+        monotone {p₁ , s₁} {p₂ , s₂} ((p₁≤p₂ , p₂≤p₁) , s₁≤s₂) with s₁' | s₂' | keep (|f| s₁') | keep (|f| s₂')
+          where 
+            s₁' : |S|'
+            s₁' rewrite PE.sym $ SemSemilatCore.US ⟦ isSemilatVal ⁂⟧ = s₁
+
+            s₂' : |S|'
+            s₂' rewrite PE.sym $ SemSemilatCore.US ⟦ isSemilatVal ⁂⟧ = s₂
+        monotone {p₁ , s₁} {p₂ , s₂} ((p₁≤p₂ , p₂≤p₁) , s₁≤s₂) | s₁' | s₂' | ([] , []-Free) , q₁ | ([] , []-Free) , q₂ = {!Data.List.All.[]!}
+        monotone {p₁ , s₁} {p₂ , s₂} ((p₁≤p₂ , p₂≤p₁) , s₁≤s₂) | s₁' | s₂' | ([] , snd) , q₁ | (x ∷ fst₁ , snd₁) , q₂ = {!!}
+        monotone {p₁ , s₁} {p₂ , s₂} ((p₁≤p₂ , p₂≤p₁) , s₁≤s₂) | s₁' | s₂' | (x ∷ fst , snd) , q₁ | ([] , snd₁) , q₂ = {!!}
+        monotone {p₁ , s₁} {p₂ , s₂} ((p₁≤p₂ , p₂≤p₁) , s₁≤s₂) | s₁' | s₂' | (x ∷ fst , snd) , q₁ | (x₁ ∷ fst₁ , snd₁) , q₂ = {!!}
+-}
+

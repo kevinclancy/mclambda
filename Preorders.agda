@@ -368,6 +368,12 @@ precomp {P} {Q} {R} (record {fun = p→q ; monotone = p→q-monotone}) =
     monotone {f₁} {f₂} f₁≤f₂ {p} = f₁≤f₂
 
 
+▹-preorder : (T₀ : StrictTotalOrder l0 l0 l0) → (V : BoundedJoinSemilattice l0 l0 l0) → Preorder l0 l0 l0
+▹-preorder T₀ V = Poset.preorder (▹-poset T₀ V)
+  where
+    open import Dictionary
+{-
+
 module _ (K : StrictTotalOrder l0 l0 l0) (V : BoundedJoinSemilattice l0 l0 l0) where
   private
    |K| = StrictTotalOrder.Carrier K
@@ -389,24 +395,23 @@ K ▹ V = Σ[ l ∈ (List $ |K| × |V|) ] IsDict K V l
     |K| = StrictTotalOrder.Carrier K
     |V| = BoundedJoinSemilattice.Carrier V
 
-▹-preorder : (T₀ : StrictTotalOrder l0 l0 l0) → (T₁ : Preorder l0 l0 l0) → 
-             (StrictTotalOrder.Carrier T₀ ≡ Preorder.Carrier T₁) →  
-             (V : BoundedJoinSemilattice l0 l0 l0) → 
-             Preorder l0 l0 l0
-
-▹-preorder T₀ T₁ PE.refl V = 
+▹-poset : (T₀ : StrictTotalOrder l0 l0 l0) → (V : BoundedJoinSemilattice l0 l0 l0) → Poset l0 l0 l0
+▹-poset T₀ V = 
   record
   { Carrier = Carrier'
-  ; _∼_ = _∼'_ 
+  ; _≤_ = _≤'_ 
   ; _≈_ = _≈'_
-  ; isPreorder = record 
-    { reflexive = λ {x} {y} → reflexive' {x} {y}
-    ; trans = λ {x} {y} {z} → trans-∼' {x} {y} {z}
-    ; isEquivalence = record
-      { trans = λ {x} {y} {z} → trans-≈' {x} {y} {z}
-      ; refl = λ {x} → refl' {x} , refl' {x}
-      ; sym = λ {x} {y} → sym-≈' {x} {y}
+  ; isPartialOrder = record
+    { isPreorder = record
+      { reflexive = λ {x} {y} → reflexive' {x} {y}
+      ; trans = λ {x} {y} {z} → trans-≤' {x} {y} {z}
+      ; isEquivalence = record
+        { trans = λ {x} {y} {z} → trans-≈' {x} {y} {z}
+        ; refl = λ {x} → refl' {x} , refl' {x}
+        ; sym = λ {x} {y} → sym-≈' {x} {y}
+        }
       }
+      ; antisym = λ {x} {y} → antisym-≤' {x} {y}
     }
   } 
   where
@@ -436,16 +441,16 @@ K ▹ V = Σ[ l ∈ (List $ |K| × |V|) ] IsDict K V l
     trans-≤e (k1≈k2 , v1≤v2) (k2≈k3 , v2≤v3) = 
       StrictTotalOrder.Eq.trans T₀ k1≈k2 k2≈k3 , BoundedJoinSemilattice.trans V v1≤v2 v2≤v3
     
-    _∼'_ : Carrier' → Carrier' → Set
-    (l₁ , _) ∼' (l₂ , _) = All (λ e₁ → Any (λ e₂ → e₁ ≤e e₂) l₂) l₁
+    _≤'_ : Carrier' → Carrier' → Set
+    (l₁ , _) ≤' (l₂ , _) = All (λ e₁ → Any (λ e₂ → e₁ ≤e e₂) l₂) l₁
 
     _≈'_ : Carrier' → Carrier' → Set
-    i ≈' j = (i ∼' j) × (j ∼' i)
+    i ≈' j = (i ≤' j) × (j ≤' i)
 
-    reflexive' : _≈'_ Implies _∼'_
+    reflexive' : _≈'_ Implies _≤'_
     reflexive' (x , _) = x
 
-    refl' : Reflexive _∼'_
+    refl' : Reflexive _≤'_
     refl' {l , _} = tabulateAll f 
       where
         f : ∀ {x} → x ∈ l → Any (x ≤e_) l
@@ -454,8 +459,8 @@ K ▹ V = Σ[ l ∈ (List $ |K| × |V|) ] IsDict K V l
             p : ∀ {y} → x ≡ y → x ≤e y
             p {l , d} PE.refl = StrictTotalOrder.Eq.refl T₀ , BoundedJoinSemilattice.refl V
 
-    trans-∼' : Transitive _∼'_
-    trans-∼' {l1 , _} {l2 , _} {l3 , _} d1≤d2 d2≤d3 =
+    trans-≤' : Transitive _≤'_
+    trans-≤' {l1 , _} {l2 , _} {l3 , _} d1≤d2 d2≤d3 =
       LAll.tabulate tab
       where
         open import Data.List.Membership.Propositional
@@ -470,7 +475,13 @@ K ▹ V = Σ[ l ∈ (List $ |K| × |V|) ] IsDict K V l
 
     trans-≈' : Transitive _≈'_
     trans-≈' {d1} {d2} {d3} (l1∼l2 , l2∼l1) (l2∼l3 , l3∼l2) = 
-      trans-∼' {d1} {d2} {d3} l1∼l2 l2∼l3 , trans-∼' {d3} {d2} {d1} l3∼l2 l2∼l1 
+      trans-≤' {d1} {d2} {d3} l1∼l2 l2∼l3 , trans-≤' {d3} {d2} {d1} l3∼l2 l2∼l1 
 
     sym-≈' : Symmetric _≈'_
     sym-≈' (d1∼d2 , d2∼d1) = (d2∼d1 , d1∼d2)
+
+    antisym-≤' : Antisymmetric _≈'_ _≤'_
+    antisym-≤' a≤b b≤a = a≤b , b≤a
+
+-}
+

@@ -116,8 +116,13 @@ open import Preorders
 ⟦_⁎⟧' : ∀ {τ : τ} → IsPoset τ → Preorder l0 l0 l0
 ⟦ wf ⁎⟧' = Poset.preorder ⟦ wf ⁎⟧
 
+record SemStoset {τ : τ} (isStoset : IsStoset τ) : Set l1 where
+  field
+    T : StrictTotalOrder l0 l0 l0
+    eq : StrictTotalOrder.Carrier T ≡ Poset.Carrier ⟦ stoset→poset isStoset ⁎⟧
+
 -- agda-mode: ⁑ is \asterisk, second choice
-⟦_⁑⟧ : ∀ {τ : τ} → IsStoset τ → StrictTotalOrder l0 l0 l0
+⟦_⁑⟧ : ∀ {τ : τ} → (p : IsStoset τ) → SemStoset p
 
 ⟦_Δ⟧ : ∀ {τ : τ} → IsDeltaPoset τ → DeltaPoset {l0} {l0} {l0} {l0}
 
@@ -141,7 +146,7 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
 
 ⟦ FunPoset {q = q} domIsPoset codIsPoset ⁎⟧ = ⇒-poset (⟦ q q⟧ ⟦ domIsPoset ⁎⟧') ⟦ codIsPoset ⁎⟧
 ⟦ DictPoset domIsToset codIsSemilat ⁎⟧ = 
-  ▹-poset ⟦ domIsToset ⁑⟧ (SemSemilatCore.S ⟦ codIsSemilat ⁂⟧)
+  ▹-poset (SemStoset.T ⟦ domIsToset ⁑⟧) (SemSemilatCore.S ⟦ codIsSemilat ⁂⟧)
   where
     open import Dictionary
 ⟦ ProductPoset isPosetL isPosetR ⁎⟧ = ×-poset ⟦ isPosetL ⁎⟧ ⟦ isPosetR ⁎⟧  
@@ -169,17 +174,37 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
     open import Data.Nat.Properties
 
 
-⟦ UnitStoset ⁑⟧ = UnitStrictTotal.⊤-strictTotalOrder
-⟦ NatStoset ⁑⟧ = <-strictTotalOrder
+⟦ UnitStoset ⁑⟧ = 
+  record
+  { T = UnitStrictTotal.⊤-strictTotalOrder
+  ; eq = PE.refl
+  }
+⟦ NatStoset ⁑⟧ = 
+  record
+  { T = <-strictTotalOrder
+  ; eq = PE.refl
+  }
   where
     open import Data.Nat.Properties
-⟦ BoolStoset ⁑⟧ = B<-strictTotalOrder
+⟦ BoolStoset ⁑⟧ = 
+  record
+  { T = B<-strictTotalOrder
+  ; eq = PE.refl
+  }
   where
     open import BoolPoset
-⟦ ProductStoset stosetL stosetR ⁑⟧ = ×-strictTotalOrder ⟦ stosetL ⁑⟧ ⟦ stosetR ⁑⟧
+⟦ ProductStoset stosetL stosetR ⁑⟧ = 
+  record
+  { T = ×-strictTotalOrder (SemStoset.T ⟦ stosetL ⁑⟧) (SemStoset.T ⟦ stosetR ⁑⟧)
+  ; eq = PE.cong₂ _×_ (SemStoset.eq ⟦ stosetL ⁑⟧) (SemStoset.eq ⟦ stosetR ⁑⟧)
+  }
   where
     open import Data.Product.Relation.Lex.Strict
-⟦ SumStoset stosetL stosetR ⁑⟧ = ⊎-<-strictTotalOrder {l0} {l0} {l0} {l0} {l0} {l0} ⟦ stosetL ⁑⟧ ⟦ stosetR ⁑⟧
+⟦ SumStoset stosetL stosetR ⁑⟧ = 
+  record
+  { T = ⊎-<-strictTotalOrder {l0} {l0} {l0} {l0} {l0} {l0} (SemStoset.T ⟦ stosetL ⁑⟧) (SemStoset.T ⟦ stosetR ⁑⟧)
+  ; eq = PE.cong₂ _⊎_ (SemStoset.eq ⟦ stosetL ⁑⟧) (SemStoset.eq ⟦ stosetR ⁑⟧)
+  }
   where
     open import Data.Sum.Relation.LeftOrder
 

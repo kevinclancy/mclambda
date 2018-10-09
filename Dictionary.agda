@@ -119,3 +119,4 @@ K ▹ V = Σ[ l ∈ (List $ |K| × |V|) ] IsDict K V l
 
     antisym-≤' : Antisymmetric _≈'_ _≤'_
     antisym-≤' a≤b b≤a = a≤b , b≤a
+
