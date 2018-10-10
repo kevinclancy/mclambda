@@ -7,6 +7,7 @@ open import Kinding
 open import Data.Nat
 open import Data.Vec as V
 open import Data.Product
+open import Relation.Binary.PropositionalEquality using (_≡_)
 
 -- data IsPoset : τ → Set
 -- data IsToset : τ → Set
@@ -36,11 +37,6 @@ data _∣_⊢_∣_ where
 --           (τValDelta : τ) → (eDict : e) → (IsToset τKey) → (IsSemilat τVal τValDelta) →
 --           (Γ ∣ R ⊢ eKey ∣ τKey) → (Γ ∣ S ⊢ eVal ∣ τVal) → (Γ ∣ T ⊢ eDict ∣ (τDict τKey τVal)) →
 --           (Γ ∣ ((qAny qR∘ R) R+ S) R+ T ⊢ (Cons eKey eVal eDict) ∣ (τDict τKey τVal)) 
-
-  TySng : {n : ℕ} → {Γ : Vec wfτ n} → {R₁ R₂ : Vec q n} → {eKey : e} → {τKey : τ} → {eVal : e} → {τVal : τ} → 
-          {τValDelta : τ} → (IsStoset τKey) → (IsSemilat τVal τValDelta) →
-          (Γ ∣ R₁ ⊢ eKey ∣ τKey) → (Γ ∣ R₂ ⊢ eVal ∣ τVal) →
-          (Γ ∣ (qAny qR∘ R₁) R+ R₂ ⊢ (Sng eKey eVal) ∣ (τDict τKey τVal)) 
 
   TyJoin : {n : ℕ} {Γ : Vec wfτ n} {R₁ : Vec q n} {R₂ : Vec q n} {e₁ e₂ : e} {τ τ₀ : τ} {p : IsSemilat τ τ₀} →
            (Γ ∣ R₁ ⊢ e₁ ∣ τ) → (Γ ∣ R₂ ⊢ e₂ ∣ τ) → (Γ ∣ R₁ R+ R₂ ⊢ (Join τ e₁ e₂) ∣ τ)  
@@ -78,6 +74,17 @@ data _∣_⊢_∣_ where
           (((τ₁' , wf-τ₁') ∷ Γ₀) ∣ (qMono ∷ R₀) ⊢ e₀ ∣ τ₂) → 
           (Γ₀ ∣ R₀ ⊢ e₀ ∣ (τFun τ₁ qMono τ₂))
 
+  TySng : {n : ℕ} → {Γ : Vec wfτ n} → {R₁ R₂ R₃ : Vec q n} → {eKey : e} → {τKey : τ} → {eVal : e} → {τVal : τ} → 
+          {τValDelta : τ} → (IsStoset τKey) → (IsSemilat τVal τValDelta) → (R₃ ≡ (qAny qR∘ R₁) R+ R₂) →
+          (Γ ∣ R₁ ⊢ eKey ∣ τKey) → (Γ ∣ R₂ ⊢ eVal ∣ τVal) →
+          (Γ ∣ R₃ ⊢ (Sng eKey eVal) ∣ (τDict τKey τVal)) 
+
+  TyExtract : {n : ℕ} {q₁ q₂ q₃ : q} → {Γ₀ : Vec wfτ n} → {R₁ R₂ R₃ : Vec q n} → {eDict eBody : e} → {τ σ σ₀ κ κ₀ : τ} →
+              (isStosetKey : IsStoset τ) → 
+              (isSemilatVal : IsSemilat σ σ₀) → (isSemilatTarget : IsSemilat κ κ₀) → (R₃ ≡ R₁ R+ R₂) → (q₂≤+ : q₂ q≤ qMono) → 
+              (q₃≤+ : q₃ q≤ qMono) → (Γ₀ ∣ R₁ ⊢ eDict ∣ (τDict τ σ)) → 
+              (((κ , semilat→poset isSemilatTarget) ∷ (σ , semilat→poset isSemilatVal) ∷ (τ , stoset→poset isStosetKey) ∷ Γ₀) ∣ (q₃ ∷ q₂ ∷ q₁ ∷ R₂) ⊢ eBody ∣ κ) →
+              (Γ₀ ∣ R₃ ⊢ (Extract eDict eBody) ∣ κ)
 
 τRes-wf :  {n : ℕ} → {Γ₀ : Vec wfτ n} → {R₀ : Vec q n} → {e₀ : e} → {τRes : τ} → (Γ₀ ∣ R₀ ⊢ e₀ ∣ τRes) → (IsPoset τRes) 
 τRes-wf (TyBot {p = τRes-semilat}) = semilat→poset τRes-semilat
@@ -97,7 +104,8 @@ data _∣_⊢_∣_ where
 τRes-wf (TyInr {τL-wf = τL-wf} d) = SumPoset τL-wf (τRes-wf d)
 τRes-wf (TyCase _ d _) = τRes-wf d
 τRes-wf (TyHom {τ₁⁂ = τ₁⁂} {τ₂⁂ = τ₂⁂} τ₁∷Γ@+∷R₀⊢e₀∣τ₂) = FunPoset (semilat→poset τ₁⁂) (semilat→poset τ₂⁂) 
-τRes-wf (TySng keyIsStoset valIsSemilat d1 d2) = DictPoset keyIsStoset valIsSemilat
+τRes-wf (TySng keyIsStoset valIsSemilat eq d1 d2) = DictPoset keyIsStoset valIsSemilat
+τRes-wf (TyExtract _ _ targetIsSemilat _ _ _ _ _) = semilat→poset targetIsSemilat
 
 {-
 τRes-wf Γ₀ R₀ .(Inr _ _ _) .(τSum _ _) (TyInr zzz) = {!!}

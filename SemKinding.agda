@@ -18,7 +18,7 @@ open import Data.Product
 open import Data.Empty
 open import Data.Sum
 open import Data.Unit hiding (_≤_)
-open import Data.Nat as N renaming (_⊔_ to _⊔N_ ; _<_ to _<N_)
+open import Data.Nat as N renaming (_⊔_ to _⊔N_ ; _<_ to _<N_ ; _≤_ to _≤N_)
 open import Function using (_$_)
 open import Relation.Binary.PropositionalEquality as PE hiding ([_])
 open import SemScalars
@@ -119,7 +119,10 @@ open import Preorders
 record SemStoset {τ : τ} (isStoset : IsStoset τ) : Set l1 where
   field
     T : StrictTotalOrder l0 l0 l0
-    eq : StrictTotalOrder.Carrier T ≡ Poset.Carrier ⟦ stoset→poset isStoset ⁎⟧
+    eq : StrictTotalOrder.Eq.setoid T ≡ (poset→setoid ⟦ stoset→poset isStoset ⁎⟧)
+
+--SemStoset→sto : {τ : τ} → (isStoset : IsStoset τ) → (semStoset : SemStoset isStoset) → StrictTotalOrder l0 l0 l0
+--SemStoset→sto {τ : τ} → 
 
 -- agda-mode: ⁑ is \asterisk, second choice
 ⟦_⁑⟧ : ∀ {τ : τ} → (p : IsStoset τ) → SemStoset p
@@ -193,20 +196,22 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
   }
   where
     open import BoolPoset
-⟦ ProductStoset stosetL stosetR ⁑⟧ = 
+⟦ ProductStoset stosetL stosetR ⁑⟧ =
   record
   { T = ×-strictTotalOrder (SemStoset.T ⟦ stosetL ⁑⟧) (SemStoset.T ⟦ stosetR ⁑⟧)
-  ; eq = PE.cong₂ _×_ (SemStoset.eq ⟦ stosetL ⁑⟧) (SemStoset.eq ⟦ stosetR ⁑⟧)
+  ; eq = PE.cong₂ ×-setoid (SemStoset.eq ⟦ stosetL ⁑⟧) (SemStoset.eq ⟦ stosetR ⁑⟧)
   }
   where
-    open import Data.Product.Relation.Lex.Strict
+    open import Data.Product.Relation.Pointwise.NonDependent using (×-setoid)
+    open import Data.Product.Relation.Lex.Strict using (×-strictTotalOrder)
 ⟦ SumStoset stosetL stosetR ⁑⟧ = 
   record
   { T = ⊎-<-strictTotalOrder {l0} {l0} {l0} {l0} {l0} {l0} (SemStoset.T ⟦ stosetL ⁑⟧) (SemStoset.T ⟦ stosetR ⁑⟧)
-  ; eq = PE.cong₂ _⊎_ (SemStoset.eq ⟦ stosetL ⁑⟧) (SemStoset.eq ⟦ stosetR ⁑⟧)
+  ; eq = PE.cong₂ ⊎-setoid (SemStoset.eq ⟦ stosetL ⁑⟧) (SemStoset.eq ⟦ stosetR ⁑⟧)
   }
   where
-    open import Data.Sum.Relation.LeftOrder
+    open import Data.Sum.Relation.LeftOrder using (⊎-<-strictTotalOrder)
+    open import Data.Sum.Relation.Pointwise using (⊎-setoid)
 
 ⟦ UnitDelta Δ⟧ = record
    { Carrier = ⊤ 

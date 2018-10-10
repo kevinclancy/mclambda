@@ -394,6 +394,12 @@ preorder→setoid P = record
   ; isEquivalence = Preorder.isEquivalence P
   }
 
+poset→setoid : ∀ {ℓ₀ ℓ₁ ℓ₂} → (P : Poset ℓ₀ ℓ₁ ℓ₂) → Setoid _ _
+poset→setoid P = record
+  { Carrier = Poset.Carrier P
+  ; _≈_ = Poset._≈_ P
+  ; isEquivalence = Poset.isEquivalence P
+  }
 
 module _ {S : BoundedJoinSemilattice l0 l0 l0} where
   open import Relation.Binary.Properties.JoinSemilattice
