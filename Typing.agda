@@ -28,16 +28,6 @@ data _∣_⊢_∣_ where
   TyBot : {n : ℕ} {Γ : Vec wfτ n} {τ τ₀ : τ} {p : IsSemilat τ τ₀} →
           (Γ ∣ (replicate qConst) ⊢ (Bot τ) ∣ τ)
 
---  TyExtract : {n : ℕ} (q₁ q₂ q₃ : q) → (Γ : Vec τ n) → (R S : Vec q n) → (eDict eBody : e) → (τ σ σ₀ κ κ₀ : τ) →
---              (IsSemilat σ σ₀) → (IsSemilat κ κ₀) → (q₂ q≤ qMono) → (q₃ q≤ qMono) → 
---              (Γ ∣ R ⊢ eDict ∣ (τDict τ σ)) → ((κ ∷ σ ∷ τ ∷ Γ) ∣ (q₃ ∷ q₂ ∷ q₁ ∷ S) ⊢ eBody ∣ κ) →
---              (Γ ∣ (R R+ S) ⊢ (Extract eDict eBody) ∣ κ)
-
---  TyCons : {n : ℕ} → (Γ : Vec τ n) → (R S T : Vec q n) → (eKey : e) → (τKey : τ) → (eVal : e) → (τVal : τ) → 
---           (τValDelta : τ) → (eDict : e) → (IsToset τKey) → (IsSemilat τVal τValDelta) →
---           (Γ ∣ R ⊢ eKey ∣ τKey) → (Γ ∣ S ⊢ eVal ∣ τVal) → (Γ ∣ T ⊢ eDict ∣ (τDict τKey τVal)) →
---           (Γ ∣ ((qAny qR∘ R) R+ S) R+ T ⊢ (Cons eKey eVal eDict) ∣ (τDict τKey τVal)) 
-
   TyJoin : {n : ℕ} {Γ : Vec wfτ n} {R₁ : Vec q n} {R₂ : Vec q n} {e₁ e₂ : e} {τ τ₀ : τ} {p : IsSemilat τ τ₀} →
            (Γ ∣ R₁ ⊢ e₁ ∣ τ) → (Γ ∣ R₂ ⊢ e₂ ∣ τ) → (Γ ∣ R₁ R+ R₂ ⊢ (Join τ e₁ e₂) ∣ τ)  
           
@@ -86,6 +76,15 @@ data _∣_⊢_∣_ where
               (((τ , stoset→poset isStosetKey) ∷ (σ , semilat→poset isSemilatVal) ∷ (κ , semilat→poset isSemilatTarget) ∷ Γ₀) ∣ (q₁ ∷ q₂ ∷ q₃ ∷ R₂) ⊢ eBody ∣ κ) →
               (Γ₀ ∣ R₃ ⊢ (Extract eDict eBody) ∣ κ)
 
+  TyPure : {n : ℕ} {Γ₀ : Vec wfτ n} {R₀ : Vec q n} {eBody : e} {τ : τ} → 
+           (Γ₀ ∣ R₀ ⊢ eBody ∣ τ) → (Γ₀ ∣ R₀ ⊢ Pure eBody ∣ (τPartial τ))
+  
+  TyMLet : {n : ℕ} {Γ₀ : Vec wfτ n} {R₁ R₂ R₃ : Vec q n} {eq : R₃ ≡ R₁ R+ R₂} {eFirst eAndThen : e} {τ₁ τ₂ : τ} 
+           {τ₁-wf : IsPoset τ₁} → 
+           (Γ₀ ∣ R₁ ⊢ eFirst ∣ (τPartial τ₁)) → 
+           (((τ₁ , τ₁-wf) ∷ Γ₀) ∣ (qMono ∷ R₂) ⊢ eAndThen ∣ (τPartial τ₂)) → 
+           (Γ₀ ∣ R₃ ⊢ MLet eFirst eAndThen ∣ τPartial τ₂)
+
 τRes-wf :  {n : ℕ} → {Γ₀ : Vec wfτ n} → {R₀ : Vec q n} → {e₀ : e} → {τRes : τ} → (Γ₀ ∣ R₀ ⊢ e₀ ∣ τRes) → (IsPoset τRes) 
 τRes-wf (TyBot {p = τRes-semilat}) = semilat→poset τRes-semilat
 τRes-wf (TyJoin {_} {_} {R₁} d1 d2) = τRes-wf d1
@@ -106,7 +105,8 @@ data _∣_⊢_∣_ where
 τRes-wf (TyHom {τ₁⁂ = τ₁⁂} {τ₂⁂ = τ₂⁂} τ₁∷Γ@+∷R₀⊢e₀∣τ₂) = FunPoset (semilat→poset τ₁⁂) (semilat→poset τ₂⁂) 
 τRes-wf (TySng keyIsStoset valIsSemilat eq d1 d2) = DictPoset keyIsStoset valIsSemilat
 τRes-wf (TyExtract _ _ targetIsSemilat _ _ _ _ _) = semilat→poset targetIsSemilat
-
+τRes-wf (TyPure d) = PartialPoset (τRes-wf d)
+τRes-wf (TyMLet _ d2) = τRes-wf d2
 {-
 τRes-wf Γ₀ R₀ .(Inr _ _ _) .(τSum _ _) (TyInr zzz) = {!!}
 τRes-wf Γ₀ .(zipWith _q+_ (V.map (_q∘_ (_ q+ _)) _) (zipWith _q+_ _ _)) .(Case _ _ _) τRes (TyCase zzz zzz₁ zzz₂) = {!!}
