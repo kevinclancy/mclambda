@@ -125,7 +125,7 @@ open import FreeSemilattice hiding (∷-Free ; []-Free ; FP-BJS ; ⊥ ; _∨_)
          (eq : (poset→setoid P) ≡ StrictTotalOrder.Eq.setoid T) →
          (valS : BoundedJoinSemilattice l0 l0 l0) → (targetS : BoundedJoinSemilattice l0 l0 l0) →  
          (×-preorder (▹-preorder T valS) 
-                     (⇒-preorder (×-preorder (×-preorder (⟦ qAny q⟧ $ Poset.preorder P) (BoundedJoinSemilattice.preorder valS))
+                     (⇒-preorder (×-preorder (×-preorder (⟦ qAny q⟧ (Poset.preorder P)) (BoundedJoinSemilattice.preorder valS))
                                               (BoundedJoinSemilattice.preorder targetS))
                                  (BoundedJoinSemilattice.preorder targetS))) 
          ⇒
@@ -270,17 +270,34 @@ open import FreeSemilattice hiding (∷-Free ; []-Free ; FP-BJS ; ⊥ ; _∨_)
         v1≤v2 : v1 ≤v v2
         v1≤v2 = proj₂ h1≤h2
       --]]]
-    monotone {d1@((k1 , v1) ∷ t1 , ∷-Dict h1 t1 min1 ¬⊥1 dt1) , record { monotone = mono1 }} {((k2 , v2) ∷ t2 , ∷-Dict h2 t2 min2 ¬⊥2 dt2) , record { monotone = mono2 }} (kv1≤d2 ∷ t1≤d2  , b1≤b2) | tri> _ _ k2<k1 = 
-      {!!}
+    monotone {d1@((k1 , v1) ∷ t1 , ∷-Dict h1 t1 min1 ¬⊥1 dt1) , f1@(record { fun = fun1 ; monotone = mono1 })} {d2@((k2 , v2) ∷ t2 , ∷-Dict h2 t2 min2 ¬⊥2 dt2) , f2@(record { fun = fun2 ; monotone = mono2 })} (kv1≤d2 ∷ t1≤d2  , b1≤b2) | tri> _ _ k2<k1 = 
+      let
+        fd1≤ft2 : (fun (d1 , f1) ≤s acc2)
+        fd1≤ft2 = monotone {d1 , f1} {(t2 , dt2) , f2} (d1≤t2 , b1≤b2)
+      in
+      begin
+        fun (d1 , f1) ≤⟨ fd1≤ft2 ⟩
+        fun ((t2 , dt2) , f2) ≤⟨ proj₁ $ proj₂ $ supremum (fun2 ((k2 , v2) , acc2)) acc2 ⟩
+        fun (d2 , f2)
+       ∎
       where
         open import Data.List.Membership.Propositional renaming (_∈_ to _∈≡_)
         open import Data.List.Any as LAny using (Any ; here ; there ; map)
         open import Data.List.All as LAll using (tabulate ; lookup)
+        open import Relation.Binary.PartialOrderReasoning (BoundedJoinSemilattice.poset targetS)
+        open import Relation.Binary.Lattice
+        open BoundedJoinSemilattice (targetS) using (supremum)
+
         _≤d_ = Poset._≤_ ▹-poset
         ≤d-trans = Poset.trans ▹-poset
         ≤d-refl = Poset.refl ▹-poset
+        _≤s_ = BoundedJoinSemilattice._≤_ targetS
+
+        acc2 : |targetS|
+        acc2 = fun ((t2 , dt2) , f2) 
 
         d1≤t2 : (d1 ≤d (t2 , dt2))
+        --[[[
         d1≤t2 = LAll.tabulate p
           where
             p : {kv1' : |K| × |V|} → kv1' ∈≡ ((k1 , v1) ∷ t1) →  Any (kv1' ≤e_) t2
@@ -313,6 +330,10 @@ open import FreeSemilattice hiding (∷-Free ; []-Free ; FP-BJS ; ⊥ ; _∨_)
                 k1<k1' : k1 <k k1'
                 k1<k1' = LAll.lookup min1 k1'v1'∈t1
             p {k1' , v1'} (there k1'v1'∈t1) | there h1≤t2 = h1≤t2
+          --]]]
+            
+
+
 
 _R≤_ : {n : ℕ} → (Vec q n) → (Vec q n) → Set
 R₁ R≤ R₂ = VPW.Pointwise _q≤_ R₁ R₂
@@ -793,8 +814,89 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
              (SemSemilatCore.S ⟦ isSemilatVal ⁂⟧) (SemSemilatCore.P ⟦ isSemilatVal ⁂⟧)
              (SemSemilatIso.f ⟦ isSemilatVal ⁂iso⟧)
 -}
-⟦_⊢⟧ {τ₀-wf = τ₀-wf} (TyExtract {n} {q₁} {q₂} {q₃} {Γ₀} {R₁} {R₂} {R₃} {eDict} {eBody} {τKey} {τVal} {τValDelta} {τTarget} {τTargetDelta} isStosetKey isSemilatVal isSemilatTarget eq q₂≤+ q₃≤+ Γ₀∣R₁⊢eDict∣τ▹σ κ∷σ∷τ∷Γ₀∣+∷+∷?R₂⊢eBody∣κ) = 
-  {!!}
+⟦_⊢⟧ {τ₀-wf = τ₀-wf} (TyExtract {n} {q₁} {q₂} {q₃} {Γ₀} {R₁} {R₂} {R₃} {eDict} {eBody} {τKey} {τVal} {τValDelta} {τTarget} {τTargetDelta} isStosetKey isSemilatVal isSemilatTarget eq q₂≤+ q₃≤+ Γ₀∣R₁⊢eDict∣τ▹σ τ∷σ∷κ∷Γ₀∣q₁∷q₂∷q₃∷R₂⊢eBody∣κ)
+--[[[
+  with isPosetUnique τ₀-wf (semilat→poset isSemilatTarget)
+⟦_⊢⟧ {τ₀-wf = τ₀-wf} (TyExtract {n} {q₁} {q₂} {q₃} {Γ₀} {R₁} {R₂} {R₃} {eDict} {eBody} {τKey} {τVal} {τValDelta} {τTarget} {τTargetDelta} isStosetKey isSemilatVal isSemilatTarget eq q₂≤+ q₃≤+ Γ₀∣R₁⊢eDict∣τ▹σ τ∷σ∷κ∷Γ₀∣q₁∷q₂∷q₃∷R₂⊢eBody∣κ)
+  | PE.refl =
+  ⟨ ⟦Γ₀∣R₃⟧⇒⟦Γ₀∣R₁⟧ >> ⟦Γ₀∣R₁⟧⇒⟦τ▹σ⟧ , ⟦Γ₀∣R₃⟧⇒⟦Γ₀∣R₂⟧ >> ⟦Γ₀∣R₂⟧⇒⟦τ×σ×κ⇒κ⟧ ⟩ >>
+  elim
+  where
+    semStosetKey : SemStoset isStosetKey
+    semStosetKey = ⟦ isStosetKey ⁑⟧
+
+    semSemilatVal : SemSemilatCore l0 l0 l0 l0 l0 l0 l0 isSemilatVal
+    semSemilatVal = ⟦ isSemilatVal ⁂⟧
+
+    semSemilatTarget : SemSemilatCore l0 l0 l0 l0 l0 l0 l0 isSemilatTarget
+    semSemilatTarget = ⟦ isSemilatTarget ⁂⟧
+
+    T = SemStoset.T semStosetKey
+    S = SemSemilatCore.S semSemilatVal
+    targetS = SemSemilatCore.S semSemilatTarget
+
+    τ▹σ-wf : IsPoset (τDict τKey τVal)
+    τ▹σ-wf = τRes-wf Γ₀∣R₁⊢eDict∣τ▹σ
+
+    τ-wf : IsPoset τKey
+    τ-wf = stoset→poset isStosetKey
+
+    σ-wf : IsPoset τVal
+    σ-wf = semilat→poset isSemilatVal
+
+    κ-wf : IsPoset τTarget
+    κ-wf = semilat→poset isSemilatTarget
+
+    ⟦Γ₀∣R₁⟧⇒⟦τ▹σ⟧ : ⟦ Γ₀ Γ∣ R₁ R⟧ ⇒ ⟦ DictPoset isStosetKey isSemilatVal ⁎⟧'  
+    ⟦Γ₀∣R₁⟧⇒⟦τ▹σ⟧ rewrite (SemSemilatCore.US semSemilatVal) = 
+      ⟦_⊢⟧ {τ₀-wf = DictPoset isStosetKey isSemilatVal} Γ₀∣R₁⊢eDict∣τ▹σ 
+
+    ⟦τ∷σ∷κ∷Γ₀∣q₁∷q₂∷q₃∷R₂⟧⇒⟦κ⟧ : 
+      ⟦ (τKey , τ-wf) ∷ (τVal , σ-wf) ∷ (τTarget , κ-wf) ∷ Γ₀ Γ∣ q₁ ∷ q₂ ∷ q₃ ∷ R₂ R⟧ ⇒ ⟦ κ-wf ⁎⟧'
+    ⟦τ∷σ∷κ∷Γ₀∣q₁∷q₂∷q₃∷R₂⟧⇒⟦κ⟧ = ⟦_⊢⟧ {τ₀-wf = κ-wf} τ∷σ∷κ∷Γ₀∣q₁∷q₂∷q₃∷R₂⊢eBody∣κ
+
+    ⟦+⟧⟦κ⟧⇒⟦q₃⟧⟦κ⟧ : (⟦ qMono q⟧ ⟦ κ-wf ⁎⟧') ⇒ (⟦ q₃ q⟧ ⟦ κ-wf ⁎⟧')    
+    ⟦+⟧⟦κ⟧⇒⟦q₃⟧⟦κ⟧ = q≤⟦ q₃≤+ ⟧ ⟦ κ-wf ⁎⟧'   
+
+    ⟦+⟧⟦σ⟧⇒⟦q₂⟧⟦σ⟧ : (⟦ qMono q⟧ ⟦ σ-wf ⁎⟧') ⇒ (⟦ q₂ q⟧ ⟦ σ-wf ⁎⟧')
+    ⟦+⟧⟦σ⟧⇒⟦q₂⟧⟦σ⟧ = q≤⟦ q₂≤+ ⟧ ⟦ σ-wf ⁎⟧'
+
+    ⟦?⟧⟦τ⟧⇒⟦q₁⟧⟦τ⟧ : (⟦ qAny q⟧ ⟦ τ-wf ⁎⟧') ⇒ (⟦ q₁ q⟧ ⟦ τ-wf ⁎⟧')
+    ⟦?⟧⟦τ⟧⇒⟦q₁⟧⟦τ⟧ = q≤⟦ q≤? q₁ ⟧ ⟦ τ-wf ⁎⟧'
+
+    ⟦τ∷σ∷κ∷Γ₀∣?∷+∷+∷R₂⟧⇒⟦κ∷σ∷τ∷Γ₀∣q₁∷q₂∷q₃∷R₂⟧ : 
+      ⟦ (τKey , τ-wf) ∷ (τVal , σ-wf) ∷ (τTarget , κ-wf) ∷ Γ₀ Γ∣ qAny ∷ qMono ∷ qMono ∷ R₂ R⟧ ⇒
+      ⟦ (τKey , τ-wf) ∷ (τVal , σ-wf) ∷ (τTarget , κ-wf) ∷ Γ₀ Γ∣ q₁ ∷ q₂ ∷ q₃ ∷ R₂ R⟧
+    ⟦τ∷σ∷κ∷Γ₀∣?∷+∷+∷R₂⟧⇒⟦κ∷σ∷τ∷Γ₀∣q₁∷q₂∷q₃∷R₂⟧ = 
+      ⟦?⟧⟦τ⟧⇒⟦q₁⟧⟦τ⟧ ⟨×⟩ (⟦+⟧⟦σ⟧⇒⟦q₂⟧⟦σ⟧ ⟨×⟩ (⟦+⟧⟦κ⟧⇒⟦q₃⟧⟦κ⟧ ⟨×⟩ id))
+  
+    ⟦τ∷σ∷κ∷Γ₀∣?∷+∷+∷R₂⟧⇒⟦κ⟧ : 
+      ⟦ (τKey , τ-wf) ∷ (τVal , σ-wf) ∷ (τTarget , κ-wf) ∷ Γ₀ Γ∣ qAny ∷ qMono ∷ qMono ∷ R₂ R⟧ ⇒ ⟦ κ-wf ⁎⟧'
+    ⟦τ∷σ∷κ∷Γ₀∣?∷+∷+∷R₂⟧⇒⟦κ⟧ = 
+      ⟦τ∷σ∷κ∷Γ₀∣?∷+∷+∷R₂⟧⇒⟦κ∷σ∷τ∷Γ₀∣q₁∷q₂∷q₃∷R₂⟧ >> 
+      ⟦τ∷σ∷κ∷Γ₀∣q₁∷q₂∷q₃∷R₂⟧⇒⟦κ⟧
+
+    ⟦Γ₀∣R₂⟧⇒⟦τ×σ×κ⇒κ⟧ : 
+      ⟦ Γ₀ Γ∣ R₂ R⟧ ⇒ (⇒-preorder (×-preorder (×-preorder (⟦ qAny q⟧ ⟦ τ-wf ⁎⟧') ⟦ σ-wf ⁎⟧') ⟦ κ-wf ⁎⟧') ⟦ κ-wf ⁎⟧')
+    ⟦Γ₀∣R₂⟧⇒⟦τ×σ×κ⇒κ⟧ = Λ ( assoc (×-preorder (⟦ qAny q⟧ ⟦ τ-wf ⁎⟧') ⟦ σ-wf ⁎⟧') ⟦ κ-wf ⁎⟧' ⟦ Γ₀ Γ∣ R₂ R⟧ >>
+                             assoc (⟦ qAny q⟧ ⟦ τ-wf ⁎⟧') ⟦ σ-wf ⁎⟧' (×-preorder ⟦ κ-wf ⁎⟧' ⟦ Γ₀ Γ∣ R₂ R⟧) >>
+                             ⟦τ∷σ∷κ∷Γ₀∣?∷+∷+∷R₂⟧⇒⟦κ⟧)
+    
+    ⟦Γ₀∣R₃⟧⇒⟦Γ₀∣R₁⟧ : ⟦ Γ₀ Γ∣ R₃ R⟧ ⇒ ⟦ Γ₀ Γ∣ R₁ R⟧  
+    ⟦Γ₀∣R₃⟧⇒⟦Γ₀∣R₁⟧ rewrite eq = strengthenR Γ₀ (R₁ R+ R₂) R₁ (R≤R+S R₁ R₂)
+
+    ⟦Γ₀∣R₃⟧⇒⟦Γ₀∣R₂⟧ : ⟦ Γ₀ Γ∣ R₃ R⟧ ⇒ ⟦ Γ₀ Γ∣ R₂ R⟧  
+    ⟦Γ₀∣R₃⟧⇒⟦Γ₀∣R₂⟧ rewrite eq = strengthenR Γ₀ (R₁ R+ R₂) R₂ (S≤R+S R₁ R₂)
+
+    elim : 
+      (×-preorder 
+        ⟦ DictPoset isStosetKey isSemilatVal ⁎⟧'
+        (⇒-preorder (×-preorder (×-preorder (⟦ qAny q⟧ ⟦ τ-wf ⁎⟧') ⟦ σ-wf ⁎⟧') ⟦ κ-wf ⁎⟧')
+                                 ⟦ κ-wf ⁎⟧'))
+      ⇒ (Poset.preorder ⟦ semilat→poset isSemilatTarget ⁎⟧)
+    elim rewrite PE.sym (SemSemilatCore.US semSemilatVal) | PE.sym (SemSemilatCore.US semSemilatTarget) = 
+      (▹-elim ⟦ τ-wf ⁎⟧ T (PE.sym $ SemStoset.eq semStosetKey) S targetS)
+--]]]
 
 {-
 ⟦_⊢⟧ {R₀ = _ ∷ _} {τ₀-wf = DictPoset isStosetDom isSemilatCod} (TySng {.0} {Γ₀} {R₁} {R₂} {_ ∷ _} {eKey} {τKey} {eVal} {τVal} {τValDelta} isStosetKey isSemilatVal x₂ x₃ x₄) with (isSemilatDeltaUnique isSemilatCod isSemilatVal)

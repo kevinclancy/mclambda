@@ -12,7 +12,7 @@ data τ : Set where
   τProduct : (τL : τ) → (τR : τ) → τ
   τSum : (τL : τ) → (τR : τ) → τ
   --τIVar : τ → τ
-  --τPartial : τ → τ
+  τPartial : τ → τ
   τUnit : τ
   τBool : τ 
   τNat : τ

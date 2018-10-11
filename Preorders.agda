@@ -145,6 +145,24 @@ _⟨×⟩_ {P} {Q} {R} {S} f g = record
     monotone {p₁ , q₁} {p₂ , q₂} (p₁≤p₂ , q₁≤q₂) = q₁≤q₂ 
 --]]]
 
+assoc : (P Q R : Preorder l0 l0 l0) → (×-preorder (×-preorder P Q) R) ⇒ (×-preorder P (×-preorder Q R)) 
+assoc P Q R = record
+  { fun = fun
+  ; monotone = monotone
+  }
+  where
+    open Preorder
+    |P| = Carrier P
+    |Q| = Carrier Q
+    |R| = Carrier R
+
+    fun : ((|P| × |Q|) × |R|) → (|P| × (|Q| × |R|))
+    fun ((P , Q) , R) = (P , (Q , R))
+
+    monotone : (_∼_ (×-preorder (×-preorder P Q) R)) =[ fun ]⇒ (_∼_ (×-preorder P (×-preorder Q R)))
+    monotone ((p₁∼p₂ , q₁∼q₂) , r₁∼r₂) = (p₁∼p₂ , (q₁∼q₂ , r₁∼r₂))
+
+  
 infixl 0 _>>_
 _>>_ : {P Q R : Preorder l0 l0 l0} → P ⇒ Q → Q ⇒ R → P ⇒ R
 _>>_ {P} {Q} {R} f g = g ∘ f

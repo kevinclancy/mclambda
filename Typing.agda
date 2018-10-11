@@ -83,7 +83,7 @@ data _∣_⊢_∣_ where
               (isStosetKey : IsStoset τ) → 
               (isSemilatVal : IsSemilat σ σ₀) → (isSemilatTarget : IsSemilat κ κ₀) → (R₃ ≡ R₁ R+ R₂) → (q₂≤+ : q₂ q≤ qMono) → 
               (q₃≤+ : q₃ q≤ qMono) → (Γ₀ ∣ R₁ ⊢ eDict ∣ (τDict τ σ)) → 
-              (((κ , semilat→poset isSemilatTarget) ∷ (σ , semilat→poset isSemilatVal) ∷ (τ , stoset→poset isStosetKey) ∷ Γ₀) ∣ (q₃ ∷ q₂ ∷ q₁ ∷ R₂) ⊢ eBody ∣ κ) →
+              (((τ , stoset→poset isStosetKey) ∷ (σ , semilat→poset isSemilatVal) ∷ (κ , semilat→poset isSemilatTarget) ∷ Γ₀) ∣ (q₁ ∷ q₂ ∷ q₃ ∷ R₂) ⊢ eBody ∣ κ) →
               (Γ₀ ∣ R₃ ⊢ (Extract eDict eBody) ∣ κ)
 
 τRes-wf :  {n : ℕ} → {Γ₀ : Vec wfτ n} → {R₀ : Vec q n} → {e₀ : e} → {τRes : τ} → (Γ₀ ∣ R₀ ⊢ e₀ ∣ τRes) → (IsPoset τRes) 

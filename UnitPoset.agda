@@ -1,3 +1,5 @@
+-- WARNING: this module shouldn't be necessary: instead, use Data.Unit.poset
+
 module UnitPoset where
 
 open import Function using (_∘_ ; _$_)
@@ -31,6 +33,9 @@ _⊤≤_ = ⊤P._≤_
 
 ⊤≤-poset : Poset l0 l0 l0
 ⊤≤-poset = ⊤P.≤-poset
+
+⊤≤-isPartialOrder : IsPartialOrder _≡_ _⊤≤_
+⊤≤-isPartialOrder = ⊤P.≤-isPartialOrder
 
 ⊤≤-isDecPartialOrder : IsDecPartialOrder _≡_ _⊤≤_
 ⊤≤-isDecPartialOrder = ⊤P.≤-isDecPartialOrder
