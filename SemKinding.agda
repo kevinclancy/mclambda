@@ -140,7 +140,7 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
     -- delta poset (freely generates S up-to-isomorphism)
     P : DeltaPoset {cₚ} {ℓ⊑ₚ} {ℓ<ₚ} {ℓ~ₚ}
     -- injection of τ₀ deltaPoset interpretation into P
-    i : (DeltaPoset.preorder P) ↣+ ⟦ delta→poset $ semilat→delta isSemilat ⁎⟧' 
+    i : (DeltaPoset.preorder P) ↣+ ⟦ semilat→poset isSemilat ⁎⟧' 
 
 -- partial interpretation of semilattice kinding judgment
 -- this only includes the portion necessary for mutual recursion with poset kinding interpretation
@@ -1009,15 +1009,19 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
   { S = S
   ; US = US
   ; P = P
-  ; i = {!!} , {!!} , {!!}
+  ; i = |i| , |i|-monotone , |i|-injective
   }
   where
     open import Data.Unit renaming (setoid to unitSetoid ; poset to unitPoset)
     open import Data.Sum.Relation.LeftOrder
+    open import Data.Sum.Relation.Pointwise using (⊎-setoid)
     open import Data.Sum
 
     semContents : SemSemilatCore l0 l0 l0 l0 l0 l0 l0 isContentsSemilat
     semContents = ⟦ isContentsSemilat ⁂⟧ 
+
+    deltaContents : DeltaPoset {l0} {l0} {l0} {l0}
+    deltaContents = SemSemilatCore.P semContents
 
     bjsContents : BoundedJoinSemilattice l0 l0 l0
     bjsContents = SemSemilatCore.S semContents
@@ -1169,3 +1173,28 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
         unimodality {inj₁ x} {inj₂ y} {c} a<b b<c a∥b b∥c = ⊥-elim $ a∥b (inj₁ (₁∼₂ tt))
         unimodality {inj₂ y} {inj₁ x} {c} () b<c a∥b b∥c
         unimodality {inj₂ y} {inj₂ y₁} {c} (₂∼₂ ()) b<c a∥b b∥c
+
+    |i| : ((DeltaPoset.Carrier deltaContents) ⊎ ⊤) → (Poset.Carrier ⟦ PartialPoset (semilat→poset isContentsSemilat) ⁎⟧) 
+    |i| (inj₁ x) = inj₁ $ (proj₁ $ SemSemilatCore.i semContents) x 
+    |i| (inj₂ x) = inj₂ x
+
+    |i|-monotone :
+      Monotone 
+        (⊎-<-preorder (DeltaPoset.preorder deltaContents) (Poset.preorder unitPoset))
+        (Poset.preorder ⟦ PartialPoset (semilat→poset isContentsSemilat) ⁎⟧)
+        |i|
+    |i|-monotone {inj₁ a'} {inj₁ b'} (₁∼₁ a'∼b') = ₁∼₁ $ (proj₁ $ proj₂ $ SemSemilatCore.i semContents) a'∼b'
+    |i|-monotone {inj₁ x} {inj₂ tt} (₁∼₂ tt) = ₁∼₂ tt
+    |i|-monotone {inj₂ tt} {inj₁ x} ()
+    |i|-monotone {inj₂ tt} {inj₂ tt} (₂∼₂ (record {})) = ₂∼₂ (record {})
+
+    |i|-injective : 
+      Injective 
+        (⊎-setoid (preorder→setoid $ DeltaPoset.preorder deltaContents) unitSetoid)  
+        (preorder→setoid $ Poset.preorder ⟦ PartialPoset (semilat→poset isContentsSemilat) ⁎⟧) |i|
+    |i|-injective {inj₁ a'} {inj₁ b'} (₁∼₁ ia'≈ib') = ₁∼₁ $ (proj₂ $ proj₂ $ SemSemilatCore.i semContents) ia'≈ib'
+    |i|-injective {inj₁ a'} {inj₂ b'} (₁∼₂ ())
+    |i|-injective {inj₂ a'} {inj₁ b'} ()
+    |i|-injective {inj₂ a'} {inj₂ b'} (₂∼₂ PE.refl) = ₂∼₂ PE.refl
+
+    
