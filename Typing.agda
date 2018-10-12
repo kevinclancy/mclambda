@@ -85,6 +85,9 @@ data _∣_⊢_∣_ where
            (((τ₁ , τ₁-wf) ∷ Γ₀) ∣ (qMono ∷ R₂) ⊢ eAndThen ∣ (τPartial τ₂)) → 
            (Γ₀ ∣ R₃ ⊢ MLet eFirst eAndThen ∣ τPartial τ₂)
 
+  TyICell : {n : ℕ} {Γ₀ : Vec wfτ n} {R₀ R₁ : Vec q n} {eq : R₀ ≡ qAny qR∘ R₁} {e₀ : e} {τ₀ : τ} {τ₀-stoset : IsStoset τ₀} → 
+            (Γ₀ ∣ R₁  ⊢ e₀ ∣ τ₀) → (Γ₀ ∣ R₀ ⊢ ICell e₀ ∣ τIVar τ₀)
+
 τRes-wf :  {n : ℕ} → {Γ₀ : Vec wfτ n} → {R₀ : Vec q n} → {e₀ : e} → {τRes : τ} → (Γ₀ ∣ R₀ ⊢ e₀ ∣ τRes) → (IsPoset τRes) 
 τRes-wf (TyBot {p = τRes-semilat}) = semilat→poset τRes-semilat
 τRes-wf (TyJoin {_} {_} {R₁} d1 d2) = τRes-wf d1
@@ -107,6 +110,7 @@ data _∣_⊢_∣_ where
 τRes-wf (TyExtract _ _ targetIsSemilat _ _ _ _ _) = semilat→poset targetIsSemilat
 τRes-wf (TyPure d) = PartialPoset (τRes-wf d)
 τRes-wf (TyMLet _ d2) = τRes-wf d2
+τRes-wf (TyICell {τ₀-stoset = sto} d) = IVarPoset sto
 {-
 τRes-wf Γ₀ R₀ .(Inr _ _ _) .(τSum _ _) (TyInr zzz) = {!!}
 τRes-wf Γ₀ .(zipWith _q+_ (V.map (_q∘_ (_ q+ _)) _) (zipWith _q+_ _ _)) .(Case _ _ _) τRes (TyCase zzz zzz₁ zzz₂) = {!!}

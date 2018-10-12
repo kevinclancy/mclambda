@@ -391,6 +391,11 @@ precomp {P} {Q} {R} (record {fun = p→q ; monotone = p→q-monotone}) =
   where
     open import Dictionary
 
+⌈⌉-preorder : (T₀ : StrictTotalOrder l0 l0 l0) → Preorder l0 l0 l0
+⌈⌉-preorder T₀ = Poset.preorder (⌈⌉-poset T₀)
+  where
+    open import IVar
+
 partial-preorder : (P : Preorder l0 l0 l0) → Preorder l0 l0 l0
 partial-preorder P = ⊎-<-preorder P (Poset.preorder unitPoset)
   where

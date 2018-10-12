@@ -503,7 +503,7 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
       ▹-sng ⟦ τKey-wf ⁎⟧ (SemStoset.T ⟦ isStosetKey ⁑⟧) (PE.sym $ SemStoset.eq ⟦ isStosetKey ⁑⟧)
              (SemSemilatCore.S ⟦ isSemilatVal ⁂⟧) (SemSemilatCore.P ⟦ isSemilatVal ⁂⟧)
              (SemSemilatIso.f ⟦ isSemilatVal ⁂iso⟧)
--}
+
 ⟦_⊢⟧ {τ₀-wf = τ₀-wf} (TyExtract {n} {q₁} {q₂} {q₃} {Γ₀} {R₁} {R₂} {R₃} {eDict} {eBody} {τKey} {τVal} {τValDelta} {τTarget} {τTargetDelta} isStosetKey isSemilatVal isSemilatTarget eq q₂≤+ q₃≤+ Γ₀∣R₁⊢eDict∣τ▹σ τ∷σ∷κ∷Γ₀∣q₁∷q₂∷q₃∷R₂⊢eBody∣κ)
 --[[[
   with isPosetUnique τ₀-wf (semilat→poset isSemilatTarget)
@@ -590,15 +590,17 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
 
 
 ⟦_⊢⟧ {τ₀-wf = PartialPoset σ-wf} (TyPure {n} {Γ₀} {R₀} {eBody} {σ} Γ₀∣R₀⊢eBody∣σ) =
+--[[[
   ⟦Γ₀∣R₀⟧⇒⟦σ⟧ >> pure ⟦ σ-wf ⁎⟧'
   where
     ⟦Γ₀∣R₀⟧⇒⟦σ⟧ : ⟦ Γ₀ Γ∣ R₀ R⟧ ⇒ ⟦ σ-wf ⁎⟧'
     ⟦Γ₀∣R₀⟧⇒⟦σ⟧ = ⟦_⊢⟧ {τ₀-wf = σ-wf} Γ₀∣R₀⊢eBody∣σ
-
+--]]]
 
 ⟦_⊢⟧ {τ₀-wf = PartialPoset τ₂-wf} 
       (TyMLet {n} {Γ₀} {R₁} {R₂} {R₃} {eq} {eFirst} {eAndThen} {τ₁} {τ₂} {τ₁-wf}  
               Γ₀∣R₁⊢eFirst∣τ₁ᵀ τ₁∷Γ₀∣+∷R₂⊢eAndThen∣τ₂ᵀ) =
+--[[[
   ⟨ ⟦Γ₀∣R₃⟧⇒⟦Γ₀∣R₂⟧ >> ⟦Γ₀∣R₂⟧⇒⟦τ₁⇒τ₂ᵀ⟧ , ⟦Γ₀∣R₃⟧⇒⟦Γ₀∣R₁⟧ >> ⟦Γ₀∣R₁⟧⇒⟦τ₁ᵀ⟧ ⟩ >> tstr >> ⇒ᵀ (⟨ π₂ , π₁ ⟩ >> ev) >> μ
   where
     τ₂ᵀ-wf≡τ₀-wf : (τRes-wf τ₁∷Γ₀∣+∷R₂⊢eAndThen∣τ₂ᵀ) ≡ (PartialPoset τ₂-wf)
@@ -618,5 +620,32 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
 
     ⟦Γ₀∣R₃⟧⇒⟦Γ₀∣R₂⟧ : ⟦ Γ₀ Γ∣ R₃ R⟧ ⇒ ⟦ Γ₀ Γ∣ R₂ R⟧ 
     ⟦Γ₀∣R₃⟧⇒⟦Γ₀∣R₂⟧ rewrite eq = strengthenR Γ₀ (R₁ R+ R₂) R₂ (S≤R+S R₁ R₂)
-
+--]]]
         
+-}
+
+⟦_⊢⟧ {τ₀-wf = IVarPoset contentStoset} (TyICell {n} {Γ₁} {R₁} {R₂} {eq} {e₁} {τ₁} {τ₁-stoset} Γ₁∣R₂⊢e₁∣τ₁) =
+  ⟦Γ₁∣R₁⟧⇒⟦?⟧⟦τ₁⟧ >> (ξ {T} {⟦ stoset→poset contentStoset ⁎⟧} {eqT})
+  where
+    T = (SemStoset.T ⟦ contentStoset ⁑⟧)
+    eqT = (SemStoset.eq ⟦ contentStoset ⁑⟧)
+    
+    open import IVar
+
+    τ₁-wf : IsPoset τ₁
+    τ₁-wf = τRes-wf Γ₁∣R₂⊢e₁∣τ₁
+
+    τ₁-wf' : IsPoset τ₁
+    τ₁-wf' = stoset→poset contentStoset
+
+    τ₁-wf'≡τ₁-wf : τ₁-wf' ≡ τ₁-wf
+    τ₁-wf'≡τ₁-wf = isPosetUnique τ₁-wf' τ₁-wf
+
+    ⟦Γ₁∣R₂⟧⇒⟦τ₁⟧ : ⟦ Γ₁ Γ∣ R₂ R⟧ ⇒ ⟦ τ₁-wf ⁎⟧'
+    ⟦Γ₁∣R₂⟧⇒⟦τ₁⟧ = ⟦_⊢⟧ {τ₀-wf = τ₁-wf} Γ₁∣R₂⊢e₁∣τ₁
+
+    ⟦Γ₁∣?R₂⟧⇒⟦?⟧⟦τ₁⟧ : (⟦ Γ₁ Γ∣ (qAny qR∘ R₂) R⟧) ⇒ (⟦ qAny q⟧ ⟦ τ₁-wf ⁎⟧')
+    ⟦Γ₁∣?R₂⟧⇒⟦?⟧⟦τ₁⟧ = (Δ qAny Γ₁ R₂) >> (⟦ qAny q⇒⟧ ⟦Γ₁∣R₂⟧⇒⟦τ₁⟧)                    
+
+    ⟦Γ₁∣R₁⟧⇒⟦?⟧⟦τ₁⟧ : ⟦ Γ₁ Γ∣ R₁ R⟧ ⇒ (⟦ qAny q⟧ ⟦ τ₁-wf' ⁎⟧')
+    ⟦Γ₁∣R₁⟧⇒⟦?⟧⟦τ₁⟧ rewrite eq | τ₁-wf'≡τ₁-wf = ⟦Γ₁∣?R₂⟧⇒⟦?⟧⟦τ₁⟧

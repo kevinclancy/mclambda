@@ -164,6 +164,9 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
   where
     open import Data.Sum
     open import Data.Sum.Relation.Pointwise
+⟦ IVarPoset isStosetContents ⁎⟧ = ⌈⌉-poset (SemStoset.T ⟦ isStosetContents ⁑⟧)
+  where
+    open import IVar
 ⟦ PartialPoset isPosetContents ⁎⟧ = ⊎-<-poset {l0} {l0} {l0} {l0} {l0} {l0} ⟦ isPosetContents ⁎⟧ unitPoset 
   where
     open import Data.Sum.Relation.LeftOrder

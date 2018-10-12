@@ -23,7 +23,7 @@ data IsPoset where
   --CapsulePoset : {q : q} {underlying : τ} → IsPoset underlying → IsPoset (τCapsule q underlying)
   ProductPoset : {τL τR : τ} → IsPoset τL → IsPoset τR → IsPoset (τProduct τL τR)
   SumPoset : {τL τR : τ} → IsPoset τL → IsPoset τR → IsPoset (τSum τL τR)
-  --IVarPoset : {τContents : τ} → IsToset τContents → IsPoset (τIVar τContents)
+  IVarPoset : {τContents : τ} → IsStoset τContents → IsPoset (τIVar τContents)
   PartialPoset : {τContents : τ} → IsPoset τContents → IsPoset (τPartial τContents)
   UnitPoset : IsPoset τUnit
   NatPoset : IsPoset τNat
@@ -43,7 +43,7 @@ data IsDeltaPoset where
   NatDelta : IsDeltaPoset τNat
   -- DiscreteProductDelta : {τL τR : τ} → IsToset τL → IsDeltaPoset τR → IsDeltaPoset (τProduct (τCapsule qAny τL) τR)
   SumDelta : {τL τR : τ} → IsDeltaPoset τL → IsDeltaPoset τR → IsDeltaPoset (τSum τL τR)
-  -- DiscreteDelta : {τ₀ : τ} → IsToset τ₀ → IsDeltaPoset (τCapsule qAny τ₀) 
+  --DiscreteDelta : {τ₀ : τ} → IsToset τ₀ → IsDeltaPoset (τCapsule qAny τ₀) 
   --PartialDelta : {τ₀ : τ} → IsDeltaPoset τ₀ → IsDeltaPoset (τPartial τ₀)
 
 data IsSemilat where
@@ -149,6 +149,8 @@ mutual
  isPosetUnique {.τUnit} UnitPoset UnitPoset = PE.refl
  isPosetUnique {.τNat} NatPoset NatPoset = PE.refl
  isPosetUnique {.τBool} BoolPoset BoolPoset = PE.refl
+ isPosetUnique {.(τIVar _)} (IVarPoset contentStoset) (IVarPoset contentStoset') =
+   PE.cong IVarPoset (isStosetUnique contentStoset contentStoset')
 
 semilat→poset : {τ τ₀ : τ} → (p : IsSemilat τ τ₀) → IsPoset τ
 semilat→poset NatSemilat = NatPoset
@@ -180,34 +182,3 @@ delta→poset UnitDelta = UnitPoset
 delta→poset NatDelta = NatPoset
 delta→poset (SumDelta deltaL deltaR) = SumPoset (delta→poset deltaL) (delta→poset deltaR) 
 -- delta→poset (PartialDelta deltaContents) = PartialPoset (delta→poset deltaContents)
-
---semilat→delta (IVarSemilat contentIsToset) = 
---  DiscreteDelta contentIsToset
---semilat→delta (PartialSemilat contentIsSemilat) = 
---  PartialDelta (semilat→delta contentIsSemilat)
-
-
--- kCheckPoset : 
---   (σ : τ) → Dec( Σ[ S ∈ Set ] Σ[ refσ ∈ (S → Set) ] Σ[ ⊑ ∈ (S → S → Set) ] Σ[ ref⊑ ∈ (⊑ → Set) ] IsPoset σ )
--- kCheckPoset = {!!}
-
--- -- kCheckSemilat : (σ : τ) → Dec( Σ[ σ₀ ∈ τ ] IsSemilat σ σ₀ )
--- -- kCheckSemilat (τFun σ scalar σ₁) = no contr
--- --   where
--- --     contr : Σ[ σ₀ ∈ τ ] IsSemilat (τFun σ scalar σ₁) σ₀ → ⊥
--- --     contr (σ₀ , ())
--- -- kCheckSemilat (τDict σ σ₁) = {!!}
--- -- kCheckSemilat (τCapsule scalar σ) = no contr
--- --   where
--- --     contr  : Σ[ σ₀ ∈ τ ] IsSemilat (τCapsule scalar σ) σ₀ → ⊥
--- --     contr (σ₀ , ())
--- -- kCheckSemilat (τProduct σ σ₁) = {!!}
--- -- kCheckSemilat (τSum σ σ₁) = no contr
--- --   where
--- --     contr : Σ[ σ₀ ∈ τ ] IsSemilat (τSum σ σ₁) σ₀ → ⊥
--- --     contr (σ₀ , ())
--- -- kCheckSemilat (τIVar σ) = {!!}
--- -- kCheckSemilat (τPartial σ) = {!!}
--- -- kCheckSemilat τUnit = {!!}
--- -- kCheckSemilat τBool = {!!}
--- -- kCheckSemilat τNat = {!!}

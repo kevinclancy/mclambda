@@ -11,7 +11,7 @@ data τ : Set where
   --τCapsule : (scalar : q) → (underlying : τ) → τ 
   τProduct : (τL : τ) → (τR : τ) → τ
   τSum : (τL : τ) → (τR : τ) → τ
-  --τIVar : τ → τ
+  τIVar : τ → τ
   τPartial : τ → τ
   τUnit : τ
   τBool : τ 

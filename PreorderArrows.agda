@@ -1,0 +1,444 @@
+module PreorderArrows where
+
+open import Relation.Binary hiding (_⇒_)
+open import Relation.Binary.PropositionalEquality as PE using (_≡_)
+open import Relation.Binary.Lattice
+open import Data.Product.Relation.Pointwise.NonDependent
+open import Data.Sum
+open import Data.Product
+open import Data.List
+open import Data.List.All
+open import Function using (_$_)
+
+open import Util
+open import RelationalStructures
+open import FreeForgetfulAdjunction
+open import FreeSemilattice hiding (∷-Free ; []-Free ; FP-BJS ; ⊥ ; _∨_)
+open import SemScalars
+open import Scalars
+open import Preorders
+
+----- dictionaries
+--[[[
+
+▹-sng : (P : Poset l0 l0 l0) → (T : StrictTotalOrder l0 l0 l0) → 
+          (eq : (poset→setoid P) ≡ StrictTotalOrder.Eq.setoid T) →
+          (S : BoundedJoinSemilattice l0 l0 l0) → 
+          (D : DeltaPoset {l0} {l0} {l0} {l0}) → (f : S ⇉ FreeSemilattice.FP-BJS D) → 
+          (×-preorder (⟦ qAny q⟧ (Poset.preorder P)) (BoundedJoinSemilattice.preorder S)) ⇒ (▹-preorder T S)
+--[[[
+▹-sng P T PE.refl S D f =
+  record
+  { fun = fun 
+  ; monotone = monotone
+  }
+  where
+    open import Data.List.All
+    open import SemilatIso
+    open import Dictionary T S
+    open import Relation.Binary.Lattice
+    open import Data.List
+    open import FreeSemilattice D 
+      renaming (⊥ to ⊥ₛ' ; _≈_ to _≈ₛ'_ ; ≈-trans to ≈ₛ'-trans ; ≈-sym to ≈ₛ'-sym ;
+                ≈-reflexive to ≈ₛ'-reflexive ; _≤_ to _≤ₛ'_)
+    open Preorder
+    open Poset P renaming (_≈_ to _≈ₚ_ ; _≤_ to _≤ₚ_ ; antisym to ≤ₚ-antisym)
+
+    open BoundedJoinSemilattice S renaming (_≈_ to _≈ₛ_ ; ⊥ to ⊥ₛ )
+
+    |P| = Poset.Carrier P
+    |S| = BoundedJoinSemilattice.Carrier S
+    |T| = StrictTotalOrder.Carrier T
+    |f| = proj₁ f
+    |f|-≈ = proj₁ $ proj₂ f
+
+    fun : |P| × |S| → Σ[ l ∈ (List $ |T| × |S|) ] (IsDict l)
+    --[[[
+    fun (p , s) with keep (|f| s) 
+    fun (p , s) | ([] , []-Free) , _ = [] , []-Dict
+    fun (p , s) | (h ∷ l' , ∷-Free .h .l' min incomp f') , fs≡h∷l' = 
+      ((p , s) ∷ []) , (∷-Dict (p , s) [] [] ¬s≈⊥ []-Dict)  
+      where
+        open import Relation.Nullary
+
+        ¬s≈⊥ : ¬ (s ≈ₛ ⊥ₛ)  
+        ¬s≈⊥ s≈⊥ with ⊥≈h∷l'
+          where
+            f⊥≈⊥ : (|f| ⊥ₛ) ≈ₛ' ⊥ₛ'
+            f⊥≈⊥ = proj₁ $ proj₂ $ proj₂ f
+
+            fs≈⊥ : (|f| s) ≈ₛ' ⊥ₛ'
+            fs≈⊥ = ≈ₛ'-trans {|f| s} {|f| ⊥ₛ} {⊥ₛ'}  (|f|-≈ s ⊥ₛ s≈⊥) f⊥≈⊥ 
+
+            ⊥≈h∷l' : ⊥ₛ' ≈ₛ' (h ∷ l' , ∷-Free h l' min incomp f')
+            ⊥≈h∷l' = 
+              ≈ₛ'-trans {⊥ₛ'} {|f| s} {h ∷ l' , ∷-Free h l' min incomp f'} 
+                (≈ₛ'-sym {|f| s} {⊥ₛ'} fs≈⊥) 
+                (≈ₛ'-reflexive fs≡h∷l')
+
+        ¬s≈⊥ s≈⊥ | ()
+    --]]]
+
+    monotone : (_∼_ $ ×-preorder (⟦ qAny q⟧ (Poset.preorder P))  (BoundedJoinSemilattice.preorder S))
+               =[ fun ]⇒ 
+               (_∼_ $ ▹-preorder T S)
+    --[[[
+    monotone {p₁ , s₁} {p₂ , s₂} ((p₁≤p₂ , p₂≤p₁) , s₁≤s₂) with keep (|f| s₁) | keep (|f| s₂)
+    monotone {p₁ , s₁} {p₂ , s₂} ((p₁≤p₂ , p₂≤p₁) , s₁≤s₂) | ([] , []-Free) , _ | _ , _ = []
+    monotone {p₁ , s₁} {p₂ , s₂} ((p₁≤p₂ , p₂≤p₁) , s₁≤s₂) | 
+             (h1 ∷ t1 , ∷-Free h1 t1 min1 incomp1 f1) , q1 | 
+             ([] , []-Free) , q2 = 
+      ⊥-elim $ ¬Any[] (LAll.lookup p (here PE.refl))
+      where
+        open import Data.List.Any using (here)
+        open import Data.List.All as LAll
+        open import Data.List.Any.Properties
+        open import Data.Empty
+        fs1≤fs2 = ⇉-mono {S = S} {T = FP-BJS} f s₁≤s₂
+        p : (h1 ∷ t1 , ∷-Free h1 t1 min1 incomp1 f1) ≤ₛ' ([] , []-Free)
+        p = 
+          begin 
+            (h1 ∷ t1 , ∷-Free h1 t1 min1 incomp1 f1) ≡⟨ PE.sym q1 ⟩ 
+            (|f| s₁) ≤⟨ fs1≤fs2 ⟩ 
+            (|f| s₂) ≡⟨ q2 ⟩
+            ([] , []-Free)
+           ∎ 
+          where
+            open import Relation.Binary.PartialOrderReasoning (BoundedJoinSemilattice.poset FP-BJS)
+    monotone {p₁ , s₁} {p₂ , s₂} ((p₁≤p₂ , p₂≤p₁) , s₁≤s₂) | 
+             (h1 ∷ t1 , ∷-Free h1 t1 min1 incomp1 f1) , _ | 
+             (h2 ∷ t2 , ∷-Free h2 t2 min2 incomp2 f2) , _ = 
+      here (p₁≈p₂ , s₁≤s₂) ∷ [] 
+      where
+        open import Data.List.Any using (here)
+        p₁≈p₂ : p₁ ≈ₚ p₂
+        p₁≈p₂ = ≤ₚ-antisym p₁≤p₂ p₂≤p₁ 
+    --]]]
+--]]]
+
+
+▹-elim : (P : Poset l0 l0 l0) → (T : StrictTotalOrder l0 l0 l0) → 
+         (eq : (poset→setoid P) ≡ StrictTotalOrder.Eq.setoid T) →
+         (valS : BoundedJoinSemilattice l0 l0 l0) → (targetS : BoundedJoinSemilattice l0 l0 l0) →  
+         (×-preorder (▹-preorder T valS) 
+                     (⇒-preorder (×-preorder (×-preorder (⟦ qAny q⟧ (Poset.preorder P)) (BoundedJoinSemilattice.preorder valS))
+                                              (BoundedJoinSemilattice.preorder targetS))
+                                 (BoundedJoinSemilattice.preorder targetS))) 
+         ⇒
+         (BoundedJoinSemilattice.preorder targetS)
+▹-elim P T PE.refl valS targetS = 
+  record
+  { fun = fun 
+  ; monotone = monotone
+  }
+  where
+    open import Relation.Binary.Lattice
+    open import Data.List
+    open import Dictionary T valS renaming (_<_ to _<k_)
+
+    P' = Poset.preorder P
+    valS' = BoundedJoinSemilattice.preorder valS
+    targetS' = BoundedJoinSemilattice.preorder targetS
+
+    |P| = Preorder.Carrier P'
+    |valS| = BoundedJoinSemilattice.Carrier valS
+    |targetS| = BoundedJoinSemilattice.Carrier targetS
+    |T▹valS| = Preorder.Carrier (▹-preorder T valS)
+
+
+    fun : |T▹valS| × ((×-preorder (×-preorder (⟦ qAny q⟧ P') valS') targetS') ⇒ targetS') → |targetS|
+    fun (([] , []-Dict) , _) = BoundedJoinSemilattice.⊥ targetS
+    fun (((k , v) ∷ t , ∷-Dict _ _ _ _ dt) , f@(record {fun = fun' ; monotone = _})) =
+      (fun' ((k , v), acc)) ∨ acc 
+      where
+        acc : |targetS|
+        acc = fun ((t , dt), f)
+
+        _∨_ : |targetS| → |targetS| → |targetS|
+        _∨_ = BoundedJoinSemilattice._∨_ targetS
+
+    open Preorder using (_∼_)
+
+    monotone : (_∼_ (×-preorder (▹-preorder T valS) 
+                                (⇒-preorder (×-preorder (×-preorder (⟦ qAny q⟧ P') valS') targetS') targetS'))) 
+               =[ fun ]⇒ (_∼_ targetS')
+    monotone {([] , []-Dict) , f1} {a2} (d1≤d1 , b1≤b1) = BoundedJoinSemilattice.minimum targetS (fun a2)
+      where
+        open import Relation.Binary.Properties.BoundedJoinSemilattice
+    monotone {(h1 ∷ t1 , ∷-Dict h1 t1 min1 ¬⊥1 dt1) , record { monotone = mono1 }} {([] , []-Dict) , record { monotone = mono2 }} (h1≤l2 ∷ t2≤l2 , b1≤b2) =
+      ⊥-elim $ ¬Any[] h1≤l2
+      where
+        open import Data.List.Any.Properties using (¬Any[])
+        open import Data.Empty using (⊥-elim)
+    monotone {((k1 , v1) ∷ t1 , ∷-Dict h1 t1 min1 ¬⊥1 dt1) , record { monotone = mono1 }} {((k2 , v2) ∷ t2 , ∷-Dict h2 t2 min2 ¬⊥2 dt2) , record { monotone = mono2 }} (d1≤d2 , b1≤b2) with cmp k1 k2
+      where
+        open IsStrictTotalOrder (StrictTotalOrder.isStrictTotalOrder T) renaming (compare to cmp) 
+    monotone {((k1 , v1) ∷ t1 , ∷-Dict h1 t1 min1 ¬⊥1 dt1) , record { monotone = mono1 }} {(l2@(h2 ∷ t2)  , ∷-Dict h2 t2 min2 ¬⊥2 dt2) , record { monotone = mono2 }} (h1≤l2 ∷ t1≤l2 , b1≤b2) | tri< k1<k2 _ _ = 
+      --[[[
+      ⊥-elim $ anyEliminate l2 elim h1≤l2
+      where
+        open import Data.Empty using (⊥ ; ⊥-elim)
+        open import Data.List.Any using (here ; there)
+        open StrictTotalOrder.Eq T renaming (reflexive to reflexiveₖ)
+        open StrictTotalOrder T renaming (irrefl to irreflₖ ; trans to transₖ)
+
+        elim : AnyEliminator {ℓQ = l0} (|P| × |valS|) ⊥ ((k1 , v1) ≤e_) l2
+        elim (kz , vz) f (k1≈kz , v1≤vz) (here PE.refl) = irreflₖ k1≈kz k1<k2
+        elim (kz , vz) f (k1≈kz , v1≤vz) (there z∈≡t2) = irreflₖ k1≈kz k1<kz
+          where
+            open import Data.List.All as LAll
+            k1<kz : k1 <k kz
+            k1<kz = transₖ k1<k2 (LAll.lookup min2 z∈≡t2)
+      --]]]
+    monotone {((k1 , v1) ∷ t1 , ∷-Dict h1 t1 min1 ¬⊥1 dt1) , f1@(record { fun = fun1 ; monotone = mono1 })} {(l2@((k2 , v2) ∷ t2) , ∷-Dict h2 t2 min2 ¬⊥2 dt2) , f2@(record { fun = fun2 ; monotone = mono2 })} ((h1≤d2 ∷ t1≤d2) , b1≤b2) | tri≈ _ k1≈k2 _ =
+      --[[[
+      let
+        monotone-rec : fun ((t1 , dt1) , f1) ≤s fun ((t2 , dt2) , f2)
+        monotone-rec = monotone {(t1 , dt1) , f1} {(t2 , dt2) , f2} (t1≤t2 , b1≤b2)
+
+        fh1≤fh2 : fun1 ((k1 , v1) , acc1) ≤s fun2 ((k2 , v2) , acc2) 
+        fh1≤fh2 = 
+          begin
+            fun1 ((k1 , v1) , acc1) ≤⟨ mono1 ((((≤k-reflexive k1≈k2 , ≤k-reflexive (≈k-sym k1≈k2)) , v1≤v2) , monotone-rec)) ⟩
+            fun1 ((k2 , v2) , acc2) ≤⟨ b1≤b2 ⟩
+            fun2 ((k2 , v2) , acc2)
+           ∎ 
+      in
+      ∨-monotonic (BoundedJoinSemilattice.joinSemiLattice targetS) fh1≤fh2 monotone-rec
+      where
+        open import Relation.Binary.Properties.JoinSemilattice using (∨-monotonic)
+        _≤s_ = BoundedJoinSemilattice._≤_ targetS
+
+        open Poset P renaming (reflexive to ≤k-reflexive)
+        open StrictTotalOrder.Eq T renaming (sym to ≈k-sym)
+        open import Relation.Binary.PartialOrderReasoning (BoundedJoinSemilattice.poset targetS)
+
+        t1≤t2 : Poset._≤_ ▹-poset (t1 , dt1) (t2 , dt2)
+        --[[[
+        t1≤t2 = LAll.tabulate p 
+          where
+            open import Data.List.Any as LAny
+            open import Data.List.All as LAll
+            open import Data.List.Membership.Propositional renaming (_∈_ to _∈≡_)
+            open StrictTotalOrder.Eq T renaming (trans to ≈k-trans)
+            open StrictTotalOrder T using (<-respʳ-≈ ; irrefl)
+            
+ 
+            p : {kv1 : |K| × |V|} → (kv1 ∈≡ t1) → (Any (kv1 ≤e_) t2)
+            p {k1' , v1'} kv1∈≡t1 with LAll.lookup t1≤d2 kv1∈≡t1 
+            p {k1' , v1'} kv1∈≡t1 | here (k1'≈k2 , v1'≤v2) = 
+             ⊥-elim $ irrefl k1≈k2 k1<k2
+              where
+                open import Data.Empty using (⊥-elim)
+
+                k1<k1' : k1 <k k1'
+                k1<k1' = LAll.lookup min1 kv1∈≡t1
+
+                k1<k2 : k1 <k k2
+                k1<k2 = <-respʳ-≈ k1'≈k2 k1<k1'
+            p {k1' , v1'} kv1∈≡t1 | there kv1≤t2 = kv1≤t2
+        --]]]
+
+        acc1 : |targetS|
+        acc1 = fun ((t1 , dt1) , f1)
+
+        acc2 : |targetS|
+        acc2 = fun ((t2 , dt2) ,  f2)
+
+        h1≤h2 : (k1 , v1) ≤e (k2 , v2)
+        h1≤h2 = anyEliminate l2 elim h1≤d2 
+          where 
+            open import Data.List.Any using (here ; there)
+            open import Data.List.All as LAll
+            open import Data.Empty using (⊥-elim)
+            open StrictTotalOrder T using (<-respʳ-≈ ; irrefl)
+
+            elim : AnyEliminator {ℓQ = l0} (|K| × |V|) ((k1 , v1) ≤e (k2 , v2)) ((k1 , v1) ≤e_) l2
+            elim (kz , vz) f k1v1≤kzvz (here PE.refl) = k1v1≤kzvz
+            elim (kz , vz) f (k1≈kz , v1≤vz) (there kzvz∈t2) = ⊥-elim $ irrefl (≈k-sym k1≈k2) k2<k1
+              where
+                k2<kz : k2 <k kz
+                k2<kz = LAll.lookup min2 kzvz∈t2
+                
+                k2<k1 : k2 <k k1
+                k2<k1 = <-respʳ-≈ (≈k-sym k1≈kz) k2<kz 
+
+        v1≤v2 : v1 ≤v v2
+        v1≤v2 = proj₂ h1≤h2
+      --]]]
+    monotone {d1@((k1 , v1) ∷ t1 , ∷-Dict h1 t1 min1 ¬⊥1 dt1) , f1@(record { fun = fun1 ; monotone = mono1 })} {d2@((k2 , v2) ∷ t2 , ∷-Dict h2 t2 min2 ¬⊥2 dt2) , f2@(record { fun = fun2 ; monotone = mono2 })} (kv1≤d2 ∷ t1≤d2  , b1≤b2) | tri> _ _ k2<k1 = 
+      let
+        fd1≤ft2 : (fun (d1 , f1) ≤s acc2)
+        fd1≤ft2 = monotone {d1 , f1} {(t2 , dt2) , f2} (d1≤t2 , b1≤b2)
+      in
+      begin
+        fun (d1 , f1) ≤⟨ fd1≤ft2 ⟩
+        fun ((t2 , dt2) , f2) ≤⟨ proj₁ $ proj₂ $ supremum (fun2 ((k2 , v2) , acc2)) acc2 ⟩
+        fun (d2 , f2)
+       ∎
+      where
+        open import Data.List.Membership.Propositional renaming (_∈_ to _∈≡_)
+        open import Data.List.Any as LAny using (Any ; here ; there ; map)
+        open import Data.List.All as LAll using (tabulate ; lookup)
+        open import Relation.Binary.PartialOrderReasoning (BoundedJoinSemilattice.poset targetS)
+        open import Relation.Binary.Lattice
+        open BoundedJoinSemilattice (targetS) using (supremum)
+
+        _≤d_ = Poset._≤_ ▹-poset
+        ≤d-trans = Poset.trans ▹-poset
+        ≤d-refl = Poset.refl ▹-poset
+        _≤s_ = BoundedJoinSemilattice._≤_ targetS
+
+        acc2 : |targetS|
+        acc2 = fun ((t2 , dt2) , f2) 
+
+        d1≤t2 : (d1 ≤d (t2 , dt2))
+        --[[[
+        d1≤t2 = LAll.tabulate p
+          where
+            p : {kv1' : |K| × |V|} → kv1' ∈≡ ((k1 , v1) ∷ t1) →  Any (kv1' ≤e_) t2
+            p {k1' , v1'} (here PE.refl) = 
+              anyEliminate ((k2 , v2) ∷ t2) elim kv1≤d2 
+              where
+                elim : AnyEliminator {ℓQ = l0} (|K| × |V|) (Any ((k1 , v1) ≤e_) t2) ((k1 , v1) ≤e_) ((k2 , v2) ∷ t2)
+                elim (kz , vz) f (k1≈kz , _) (here PE.refl) = ⊥-elim $ irrefl ≈k-refl (<-respʳ-≈ k1≈kz k2<k1)  
+                  where
+                    open import Data.Empty using (⊥-elim)
+                    open StrictTotalOrder T using (<-respʳ-≈ ; irrefl)
+                    open StrictTotalOrder.Eq T renaming (refl to ≈k-refl ; sym to ≈k-sym)
+                elim (kz , vz) f k1v1≤kzvz (there kzvz∈t2) = 
+                  LAny.map (λ kzvz≡· → ≤e-trans k1v1≤kzvz (≤e-reflexive kzvz≡·)) kzvz∈t2 
+
+            p {k1' , v1'} (there k1'v1'∈t1) with k1'v1≤d2
+              where
+                k1'v1≤d2 : Any ((k1' , v1') ≤e_) ((k2 , v2) ∷ t2)
+                k1'v1≤d2 = LAll.lookup t1≤d2 k1'v1'∈t1
+            p {k1' , v1'} (there k1'v1'∈t1) | here (k1'≈k2 , v1'≤v2) = 
+              ⊥-elim $ <k-irrefl (≈k-reflexive PE.refl) (<k-trans k1<k1' k1'<k1)
+              where
+                open import Data.Empty using (⊥-elim)
+                open StrictTotalOrder T renaming (trans to <k-trans ; irrefl to <k-irrefl ; <-respˡ-≈ to <k-respˡ-≈k)
+                open StrictTotalOrder.Eq T renaming (sym to ≈k-sym ; reflexive to ≈k-reflexive)
+
+                k1'<k1 : k1' <k k1
+                k1'<k1 = <k-respˡ-≈k (≈k-sym k1'≈k2) k2<k1
+
+                k1<k1' : k1 <k k1'
+                k1<k1' = LAll.lookup min1 k1'v1'∈t1
+            p {k1' , v1'} (there k1'v1'∈t1) | there h1≤t2 = h1≤t2
+          --]]]
+            
+--]]]
+
+----- monotone partiality 
+--[[[
+module _ where
+  open import Data.Unit renaming (poset to unitPoset)
+  open import Data.Sum.Relation.LeftOrder
+  open Preorder using (_∼_)
+  
+  -- unit for the monotone partiality monad
+  pure : (P : Preorder l0 l0 l0) → P ⇒ (partial-preorder P)
+  pure P = 
+    record
+    { fun = fun
+    ; monotone = monotone
+    }
+    where
+      |P| = Preorder.Carrier P
+      |Pᵀ| = |P| ⊎ ⊤ 
+
+      fun : |P| → |Pᵀ|
+      fun p = inj₁ p
+
+      monotone : (_∼_ P) =[ fun ]⇒ (_∼_ $ ⊎-<-preorder P (Poset.preorder unitPoset))
+      monotone {p₁} {p₂} p₁∼p₂ = ₁∼₁ p₁∼p₂
+
+  -- tensorial strength of the strong monad underlying monotone partiality
+  tstr : {P Q : Preorder l0 l0 l0} → (×-preorder P (partial-preorder Q)) ⇒ (partial-preorder (×-preorder P Q))
+  tstr {P} {Q} = record
+    { fun = fun
+    ; monotone = monotone
+    }
+    where
+      |P| = Preorder.Carrier P
+      |Q| = Preorder.Carrier Q
+
+      fun : |P| × (|Q| ⊎ ⊤) → (|P| × |Q|) ⊎ ⊤ 
+      fun (p , inj₁ q) = inj₁ (p , q)
+      fun (p , inj₂ tt) = inj₂ tt
+      
+      monotone : (_∼_ (×-preorder P (partial-preorder Q))) =[ fun ]⇒ (_∼_ (partial-preorder (×-preorder P Q)))
+      monotone {p₁ , inj₁ q₁} {p₂ , inj₁ q₂} (p₁∼p₂ , ₁∼₁ q₁∼q₂) = ₁∼₁ (p₁∼p₂ , q₁∼q₂)
+      monotone {p₁ , inj₁ q₁} {p₂ , inj₂ tt} (p₁∼p₂ , ₁∼₂ (record {})) = ₁∼₂ (record {})
+      monotone {p₁ , inj₂ tt} {p₂ , inj₁ q₂} (p₁∼p₂ , ())
+      monotone {p₁ , inj₂ tt} {p₂ , inj₂ tt} (p₁∼p₂ , ₂∼₂ (record {})) = ₂∼₂ (record {})
+
+  ⇒ᵀ : {P Q : Preorder l0 l0 l0} → (P ⇒ Q) → ((partial-preorder P) ⇒ (partial-preorder Q))
+  ⇒ᵀ {P} {Q} f = record
+    { fun = fun
+    ; monotone = monotone
+    }
+    where
+      |P| = Preorder.Carrier P
+      |Q| = Preorder.Carrier Q
+
+      |f| = _⇒_.fun f
+      |f|-mono = _⇒_.monotone f
+
+      fun : (|P| ⊎ ⊤) → (|Q| ⊎ ⊤)
+      fun (inj₁ p) = inj₁ $ |f| p
+      fun (inj₂ tt) = inj₂ tt
+
+      monotone : (_∼_ (partial-preorder P)) =[ fun ]⇒ (_∼_ (partial-preorder Q))
+      monotone {inj₁ p₁} {inj₁ p₂} (₁∼₁ p₁∼p₂) = ₁∼₁ $ |f|-mono p₁∼p₂
+      monotone {inj₁ p₁} {inj₂ tt} (₁∼₂ tt) = ₁∼₂ tt
+      monotone {inj₂ tt} {inj₁ p₁} ()
+      monotone {inj₂ tt} {inj₂ tt} (₂∼₂ (record {})) = ₂∼₂ (record {}) 
+
+  μ : {P : Preorder l0 l0 l0} → (partial-preorder (partial-preorder P)) ⇒ (partial-preorder P)
+  μ {P} = record
+    { fun = fun
+    ; monotone = monotone
+    }
+    where
+      |P| = Preorder.Carrier P
+
+      fun : ((|P| ⊎ ⊤) ⊎ ⊤) → (|P| ⊎ ⊤)
+      fun (inj₁ p) = p
+      fun (inj₂ tt) = inj₂ tt
+      
+      monotone : (_∼_ (partial-preorder (partial-preorder P))) =[ fun ]⇒ (_∼_ (partial-preorder P))
+      monotone {inj₁ p₁} {inj₁ p₂} (₁∼₁ p₁∼p₂)  = p₁∼p₂
+      monotone {inj₁ (inj₁ p₁)} {inj₂ tt} (₁∼₂ (record {})) = ₁∼₂ (record {})
+      monotone {inj₁ (inj₂ tt)} {inj₂ tt} (₁∼₂ (record {})) = ₂∼₂ (record {})
+      monotone {inj₂ tt} {inj₁ p} ()
+      monotone {inj₂ tt} {inj₂ tt} (₂∼₂ (record {})) = ₂∼₂ (record {})
+
+--]]]
+
+----- ivars
+--[[[
+module _ where
+  -- ivar introduction
+  ξ : {T : StrictTotalOrder l0 l0 l0} → {P : Poset l0 l0 l0} → 
+      {eq : StrictTotalOrder.Eq.setoid T ≡ poset→setoid P} →
+      (⟦ qAny q⟧ $ Poset.preorder P) ⇒ (⌈⌉-preorder T)
+  ξ {T} {P} {PE.refl} = record
+    { fun = fun
+    ; monotone = monotone
+    }
+    where
+      open import IVar T
+      open Preorder
+      P' = Poset.preorder P
+      fun : (Preorder.Carrier P') → (Preorder.Carrier $ ⌈⌉-preorder T)
+      fun p = (p ∷ [] , ∷-IVar p [] [] []-IVar)
+
+      monotone : (_∼_ $ ⟦ qAny q⟧ $ P') =[ fun ]⇒ (_∼_ $ ⌈⌉-preorder T)
+      monotone {p₁} {p₂} (p₁≤p₂ , p₂≤p₁) = (here p₁≈p₂) ∷ [] 
+        where
+          open import Data.List.Any using (here)
+          p₁≈p₂ : p₁ ≈E p₂ 
+          p₁≈p₂ = Poset.antisym P p₁≤p₂ p₂≤p₁ 
+--]]]
