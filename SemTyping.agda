@@ -649,3 +649,40 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
 
     ⟦Γ₁∣R₁⟧⇒⟦?⟧⟦τ₁⟧ : ⟦ Γ₁ Γ∣ R₁ R⟧ ⇒ (⟦ qAny q⟧ ⟦ τ₁-wf' ⁎⟧')
     ⟦Γ₁∣R₁⟧⇒⟦?⟧⟦τ₁⟧ rewrite eq | τ₁-wf'≡τ₁-wf = ⟦Γ₁∣?R₂⟧⇒⟦?⟧⟦τ₁⟧
+
+
+⟦_⊢⟧ {τ₀-wf = PartialPoset τBody-wf} 
+     (TyIGet {n} {Γ₀} {R₁} {R₂} {R₃} {eq} {eCell} {eBody} {τCell} {τBody} {τBody'} {isCellStoset} {isBodySemilat}
+             Γ₀∣R₁⊢eCell∣τIVar τCell∷Γ₀∣?∷R₂∣eBody∣τBody) =
+  ⟨ ⟦Γ₀∣R₃⟧⇒⟦Γ₀∣R₁⟧ >> ⟦Γ₀∣R₁⟧⇒⟦τIVar⟧ , ⟦Γ₀∣R₃⟧⇒⟦Γ₀∣R₂⟧ >> ⟦Γ₀∣R₂⟧⇒⟦?τCell⇒τBody⟧ ⟩ >> ζ'
+  where
+    τBody-wf' : IsPoset τBody
+    τBody-wf' = semilat→poset isBodySemilat
+
+    τBody-eq : τBody-wf ≡ τBody-wf'
+    τBody-eq = isPosetUnique τBody-wf τBody-wf'
+
+    ⟦Γ₀∣R₁⟧⇒⟦τIVar⟧ : ⟦ Γ₀ Γ∣ R₁ R⟧ ⇒ ⟦ IVarPoset isCellStoset ⁎⟧'  
+    ⟦Γ₀∣R₁⟧⇒⟦τIVar⟧ = ⟦_⊢⟧ {τ₀-wf = IVarPoset isCellStoset} Γ₀∣R₁⊢eCell∣τIVar
+  
+    ⟦τCell∷Γ₀∣?∷R₂⟧⇒⟦τBody⟧ : 
+      ⟦ ((τCell , stoset→poset isCellStoset) ∷ Γ₀) Γ∣ (qAny ∷ R₂) R⟧ ⇒ ⟦ semilat→poset isBodySemilat ⁎⟧'
+    ⟦τCell∷Γ₀∣?∷R₂⟧⇒⟦τBody⟧ = ⟦_⊢⟧ {τ₀-wf = semilat→poset isBodySemilat} τCell∷Γ₀∣?∷R₂∣eBody∣τBody
+
+    ⟦Γ₀∣R₂⟧⇒⟦?τCell⇒τBody⟧ : 
+      ⟦ Γ₀ Γ∣ R₂ R⟧ ⇒ (⇒-preorder (⟦ qAny q⟧ ⟦ stoset→poset isCellStoset ⁎⟧') ⟦  τBody-wf ⁎⟧')
+    ⟦Γ₀∣R₂⟧⇒⟦?τCell⇒τBody⟧ rewrite τBody-eq = Λ ⟦τCell∷Γ₀∣?∷R₂⟧⇒⟦τBody⟧ 
+    
+    ⟦Γ₀∣R₃⟧⇒⟦Γ₀∣R₁⟧ : ⟦ Γ₀ Γ∣ R₃ R⟧ ⇒ ⟦ Γ₀ Γ∣ R₁ R⟧  
+    ⟦Γ₀∣R₃⟧⇒⟦Γ₀∣R₁⟧ rewrite eq = strengthenR Γ₀ (R₁ R+ R₂) R₁ (R≤R+S R₁ R₂)
+
+    ⟦Γ₀∣R₃⟧⇒⟦Γ₀∣R₂⟧ : ⟦ Γ₀ Γ∣ R₃ R⟧ ⇒ ⟦ Γ₀ Γ∣ R₂ R⟧  
+    ⟦Γ₀∣R₃⟧⇒⟦Γ₀∣R₂⟧ rewrite eq = strengthenR Γ₀ (R₁ R+ R₂) R₂ (S≤R+S R₁ R₂)
+
+    ζ' :  (×-preorder ⟦ IVarPoset isCellStoset ⁎⟧' (⇒-preorder (⟦ qAny q⟧ ⟦ stoset→poset isCellStoset ⁎⟧') ⟦ τBody-wf ⁎⟧'))
+          ⇒ ⟦ PartialPoset τBody-wf ⁎⟧'
+    ζ' rewrite τBody-eq | PE.sym $ SemSemilatCore.US ⟦ isBodySemilat ⁂⟧ = 
+      ζ {SemStoset.T ⟦ isCellStoset ⁑⟧} 
+        {⟦ stoset→poset isCellStoset ⁎⟧} 
+        {SemSemilatCore.S ⟦ isBodySemilat ⁂⟧} 
+        {SemStoset.eq ⟦ isCellStoset ⁑⟧} 

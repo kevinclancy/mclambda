@@ -47,7 +47,7 @@ data e : Set where
   -- create a singleton ivar cell with specified contents 
   ICell : (contents : e) → e 
   --open an ivar cell: "let ⌈ x ⌉ = e in e"
-  IOpen : (ivar : e) → (body : e) → e
+  IGet : (ivar : e) → (body : e) → e
   -- homomorphism definition: "hom (x : τDom). e"
   Hom : (τDom : τ) → (body : e) → e
  

@@ -424,6 +424,7 @@ module _ where
   ξ : {T : StrictTotalOrder l0 l0 l0} → {P : Poset l0 l0 l0} → 
       {eq : StrictTotalOrder.Eq.setoid T ≡ poset→setoid P} →
       (⟦ qAny q⟧ $ Poset.preorder P) ⇒ (⌈⌉-preorder T)
+  --[[[
   ξ {T} {P} {PE.refl} = record
     { fun = fun
     ; monotone = monotone
@@ -441,4 +442,89 @@ module _ where
           open import Data.List.Any using (here)
           p₁≈p₂ : p₁ ≈E p₂ 
           p₁≈p₂ = Poset.antisym P p₁≤p₂ p₂≤p₁ 
+  --]]]
+
+  -- ivar elimination
+  ζ : {T : StrictTotalOrder l0 l0 l0} → {P : Poset l0 l0 l0} → {S : BoundedJoinSemilattice l0 l0 l0} →
+      {eq : StrictTotalOrder.Eq.setoid T ≡ poset→setoid P} →
+      (×-preorder (⌈⌉-preorder T) (⇒-preorder (⟦ qAny q⟧ $ Poset.preorder P) (BoundedJoinSemilattice.preorder S)))
+      ⇒
+      (partial-preorder $ BoundedJoinSemilattice.preorder S)
+  --[[[
+  ζ {T} {P} {S} {PE.refl} = record
+    { fun = fun
+    ; monotone = monotone 
+    } 
+    where
+      open Preorder
+      open import Data.Unit using (⊤ ; tt)
+      open import IVar T
+      open import Data.Sum.Relation.Pointwise using (₁∼₁ ; ₁∼₂ ; ₂∼₂)
+      open import Data.List.Any.Properties using (¬Any[])
+      open import Data.List.Any using (here ; there)
+      open import Data.List.All as LAll
+      open import Data.Empty using (⊥-elim)
+
+      |P| = Poset.Carrier P
+      |S| = BoundedJoinSemilattice.Carrier S
+      |T| = StrictTotalOrder.Carrier T
+      <ₜ-irrefl = StrictTotalOrder.irrefl T 
+      S' = BoundedJoinSemilattice.preorder S
+      P' = Poset.preorder P
+      ⊥ₛ = BoundedJoinSemilattice.⊥ S
+      _≤ₛ_ = BoundedJoinSemilattice._≤_ S
+      _≈ₚ_ = Poset._≈_ P
+      ≤ₚ-reflexive = Poset.reflexive P
+      ≈ₚ-sym = Poset.Eq.sym P
+      ≈ₚ-trans = Poset.Eq.trans P
+
+      fun : ((Preorder.Carrier $ ⌈⌉-preorder T) × ((⟦ qAny q⟧ P') ⇒ S')) → (|S| ⊎ ⊤)
+      --[[[
+      fun (([] , []-IVar) , _) = inj₁ ⊥ₛ
+      fun ((p ∷ [] , ∷-IVar p [] [] []-IVar) , (record { fun = f })) = 
+        inj₁ $ f p
+      fun ((p ∷ q ∷ _ , _) , _) = inj₂ tt
+      --]]]
+
+      monotone : (_∼_ $ ×-preorder (⌈⌉-preorder T) (⇒-preorder (⟦ qAny q⟧ P') S')) =[ fun ]⇒ (_∼_ $ partial-preorder S')
+      --[[[
+      monotone {([] , []-IVar) , record { fun = f₁ ; monotone = m₁ }} {([] , []-IVar) , record { fun = f₂ ; monotone = m₂ }} (p₁≈p₂ , f₁≤f₂) = 
+        ₁∼₁ $ BoundedJoinSemilattice.minimum S ⊥ₛ 
+      monotone {([] , []-IVar) , record { fun = f₁ ; monotone = m₁ }} {(p ∷ [] , ∷-IVar p [] [] []-IVar) , record { fun = f₂ ; monotone = m₂ }} (p₁≈p₂  , f₁≤f₂) =
+        ₁∼₁ $ BoundedJoinSemilattice.minimum S (f₂ p)
+      monotone {([] , []-IVar) , record { fun = f₁ ; monotone = m₁ }} {(p ∷ q ∷ _ , _) , record { fun = f₂ ; monotone = m₂ }} (p₁≈p₂  , f₁≤f₂) =
+        ₁∼₂ tt
+      monotone {(p ∷ _ , _) , record { fun = f₁ ; monotone = m₁ }} {([] , _) , record { fun = f₂ ; monotone = m₂ }} (p₁≈p₂  , f₁≤f₂) = 
+        ⊥-elim $ ¬Any[] (LAll.lookup p₁≈p₂ (here PE.refl))
+      monotone {(p₁ ∷ [] , ∷-IVar p₁ [] [] []-IVar) , record { fun = f₁ ; monotone = m₁ }} {(p₂ ∷ [] , ∷-IVar p₂ [] [] []-IVar) , record { fun = f₂ ; monotone = m₂ }} ((here p₁≈p₂) ∷ _  , f₁≤f₂) = 
+        ₁∼₁ f₁p₁≤f₂p₂
+        where
+          open import Relation.Binary.PartialOrderReasoning (BoundedJoinSemilattice.poset S)
+
+          f₁p₁≤f₂p₂ : f₁ p₁ ≤ₛ f₂ p₂
+          f₁p₁≤f₂p₂ = 
+            begin
+              f₁ p₁ ≤⟨ f₁≤f₂ ⟩
+              f₂ p₁ ≤⟨ m₂ ((≤ₚ-reflexive p₁≈p₂ , ≤ₚ-reflexive (≈ₚ-sym p₁≈p₂)) ) ⟩ 
+              f₂ p₂
+             ∎ 
+      monotone {(p₁ ∷ [] , ∷-IVar p₁ [] [] []-IVar) , record { fun = f₁ ; monotone = m₁ }} {(p₂ ∷ [] , ∷-IVar p₂ [] [] []-IVar) , record { fun = f₂ ; monotone = m₂ }} ((there p₁≈[]) ∷ _  , f₁≤f₂) =
+        ⊥-elim $ ¬Any[] p₁≈[]
+      monotone {(p₁ ∷ [] , ∷-IVar p₁ [] [] []-IVar) , record { fun = f₁ ; monotone = m₁ }} {(p₂ ∷ q₂ ∷ _ , _) , record { fun = f₂ ; monotone = m₂ }} (p₁≈p₂  , f₁≤f₂) = 
+        ₁∼₂ (record {})
+      monotone {(p₁ ∷ q₁ ∷ _ , ∷-IVar _ _ min1 _) , record { fun = f₁ ; monotone = m₁ }} {(p₂ ∷ [] , _) , record { fun = f₂ ; monotone = m₂ }} ((here p₁≈p₂) ∷ (here q₁≈p₂) ∷ _  , f₁≤f₂) =
+        ⊥-elim $ <ₜ-irrefl p₁≈q₁ (LAll.lookup min1 (here PE.refl))
+        where
+          p₁≈q₁ : p₁ ≈ₚ q₁
+          p₁≈q₁ = ≈ₚ-trans p₁≈p₂ (≈ₚ-sym q₁≈p₂) 
+      monotone {(p₁ ∷ q₁ ∷ _ , ∷-IVar _ _ min1 _) , record { fun = f₁ ; monotone = m₁ }} {(p₂ ∷ [] , _) , record { fun = f₂ ; monotone = m₂ }} ((there p₁≈[]) ∷ _ ∷ _  , f₁≤f₂) =
+        ⊥-elim $ ¬Any[] p₁≈[]
+      monotone {(p₁ ∷ q₁ ∷ _ , ∷-IVar _ _ min1 _) , record { fun = f₁ ; monotone = m₁ }} {(p₂ ∷ [] , _) , record { fun = f₂ ; monotone = m₂ }} (here _ ∷ (there q₁≈[]) ∷ _  , f₁≤f₂) =
+        ⊥-elim $ ¬Any[] q₁≈[]
+      monotone {(p₁ ∷ q₁ ∷ _ , ∷-IVar _ _ min1 _) , record { fun = f₁ ; monotone = m₁ }} {(p₂ ∷ q₂ ∷ _ , _) , record { fun = f₂ ; monotone = m₂ }} (p₁≈p₂  , f₁≤f₂) = 
+        ₂∼₂ (record {})
+      --]]]
+    --]]]
+
+
 --]]]
