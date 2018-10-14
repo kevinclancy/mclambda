@@ -1,5 +1,6 @@
 module SemTyping where
 
+open import Data.Fin
 open import Data.Vec
 open import Data.Nat hiding (_≤_ ; _≥_)  
 open import Data.Product
@@ -131,7 +132,6 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
 
 ⟦_⊢⟧ : {n : ℕ} → {Γ₀ : Vec wfτ n} → {R₀ : Vec q n} → {e₀ : e} → {τ₀ : τ} → {τ₀-wf : IsPoset τ₀} →
        (x : Γ₀ ∣ R₀ ⊢ e₀ ∣ τ₀) → ⟦ Γ₀ Γ∣ R₀ R⟧  ⇒ ⟦ τ₀-wf ⁎⟧' 
-{-
 --[[[
 ⟦_⊢⟧ {τ₀-wf = τ₀-wf} (TyBot {n} {Γ} {τ₀} {τ₀'} {τ₀-semilat}) = 
 --[[[
@@ -710,8 +710,6 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
     ⟦q₀'⟧⟦Γ₀∣R₁⟧⇒⟦?τ₁⟧ : (⟦ q'→q q₀' q⟧ ⟦ Γ₀ Γ∣ R₁ R⟧) ⇒ (Poset.preorder $ ⟦ q₀' q'⟧ ⟦ τ₁-wf ⁎⟧)
     ⟦q₀'⟧⟦Γ₀∣R₁⟧⇒⟦?τ₁⟧ rewrite coheres ⟦ τ₁-wf ⁎⟧ q₀' = ⟦ (q'→q q₀') q⇒⟧ ⟦Γ₀∣R₁⟧⇒⟦τ₁⟧
 --]]]
-    
--}
 
 ⟦_⊢⟧ {τ₀-wf = τ₀-wf} 
      (TyCapElim {n} {Γ₀} {R₁} {R₂} {R₃} {q₀'} {eq} {eCap} {eBody} {τContent} {τBody} {τContent-wf}
@@ -748,4 +746,34 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
     ev' :  ×-preorder ⟦ q₀'τContent-wf ⁎⟧' 
                       (⇒-preorder (Poset.preorder $ ⟦ q₀'τContent-wf ⁎⟧) ⟦ τBody-wf ⁎⟧') ⇒ ⟦ τ₀-wf ⁎⟧'
     ev' rewrite isPosetUnique τ₀-wf τBody-wf = ev
+--]]]
+
+⟦_⊢⟧
+  {τ₀-wf = τ₀-wf} 
+  (TyVar {n} {k} {m} {Γ} {R} {τ₀} {eq1} {eq2} {eq3} {eq4}) = 
+--[[[
+  projVar n k m Γ R eq1 eq2 eq3 eq4 
+  where
+    open import Relation.Nullary
+    open import Data.Vec as V
+
+    projVar : (n k : ℕ) → (m : Fin n) → (Γ : Vec wfτ n) → (R : Vec q n) → (eq1 : τ₀ ≡ proj₁ (V.lookup m Γ)) → 
+              (eq2 : k ≡ toℕ m) → (eq3 : V.lookup m R ≡ qMono) → 
+              (eq4 : {l : Fin n} → (¬ l ≡ m) → (V.lookup l R ≡ qConst)) → 
+              ⟦ Γ Γ∣ R R⟧ ⇒ ⟦ τ₀-wf ⁎⟧'
+    projVar n .(toℕ {n} Fin.zero) Fin.zero ((τ₀ , τ₀-wf') ∷ Γ) (q₀ ∷ R) PE.refl PE.refl PE.refl _ = 
+      π₁'
+      where
+        π₁' : ⟦ ((τ₀ , τ₀-wf') ∷ Γ) Γ∣ (q₀ ∷ R) R⟧ ⇒ ⟦ τ₀-wf ⁎⟧'
+        π₁' rewrite isPosetUnique τ₀-wf τ₀-wf' = π₁        
+    projVar (suc n) .(toℕ {suc n} (Fin.suc m)) (Fin.suc m) ((τ₁ , τ₁-wf) ∷ Γ) (q₁ ∷ R) PE.refl PE.refl eq3 eq4 =
+      ⟦τ₁∷Γ∣q₁∷R⟧⇒⟦Γ∣R⟧ >> projVar n (toℕ {n} m) m Γ R PE.refl PE.refl eq3 eq4'
+      where
+        open import Data.Fin.Properties using (suc-injective)
+
+        eq4' : {l : Fin n} → (¬ l ≡ m) → V.lookup l R ≡ qConst
+        eq4' {l} ¬l≡m = eq4 {suc l} λ suc-l≡suc-m → ¬l≡m $ suc-injective suc-l≡suc-m 
+
+        ⟦τ₁∷Γ∣q₁∷R⟧⇒⟦Γ∣R⟧ : ⟦ ((τ₁ , τ₁-wf) ∷ Γ) Γ∣ (q₁ ∷ R) R⟧ ⇒ ⟦ Γ Γ∣ R R⟧
+        ⟦τ₁∷Γ∣q₁∷R⟧⇒⟦Γ∣R⟧ rewrite (eq4 {Fin.zero} (λ ())) = π₂
 --]]]

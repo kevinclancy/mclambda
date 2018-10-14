@@ -43,9 +43,6 @@ open import Function.Equivalence
 open import Function.Equality using (_⟨$⟩_) 
 open import SemKinding
 
-postulate sem : SemSemilatIso l0 l0 l0 l0 l0 l0 l0 (ProductSemilat isSemilatL isSemilatR)
-
-{-
 semilatCore = ⟦ ProductSemilat isSemilatL isSemilatR ⁂⟧ 
 
 P : DeltaPoset {l0} {l0} {l0} {l0}
@@ -3123,4 +3120,4 @@ sem = record
   ; inv-S→FP→S = inv-S→FP→S
   ; inv-FP→S→FP = inv-FP→S→FP
   }
--}
+

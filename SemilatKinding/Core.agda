@@ -9,7 +9,6 @@ open import BoolPoset
 open import Level
 open import FreeForgetfulAdjunction
 open import RelationalStructures
-open import SemDeltaPoset
 open import SemKinding
 
 open import Relation.Binary
