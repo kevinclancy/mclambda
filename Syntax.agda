@@ -1,5 +1,6 @@
 module Syntax where
 
+open import PosetScalars
 open import Scalars
 
 open import Data.Nat
@@ -8,7 +9,7 @@ open import Data.Nat
 data τ : Set where
   τFun : (dom : τ) → (scalar : q) → (cod : τ) → τ
   τDict : (dom : τ) → (cod : τ) → τ   
-  --τCapsule : (scalar : q) → (underlying : τ) → τ 
+  τCapsule : (scalar : q') → (underlying : τ) → τ 
   τProduct : (τL : τ) → (τR : τ) → τ
   τSum : (τL : τ) → (τR : τ) → τ
   τIVar : τ → τ
@@ -31,9 +32,9 @@ data e : Set where
   Inl : (τL : τ) → (τR : τ) → e → e
   Inr : (τL : τ) → (τR : τ) → e → e
   -- coeffect capsule "cap q e"
-  Cap : q → e → e
+  Cap : q' → e → e
   -- let cap q x = e in e 
-  Uncap : q → (capsule : e) → (body : e) → e
+  Uncap : q' → (capsule : e) → (body : e) → e
   Var : ℕ → e
   Abs : (body : e) → e
   App : (fun : e) → (arg : e) → e

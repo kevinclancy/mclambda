@@ -1,6 +1,7 @@
 module Typing where
 
 open import Scalars
+open import PosetScalars
 open import Syntax
 open import Kinding
 
@@ -94,6 +95,15 @@ data _∣_⊢_∣_ where
            (((τCell , stoset→poset isCellStoset) ∷ Γ₀) ∣ (qAny ∷ R₂) ⊢ eBody ∣ τBody) →
            (Γ₀ ∣ R₃ ⊢ IGet eCell eBody ∣ τPartial τBody)
   
+  TyCapIntro : {n : ℕ} {Γ₀ : Vec wfτ n} {R₁ R₂ : Vec q n} {q₀' : q'} {eq : R₂ ≡ (q'→q q₀') qR∘ R₁}
+               {eBody : e} {τ₀ : τ} → (Γ₀ ∣ R₁ ⊢ eBody ∣ τ₀) → (Γ₀ ∣ R₂ ⊢ Cap q₀' eBody ∣ τCapsule q₀' τ₀)
+
+  TyCapElim : {n : ℕ} {Γ₀ : Vec wfτ n} {R₁ R₂ R₃ : Vec q n} {q₀' : q'} {eq : R₃ ≡ R₁ R+ R₂}
+              {eCap eBody : e} {τContent τBody : τ} {τContent-wf : IsPoset τContent} → 
+              (Γ₀ ∣ R₁ ⊢ eCap ∣ τCapsule q₀' τContent) →
+              (((τContent , τContent-wf) ∷ Γ₀) ∣ ((q'→q q₀') ∷ R₂) ⊢ eBody ∣ τBody) →
+              (Γ₀ ∣ R₃ ⊢ Uncap q₀' eCap eBody ∣ τBody)
+
 τRes-wf :  {n : ℕ} → {Γ₀ : Vec wfτ n} → {R₀ : Vec q n} → {e₀ : e} → {τRes : τ} → (Γ₀ ∣ R₀ ⊢ e₀ ∣ τRes) → (IsPoset τRes) 
 τRes-wf (TyBot {p = τRes-semilat}) = semilat→poset τRes-semilat
 τRes-wf (TyJoin {_} {_} {R₁} d1 d2) = τRes-wf d1
@@ -118,6 +128,9 @@ data _∣_⊢_∣_ where
 τRes-wf (TyMLet _ d2) = τRes-wf d2
 τRes-wf (TyICell {τ₀-stoset = sto} d) = IVarPoset sto
 τRes-wf (TyIGet {isBodySemilat = isBodySemilat} _ _) = PartialPoset (semilat→poset isBodySemilat)
+τRes-wf (TyCapIntro {q₀' = q₀'} d) = CapsulePoset q₀' (τRes-wf d)
+τRes-wf (TyCapElim _ d2) = τRes-wf d2 
+
 {-
 τRes-wf Γ₀ R₀ .(Inr _ _ _) .(τSum _ _) (TyInr zzz) = {!!}
 τRes-wf Γ₀ .(zipWith _q+_ (V.map (_q∘_ (_ q+ _)) _) (zipWith _q+_ _ _)) .(Case _ _ _) τRes (TyCase zzz zzz₁ zzz₂) = {!!}

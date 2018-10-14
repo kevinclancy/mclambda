@@ -144,7 +144,7 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
     -- delta poset (freely generates S up-to-isomorphism)
     P : DeltaPoset {cₚ} {ℓ⊑ₚ} {ℓ<ₚ} {ℓ~ₚ}
     -- injection of τ₀ deltaPoset interpretation into P
-    i : (DeltaPoset.preorder ⟦ semilat→delta isSemilat Δ⟧) ↣+ ⟦ delta→poset $ semilat→delta isSemilat ⁎⟧' 
+    i : (DeltaPoset.preorder P) ↣+ ⟦ delta→poset $ semilat→delta isSemilat ⁎⟧' 
 
 -- partial interpretation of semilattice kinding judgment
 -- this only includes the portion necessary for mutual recursion with poset kinding interpretation
@@ -156,6 +156,9 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
   ▹-poset (SemStoset.T ⟦ domIsToset ⁑⟧) (SemSemilatCore.S ⟦ codIsSemilat ⁂⟧)
   where
     open import Dictionary
+⟦ CapsulePoset q₀' isPosetContents ⁎⟧ = ⟦ q₀' q'⟧ ⟦ isPosetContents ⁎⟧ 
+  where
+    open import PosetScalars
 ⟦ ProductPoset isPosetL isPosetR ⁎⟧ = ×-poset ⟦ isPosetL ⁎⟧ ⟦ isPosetR ⁎⟧  
   where
     open import Data.Product
