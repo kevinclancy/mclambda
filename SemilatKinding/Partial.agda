@@ -22,7 +22,7 @@ open import Data.List.Any as LAny
 open import Data.Unit 
 open import Data.Empty
 open import Function.Equivalence
-open import Function.Equality
+open import Function.Equality hiding (const)
 
 module SemilatKinding.Partial 
   {τContent τContent₀ : τ} 
@@ -59,13 +59,15 @@ import FreeSemilattice P₀ as FP₀
 |P₀| = DeltaPoset.Carrier P₀
 
 _≈S_ = BoundedJoinSemilattice._≈_ S
-≈S-refl = BoundedJoinSemilattice.refl S
+≈S-refl = BoundedJoinSemilattice.Eq.refl S
+≈S-sym = BoundedJoinSemilattice.Eq.sym S
 ≈S-setoid : Setoid _ _
 ≈S-setoid = record
   { Carrier = |S|
   ; isEquivalence = BoundedJoinSemilattice.isEquivalence S
   }
 _≈S₀_ = BoundedJoinSemilattice._≈_ S₀
+≈S₀-trans = BoundedJoinSemilattice.Eq.trans S₀
 ≈S₀-setoid : Setoid _ _
 ≈S₀-setoid = record
   { Carrier = |S₀|
@@ -82,6 +84,7 @@ _∨FP_ = BoundedJoinSemilattice._∨_ (FP P)
 ⊥FP = BoundedJoinSemilattice.⊥ (FP P)
 _≈FP₀_ = BoundedJoinSemilattice._≈_ (FP P₀) 
 ≈FP₀-sym = FP₀.≈-sym
+≈FP₀-refl = FP₀.≈-refl
 _∨FP₀_ = BoundedJoinSemilattice._∨_ (FP P₀)
 ⊥FP₀ = BoundedJoinSemilattice.⊥ (FP P₀)
 
@@ -626,18 +629,66 @@ f-∨ (inj₂ tt) (inj₂ tt) = ∨-idempotent FP.FP-JS (|f| $ inj₂ tt)
 
 decompose' : (c : List |P|) → IsFreeList c → 
              (Σ[ c' ∈ FP₀.SemilatCarrier ] LPW.Pointwise (λ x y → y ≡ inj₁ x) (proj₁ c') c) ⊎ (c ≡ (inj₂ tt ∷ []))
+--[[[
 decompose' [] []-Free = inj₁ (([] , FP₀.[]-Free) , [])
 decompose' (inj₁ x ∷ t) (∷-Free .(inj₁ x) .t min incomp ft) = 
-  {!!}
+  inj₁ $ ((x ∷ t') , FP₀.∷-Free x t' min' incomp' ft') , PE.refl ∷ t≡inj₁t' 
   where
     rest : Σ[ t' ∈ FP₀.SemilatCarrier ] LPW.Pointwise (λ x y → y ≡ inj₁ x) (proj₁ t') t
     rest with decompose' t ft
-    rest | inj₁ ((t' , ft') , t≡inj₁t') = {!!}
+    rest | inj₁ ((t' , ft') , t≡inj₁t') = (t' , ft') , t≡inj₁t'
     rest | inj₂ t≡inj₂tt∷[] rewrite t≡inj₂tt∷[] = ⊥-elim $ incomp (here $ inj₁ (₁∼₂ tt))
+
+    t' : List |P₀|
+    t' = proj₁ $ proj₁ rest
+
+    ft' : FP₀.IsFreeList t'
+    ft' = proj₂ $ proj₁ rest
+
+    t≡inj₁t' : LPW.Pointwise (λ x y → y ≡ inj₁ x) t' t
+    t≡inj₁t' = proj₂ rest
+
+    min' : All (x <P₀_) t'
+    --[[[
+    min' = pointwiseRespAll imp t t' min (LPW.symmetric PE.sym t≡inj₁t')
+      where
+        imp : {a : |P|} → {b : |P₀|} → inj₁ x <P a → inj₁ b ≡ a → x <P₀ b
+        imp {a} {b} (₁∼₁ x<b) PE.refl = x<b
+    --]]]
+
+    incomp' : ¬ (Any (x ∦P₀_) t')
+    --[[[
+    incomp' x⊑t' = anyEliminate t' elim x⊑t'
+      where
+        elim : AnyEliminator {ℓQ = l0} |P₀| ⊥ (x ∦P₀_) t'
+        elim z f (inj₁ x⊑z) z∈t' = 
+          incomp (pointwiseRespAny imp t' t inj₁x∦inj₁t' t≡inj₁t')  
+          where
+            inj₁x⊑inj₁t' : Any (λ · → inj₁ x ⊑P inj₁ ·) t'
+            inj₁x⊑inj₁t' = LAny.map (λ z≈· → ₁∼₁ (⊑P₀-trans x⊑z (⊑P₀-reflexive z≈·))) (LAny.map ≈P₀-reflexive z∈t')
+
+            inj₁x∦inj₁t' : Any (λ · → inj₁ x ∦P inj₁ ·) t'
+            inj₁x∦inj₁t' = LAny.map inj₁ inj₁x⊑inj₁t'
+
+            imp : {a : |P₀|} → {b : |P|} → inj₁ x ∦P inj₁ a → b ≡ inj₁ a → (inj₁ x ∦P b)
+            imp {a} {.(inj₁ a)} inj₁x∦inj₁a PE.refl = inj₁x∦inj₁a
+        elim z f (inj₂ z⊑x) z∈t' =
+          incomp (pointwiseRespAny imp t' t inj₁x∦inj₁t' t≡inj₁t')  
+          where
+            inj₁t'⊑inj₁x : Any (λ · → inj₁ · ⊑P inj₁ x) t'
+            inj₁t'⊑inj₁x = LAny.map (λ z≈· → ₁∼₁ (⊑P₀-trans (⊑P₀-reflexive (≈P₀-sym z≈·)) z⊑x)) (LAny.map ≈P₀-reflexive z∈t')
+
+            inj₁x∦inj₁t' : Any (λ · → inj₁ x ∦P inj₁ ·) t'
+            inj₁x∦inj₁t' = LAny.map inj₂ inj₁t'⊑inj₁x
+
+            imp : {a : |P₀|} → {b : |P|} → inj₁ x ∦P inj₁ a → b ≡ inj₁ a → (inj₁ x ∦P b)
+            imp {a} {.(inj₁ a)} inj₁x∦inj₁a PE.refl = inj₁x∦inj₁a
+    --]]]
 decompose' (inj₂ tt ∷ []) fc = inj₂ PE.refl
 decompose' (inj₂ tt ∷ inj₁ p₀ ∷ t) (∷-Free _ _ _ incomp _) = ⊥-elim $ incomp (here $ inj₂ (₁∼₂ tt))
 decompose' (inj₂ tt ∷ inj₂ tt ∷ t) (∷-Free _ _ _ incomp _) = ⊥-elim $ incomp (here $ inj₁ (₂∼₂ $ record {}))
- 
+--]]]        
+
 decompose : (c : FP.SemilatCarrier) → 
             (Σ[ c' ∈ FP₀.SemilatCarrier ] 
               LPW.Pointwise (λ x y → y ≡ inj₁ x) (proj₁ c') (proj₁ c)) ⊎ (proj₁ c ≡ (inj₂ tt ∷ []))
@@ -690,16 +741,263 @@ decompose (c , f) = decompose' c f
 |g|-⊥ | inj₁ (([] , []-Free) , []) = ₁∼₁ |g₀|-⊥ 
 |g|-⊥ | inj₂ ()
 
-{-
-|g|-∨ : (a b : FP.SemilatCarrier) → (|g| $ a ∨FP b) ≈S ((|g| a) ∨S (|g| b))
-|g|-∨ a b with decompose a | decompose b | decompose (a ∨FP b)
+⊤FP : FP.SemilatCarrier
+⊤FP = (inj₂ tt ∷ [] , ∷-Free (inj₂ tt) [] [] (λ ()) []-Free)
 
-|g|-∨ a b | inj₁ ((a' , fa') , a≡inj₁a') | inj₁ ((b' , fb') , b≡inj₁b') | inj₁ ((a∨b' , f-a∨b') , a∨b≡inj₁a∨b') =
+inj₂-∨FP-c≈inj₂ : (c : FP.SemilatCarrier) →  (⊤FP ∨FP c) ≈FP ⊤FP
+inj₂-∨FP-c≈inj₂ ([] , []-Free) = ≈FP-refl {inj₂ tt ∷ [] , ∷-Free (inj₂ tt) [] [] (λ ()) []-Free} 
+inj₂-∨FP-c≈inj₂ ((inj₁ h') ∷ t , ∷-Free (inj₁ h') t min incomp ft) with DeltaPoset._∦?_ P (inj₂ tt) (inj₁ h')
+inj₂-∨FP-c≈inj₂ ((inj₁ h') ∷ t , ∷-Free (inj₁ h') t min incomp ft) | DeltaPoset.l⊑r () _
+inj₂-∨FP-c≈inj₂ ((inj₁ h') ∷ t , ∷-Free (inj₁ h') t min incomp ft) | DeltaPoset.r⊑l _ (₁∼₂ tt) =
+  inj₂-∨FP-c≈inj₂ (t , ft)
+inj₂-∨FP-c≈inj₂ ((inj₁ h') ∷ t , ∷-Free (inj₁ h') t min incomp ft) | DeltaPoset.l≈r ()
+inj₂-∨FP-c≈inj₂ ((inj₁ h') ∷ t , ∷-Free (inj₁ h') t min incomp ft) | DeltaPoset.l∥r inj₂tt∥inj₁h' =
+  ⊥-elim $ inj₂tt∥inj₁h' (inj₂ (₁∼₂ tt))
+inj₂-∨FP-c≈inj₂ ((inj₂ tt) ∷ t , ∷-Free (inj₂ tt) t min incomp ft) with All⊥→[] all⊥
+  where
+    open import Function using (const)
+    all⊥ : All (const ⊥) t
+    all⊥ = LAll.tabulate tab
+      where
+        tab : {x : |P|} → x ∈≡ t → const ⊥ x
+        tab {x} x∈≡t = ⊥-elim $ incomp $ LAny.map z x∈≡t
+          where
+            z : {· : |P|} → x ≡ · → (inj₂ tt) ∦P ·
+            z {inj₁ _} PE.refl = inj₂ $ ₁∼₂ tt
+            z {inj₂ tt} PE.refl = inj₂ $ ₂∼₂ (record {})
+inj₂-∨FP-c≈inj₂ ((inj₂ tt) ∷ [] , ∷-Free (inj₂ tt) [] [] incomp ft) | PE.refl = 
+  (₂∼₂ $ PE.refl) ∷ []
+
+⊤S-∨-b : (b : |S|) → (inj₂ tt ∨S b) ≡ inj₂ tt
+⊤S-∨-b (inj₁ _) = PE.refl
+⊤S-∨-b (inj₂ tt) = PE.refl
+
+|g|-∨ : (a b : FP.SemilatCarrier) → (|g| $ a ∨FP b) ≈S ((|g| a) ∨S (|g| b))
+|g|-∨ a@((inj₂ tt ∷ t) , ∷-Free _ _ _ incomp _) b with All⊥→[] all⊥
+  where
+    open import Function using (const)
+    all⊥ : All (const ⊥) t
+    all⊥ = LAll.tabulate tab
+      where
+        tab : {x : |P|} → x ∈≡ t → const ⊥ x
+        tab {x} x∈≡t = ⊥-elim $ incomp $ LAny.map z x∈≡t
+          where
+            z : {· : |P|} → x ≡ · → (inj₂ tt) ∦P ·
+            z {inj₁ _} PE.refl = inj₂ $ ₁∼₂ tt
+            z {inj₂ tt} PE.refl = inj₂ $ ₂∼₂ (record {})
+|g|-∨ a@((inj₂ tt ∷ []) , _) b | PE.refl = 
+  begin
+    (|g| $ a ∨FP b) 
+      ≈⟨ |g|-≈ (a ∨FP b) a (inj₂-∨FP-c≈inj₂ b)  ⟩
+    (|g| a) 
+      ≡⟨ PE.sym $ (⊤S-∨-b $ |g| b) ⟩
+    (|g| a) ∨S (|g| b)
+   ∎ 
+  where
+    open import Relation.Binary.EqReasoning (≈S-setoid)
+|g|-∨ a b@((inj₂ tt ∷ t) , ∷-Free _ _ _ incomp _) with All⊥→[] all⊥
+  where
+    open import Function using (const)
+    all⊥ : All (const ⊥) t
+    all⊥ = LAll.tabulate tab
+      where
+        tab : {x : |P|} → x ∈≡ t → const ⊥ x
+        tab {x} x∈≡t = ⊥-elim $ incomp $ LAny.map z x∈≡t
+          where
+            z : {· : |P|} → x ≡ · → (inj₂ tt) ∦P ·
+            z {inj₁ _} PE.refl = inj₂ $ ₁∼₂ tt
+            z {inj₂ tt} PE.refl = inj₂ $ ₂∼₂ (record {})
+|g|-∨ a b@((inj₂ tt ∷ []) , _) | PE.refl = 
+  begin
+    (|g| $ a ∨FP b) 
+      ≈⟨ |g|-≈ (a ∨FP b) (b ∨FP a) (FP.∨-comm a b) ⟩
+    (|g| $ b ∨FP a) 
+      ≈⟨ |g|-≈ (b ∨FP a) b (inj₂-∨FP-c≈inj₂ a) ⟩ 
+    (|g| b) 
+      ≡⟨ PE.sym $ (⊤S-∨-b $ |g| a) ⟩
+    (|g| b) ∨S (|g| a)
+      ≈⟨ ∨-commutative (BoundedJoinSemilattice.joinSemiLattice S) (|g| b) (|g| a) ⟩  
+    (|g| a) ∨S (|g| b)
+   ∎ 
+  where
+    open import Relation.Binary.EqReasoning (≈S-setoid)
+    open import Relation.Binary.Properties.JoinSemilattice renaming (∨-comm to ∨-commutative)
+
+|g|-∨ ([] , []-Free) b =
+  begin
+    (|g| $ ⊥FP ∨FP b) 
+      ≈⟨ |g|-≈ (⊥FP ∨FP b) b (FP.∨-identityˡ b) ⟩
+    (|g| b) 
+      ≈⟨ ≈S-sym $ ∨-idˡ S (|g| b) ⟩
+    ⊥S ∨S (|g| b)
+      ≈⟨ ∨-resp-≈ˡ {S = S} (≈S-sym |g|-⊥) ⟩  
+    (|g| ⊥FP) ∨S (|g| b)
+   ∎
+  where
+    open import Relation.Binary.EqReasoning (≈S-setoid)
+    open import Relation.Binary.Properties.BoundedJoinSemilattice renaming (identityˡ to ∨-idˡ)
+|g|-∨ a ([] , []-Free) =
+  begin
+    (|g| $ a ∨FP ⊥FP) 
+      ≈⟨ |g|-≈ (a ∨FP ⊥FP) a (FP.∨-identityʳ a) ⟩ 
+    (|g| a)
+      ≈⟨ ≈S-sym $ ∨-idʳ S (|g| a) ⟩
+    (|g| a) ∨S ⊥S
+      ≈⟨ ∨-resp-≈ʳ {S = S} (≈S-sym |g|-⊥) ⟩ 
+    (|g| a) ∨S (|g| ⊥FP)
+   ∎
+  where
+    open import Relation.Binary.EqReasoning (≈S-setoid)
+    open import Relation.Binary.Properties.BoundedJoinSemilattice renaming (identityʳ to ∨-idʳ)
+|g|-∨ a@(inj₁ ha ∷ _ , _) b@(inj₁ hb ∷ _ , _) with decompose a | decompose b | decompose (a ∨FP b)
+|g|-∨ a@(inj₁ ha ∷ _ , _) b@(inj₁ hb ∷ _ , _) | inj₁ ((a' , fa') , a≡inj₁a') | inj₁ ((b' , fb') , b≡inj₁b') | inj₁ ((a∨b' , f-a∨b') , a∨b≡inj₁a∨b') = 
+  {- begin
+    (inj₁ $ |g₀| $ (a ∨FP b)) ≈⟨ ? ⟩
+    (inj₁ $ (|g₀| (a' , fa')) ∨S₀ (|g₀| (b' , fb')))
+   ∎ -}
+   ₁∼₁ (≈S₀-trans (|g₀|-≈ (a∨b' , f-a∨b') ((a' , fa') ∨FP₀ (b' , fb')) a∨b'≈a'∨b') eq)
+  where
+    eq : (|g₀| $ ((a' , fa') ∨FP₀ (b' , fb'))) ≈S₀ ((|g₀| (a' , fa')) ∨S₀ (|g₀| (b' , fb')))
+    eq = 
+      begin
+        (|g₀| $ ((a' , fa') ∨FP₀ (b' , fb'))) ≈⟨ |g₀|-∨ (a' , fa') (b' , fb') ⟩
+        ((|g₀| (a' , fa')) ∨S₀ (|g₀| (b' , fb')))
+       ∎
+      where
+        open import Relation.Binary.EqReasoning (≈S₀-setoid)
+
+
+    a∨b'≈a'∨b' : (a∨b' , f-a∨b') ≈FP₀ ((a' , fa') ∨FP₀ (b' , fb'))
+    a∨b'≈a'∨b' = {!!}
+      where
+        open Equivalence (FP₀.c1≈c2⇔sameElements (a∨b' , f-a∨b') ((a' , fa') ∨FP₀ (b' , fb'))) 
+
+        p→ : (p : |P₀|) → p ∈P₀ (a∨b' , f-a∨b') → p ∈P₀ ((a' , fa') ∨FP₀ (b' , fb'))
+        p→ p p∈a∨b' = {!!}
+          where
+            module E1 = Equivalence (FP₀.x∈∨⇔P∨ 
+                                      (a' , fa') (b' , fb') ((a' , fa') ∨FP₀ (b' , fb')) 
+                                      (≈FP₀-refl {(a' , fa') ∨FP₀ (b' , fb')}) p) 
+
+            module E2 = Equivalence (FP.x∈∨⇔P∨ a b (a ∨FP b) (≈FP-refl {a ∨FP b}) (inj₁ p)) 
+
+            inj₁p∈a∨b : inj₁ p ∈ (a ∨FP b)
+            inj₁p∈a∨b = pointwiseRespAny imp a∨b' (proj₁ $ a ∨FP b) p∈a∨b' a∨b≡inj₁a∨b'
+              where
+                imp : {x : |P₀|} → {y : |P|} → p ≈P₀ x → y ≡ inj₁ x → inj₁ p ≈P y
+                imp {x} {y} p≈x PE.refl = ₁∼₁ p≈x
+
+            goal : p ∈P₀ ((a' , fa') ∨FP₀ (b' , fb'))
+            goal with E2.to ⟨$⟩ inj₁p∈a∨b 
+            goal | inj₁ (inj₁p∈a , ¬inj₁p⊑b) = {!!}
+              where
+                p∈a' : p ∈P₀ (a' , fa')
+                p∈a' = pointwiseRespAny⃖ imp a' (proj₁ a) inj₁p∈a a≡inj₁a'
+                  where
+                    imp : {x : |P₀|} → {y : |P|} → inj₁ p ≈P y → y ≡ inj₁ x → p ≈P₀ x
+                    imp {x} {y} (₁∼₁ p≈x) PE.refl = p≈x
+
+            goal | inj₂ (inj₁ (inj₁p∈b , ¬inj₁p⊑a)) = {!!}
+            goal | inj₂ (inj₂ (inj₁p∈a , inj₁p∈b)) = {!E1.from ⟨$⟩ (inj₂ (inj₂ (p∈a' , p∈b')))!}
+              where
+                p∈a' : p ∈P₀ (a' , fa')
+                p∈a' = pointwiseRespAny⃖ imp a' (proj₁ a) inj₁p∈a a≡inj₁a'
+                  where
+                    imp : {x : |P₀|} → {y : |P|} → inj₁ p ≈P y → y ≡ inj₁ x → p ≈P₀ x
+                    imp {x} {y} (₁∼₁ p≈x) PE.refl = p≈x
+
+                p∈b' : p ∈P₀ (b' , fb')
+                p∈b' = pointwiseRespAny⃖ imp b' (proj₁ b) inj₁p∈b b≡inj₁b'
+                  where
+                    imp : {x : |P₀|} → {y : |P|} → inj₁ p ≈P y → y ≡ inj₁ x → p ≈P₀ x
+                    imp {x} {y} (₁∼₁ p≈x) PE.refl = p≈x
+
+|g|-∨ a@(inj₁ ha ∷ _ , ∷-Free (inj₁ ha) ta _ incompa _) b@(inj₁ hb ∷ tb , ∷-Free (inj₁ hb) tb _ incompb _) | inj₁ ((a' , fa') , a≡inj₁a') | inj₁ ((b' , fb') , b≡inj₁b') | inj₂ eq = 
+  ⊥-elim contr
+  where
+    eq' : (a ∨FP b) ≈FP ⊤FP
+    eq' = LPW.reflexive ≈P-reflexive (LPW.≡⇒Pointwise-≡ eq)
+
+    module EqSame = Equivalence (FP.c1≈c2⇔sameElements (a ∨FP b) ⊤FP)
+    module EqSame⊤ = Equivalence ((EqSame.to ⟨$⟩ eq') (inj₂ tt)) 
+    module P∨-a∨b = Equivalence (FP.x∈∨⇔P∨ a b (a ∨FP b) (≈FP-refl {a ∨FP b}) (inj₂ tt))
+  
+    inj₂tt∈a∨b : (inj₂ tt) ∈P (a ∨FP b)
+    inj₂tt∈a∨b = EqSame⊤.from ⟨$⟩ (here (₂∼₂ PE.refl))
+
+    contr : ⊥
+    contr with P∨-a∨b.to ⟨$⟩ inj₂tt∈a∨b 
+    contr | inj₁ (here () , ¬inj₂tt⊑b)
+    contr | inj₁ (there inj₂tt∈ta , ¬inj₂tt⊑b) = incompa $ LAny.map aux inj₂tt∈ta
+      where
+        aux : {p : |P|} → inj₂ tt ≈P p → inj₁ ha ∦P p
+        aux {p} inj₂tt≈p = inj₁ $ DeltaPoset.⊑-respʳ-≈ P inj₂tt≈p (₁∼₂ tt) 
+    contr | inj₂ (inj₁ (here () , ¬inj₂tt⊑a))
+    contr | inj₂ (inj₁ (there inj₂tt∈tb , ¬inj₂tt⊑a)) = incompb $ LAny.map aux inj₂tt∈tb
+      where
+        aux : {p : |P|} → inj₂ tt ≈P p → inj₁ hb ∦P p
+        aux {p} inj₂tt≈p = inj₁ $ DeltaPoset.⊑-respʳ-≈ P inj₂tt≈p (₁∼₂ tt) 
+    contr | inj₂ (inj₂ (here () , inj₂tt∈b))
+    contr | inj₂ (inj₂ (there inj₂tt∈ta , inj₂tt∈b)) = incompa $ LAny.map aux inj₂tt∈ta
+      where
+        aux : {p : |P|} → inj₂ tt ≈P p → inj₁ ha ∦P p
+        aux {p} inj₂tt≈p = inj₁ $ DeltaPoset.⊑-respʳ-≈ P inj₂tt≈p (₁∼₂ tt) 
+|g|-∨ (inj₁ ha ∷ _ , _) (inj₁ hb ∷ _ , _) | _ | inj₂ () | _
+|g|-∨ (inj₁ ha ∷ _ , _) (inj₁ hb ∷ _ , _) | inj₂ () | _ | _
+
+
+{-
+|g|-∨ a b with decompose a | decompose b | decompose (a ∨FP b)
+|g|-∨ a b | inj₁ ((a' , fa') , a≡inj₁a') | inj₁ ((b' , fb') , b≡inj₁b') | inj₁ ((a∨b' , f-a∨b') , a∨b≡inj₁a∨b') = 
   {!!}
-|g|-∨ a (.(inj₂ tt ∷ []) , snd) | inj₁ ((a' , fa') , a≡inj₁a') | inj₂ PE.refl | inj₁ (([] , fz) , a∨b≡inj₁a∨b') = {!!}
-|g|-∨ a (.(inj₂ tt ∷ []) , snd) | inj₁ ((a' , fa') , a≡inj₁a') | inj₂ PE.refl | inj₁ ((x ∷ z , fz) , a∨b≡inj₁a∨b') = {!!}
-|g|-∨ a b | inj₁ ((a' , fa') , a≡inj₁a') | inj₂ PE.refl | inj₂ _ = ₂∼₂ PE.refl
-|g|-∨ a b | inj₂ PE.refl | inj₂ PE.refl | inj₂ PE.refl = ₂∼₂ PE.refl
+|g|-∨ a b | inj₁ ((a' , fa') , a≡inj₁a') | inj₁ ((b' , fb') , b≡inj₁b') | inj₂ eq = {!!}
+|g|-∨ a b | inj₁ ((a' , fa') , a≡inj₁a') | inj₂ PE.refl | inj₁ x₁ = {!!}
+|g|-∨ a b | inj₁ ((a' , fa') , a≡inj₁a') | inj₂ PE.refl | inj₂ y₁ = {!!}
+-}
+
+{-
+|g|-∨ a@(.(inj₂ tt ∷ []) , _) b | inj₂ PE.refl | inj₁ ((b' , fb') , b≡inj₁b') | inj₁ ((a∨b' , f-a∨b') , a∨b≡inj₁a∨b') =
+  begin
+    (inj₁ $ |g₀| $ a∨b' , f-a∨b') ≈⟨ {!!} ⟩
+    (|g| a) ≈⟨ {!!} ⟩
+    (|g| a) ∨S (inj₁ $ |g₀| $ b' , fb')
+   ∎ 
+  where
+    open import Relation.Binary.EqReasoning (≈S-setoid)
+  -}  
+{-
+  where
+    trans : {p : |P|} → {q₀ : |P₀|} → {p₀ : |P₀|} → p ≡ inj₁ q₀ → (inj₁ q₀) ≡ (inj₁ p₀) → p ≡ inj₁ p₀
+    trans p≡q q≡inj₁p₀ = PE.trans p≡q q≡inj₁p₀
+
+    a∨b≡inj₂tt∷[] : (proj₁ $ a ∨FP b) ≡ inj₂ tt ∷ [] 
+    a∨b≡inj₂tt∷[] with lb 
+    a∨b≡inj₂tt∷[] | x = ?
+
+    inj₂tt∷[]≡inj₁b' : LPW.Pointwise (λ x y → x ≡ inj₁ y) (inj₂ tt ∷ []) b' 
+    inj₂tt∷[]≡inj₁b' = LPW.transitive {!!} {!LPW.symmetric PE.sym (LPW.map a∨b≡inj₁a∨b')!} {!b≡inj₁b'!}
+-}
+
+{-
+|g|-∨ (.(inj₂ tt ∷ []) , _) b | inj₂ PE.refl | inj₁ ((b' , fb') , b≡inj₁b') | inj₂ eq = 
+  ₂∼₂ PE.refl
+|g|-∨ (.(inj₂ tt ∷ []) , _) (.(inj₂ tt ∷ []) , _) | inj₂ PE.refl | inj₂ PE.refl | inj₁ ((a∨b' ∷ _ , _) , () ∷ _)
+|g|-∨ (.(inj₂ tt ∷ []) , _) (.(inj₂ tt ∷ []) , _) | inj₂ PE.refl | inj₂ PE.refl | inj₁ (([] , []-Free) , ())
+|g|-∨ (.(inj₂ tt ∷ []) , snd) b | inj₂ PE.refl | inj₂ PE.refl | inj₂ eq = 
+  ₂∼₂ PE.refl
+-}
+
+
+{-
+|g|-∨ ([] , []-Free) b | inj₁ (([] , []-Free) , []) | _ | _ = {!!}
+|g|-∨ a ([] , []-Free) | _ | inj₁ (([] , []-Free) , []) | _ = {!!}
+|g|-∨ a@(inj₁ _ ∷ _ , _) b@(inj₁ _ ∷ _ , _) | inj₁ ((a' , fa') , a≡inj₁a') | inj₁ ((b' , fb') , b≡inj₁b') | inj₁ ((a∨b' , f-a∨b') , a∨b≡inj₁a∨b') =
+  {!!}
+|g|-∨ a@(inj₁ _ ∷ _ , _) b@(.(inj₂ tt ∷ []) , _) | inj₁ ((a' , fa') , a≡inj₁a') | inj₂ PE.refl | inj₁ ((a∨b' , f-a∨b') , a∨b≡inj₁a∨b') = 
+  {!!}
+|g|-∨ a@(.(inj₂ tt ∷ []) , _) b@(inj₁ _ ∷ _ , _) | inj₂ PE.refl | inj₁ ((b' , fb') , b≡inj₁b') | inj₁ ((a∨b' , f-a∨b') , a∨b≡inj₁a∨b') = 
+  {!!}
+|g|-∨ .(inj₂ _ ∷ _ , _) .(inj₂ _ ∷ _ , _) | inj₂ PE.refl | inj₂ PE.refl | inj₂ PE.refl = ₂∼₂ PE.refl
 -}
 
 inv-FP→S→FP₀ : (a₀ : FP₀.SemilatCarrier) → (|f₀| $ |g₀| a₀) ≈FP₀ a₀
@@ -753,8 +1051,8 @@ inv-FP→S→FP a | inj₁ ((a' , fa') , a≡inj₁a') = from ⟨$⟩ sameElemen
 inv-FP→S→FP .(inj₂ tt ∷ [] , _) | inj₂ PE.refl = ₂∼₂ PE.refl ∷ []
 --]]]
 
-
 inv-S→FP→S : (a : |S|) → (|g| $ |f| a) ≈S a
+--[[[
 inv-S→FP→S a@(inj₁ a₀) with decompose (|f| $ inj₁ a₀)
 inv-S→FP→S a@(inj₁ a₀) | inj₁ ((a' , fa') , |f|a≡inj₁a') = 
   begin
@@ -820,5 +1118,6 @@ inv-S→FP→S (inj₁ a₀) | inj₂ eq with to ⟨$⟩ inj₂tt∈|f|inj₁a�
     inj₂tt∈|f|inj₁a₀ rewrite eq = here (₂∼₂ PE.refl)
 inv-S→FP→S (inj₁ a₀) | inj₂ eq | (_ , () , _) 
 inv-S→FP→S (inj₂ tt) = ₂∼₂ PE.refl 
+--]]]
 
 

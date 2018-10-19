@@ -473,6 +473,16 @@ module _ {S : BoundedJoinSemilattice l0 l0 l0} where
   ∨-list-pointwise-≤ (s₁ ∷ l₁) [] ()
   ∨-list-pointwise-≤ (s₁ ∷ l₁) (s₂ ∷ l₂) (s₁≤s₂ ∷ l₁≤l₂) = 
     ∨-monotonic joinSemilatticeₛ s₁≤s₂ (∨-list-pointwise-≤ l₁ l₂ l₁≤l₂)
+
+
+All⊥→[] : {A : Set} → {l : List A} → LL.All (Function.const ⊥) l → l ≡ []
+All⊥→[] {l = []} [] = PE.refl 
+All⊥→[] {l = h ∷ t} (contr ∷ rest) = ⊥-elim contr
+
+⊥-unique : (a b : ⊥) → a ≡ b
+⊥-unique () ()
+
+
 {-
   ∨-list-≤← : (l₁ : List Carrier) → (l₂ : List Carrier) → (∨-list l₁) ≤ₛ (∨-list l₂) → LL.All (λ · → (· ≈ₛ ⊥ₛ) ⊎ LA.Any (· ≤ₛ_) l₂) l₁
   ∨-list-≤← [] l₂ ∨l₁≤∨l₂ = []

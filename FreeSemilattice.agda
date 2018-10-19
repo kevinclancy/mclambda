@@ -127,8 +127,8 @@ _∨_ = BoundedJoinSemilattice._∨_ FP-BJS
 ∨-identityˡ : LeftIdentity _≈_ ⊥ _∨_
 ∨-identityˡ = identityˡ
 
-∨-identityʳ : LeftIdentity _≈_ ⊥ _∨_
-∨-identityʳ = identityˡ
+∨-identityʳ : RightIdentity _≈_ ⊥ _∨_
+∨-identityʳ = identityʳ
 
 ∨-assoc : Associative _≈_ _∨_
 ∨-assoc = ∨-assoc'
