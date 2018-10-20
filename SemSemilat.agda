@@ -1,4 +1,4 @@
-
+-- TODO: delete this module
 module SemSemilatKinding where
 
 open import Syntax
@@ -17,4 +17,7 @@ open import SemilatKinding.Core public
 ⟦ ProductSemilat isSemilatL isSemilatR ⁂⟧ = sem
   where
     open import SemilatKinding.Product ⟦ isSemilatL ⁂⟧ ⟦ isSemilatR ⁂⟧
- 
+⟦ PartialSemilat isSemilatContent ⁂⟧ = sem
+  where
+    open import SemilatKinding.Partial ⟦ isSemilatContent ⁂⟧
+

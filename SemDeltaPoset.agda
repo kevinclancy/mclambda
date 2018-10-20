@@ -24,6 +24,8 @@ open Util
 
 module SemDeltaPoset where
 
+{-
+
 discreteDelta : StrictTotalOrder l0 l0 l0 → DeltaPoset {l0} {l0} {l0} {l0}
 discreteDelta sto = deltaPoset
   where 
@@ -269,4 +271,5 @@ postulate
     unimodality {inj₁ a'} {inj₂ .tt} {inj₂ .tt} a<b (₂∼₂ ()) a∥b b∥c
     unimodality {inj₂ .tt} {inj₁ b'} {c} () b<c a∥b b∥c
     unimodality {inj₂ .tt} {inj₂ .tt} {c} (₂∼₂ ()) b<c a∥b b∥c
+-}
 -}

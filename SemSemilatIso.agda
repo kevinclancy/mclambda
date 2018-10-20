@@ -16,4 +16,7 @@ open import Util
 ⟦ ProductSemilat isSemilatL isSemilatR ⁂iso⟧ = sem
   where
     open import SemilatKinding.Product ⟦ isSemilatL ⁂iso⟧ ⟦ isSemilatR ⁂iso⟧  
+⟦ PartialSemilat isSemilatContent ⁂iso⟧ = sem
+  where
+    open import SemilatKinding.Partial ⟦ isSemilatContent ⁂iso⟧
 

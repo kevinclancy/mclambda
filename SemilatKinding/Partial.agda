@@ -285,10 +285,10 @@ P-|f| (inj₂ tt) x = x ≈P inj₂ tt
 |f|-prop : (c : |S|) → (x : |P|) → (x ∈P (|f| c)) ⇔ (P-|f| c x)
 |f|-prop c = proj₂ $ |f|-aux c
 
-f-≈ : (a b : |S|) → a ≈S b → (|f| a) ≈FP (|f| b)
+|f|-≈ : (a b : |S|) → a ≈S b → (|f| a) ≈FP (|f| b)
 --[[[
-f-≈ (inj₁ a₀) (inj₂ tt) (₁∼₂ ())
-f-≈ (inj₁ a₀) (inj₁ b₀) (₁∼₁ a₀≈b₀) = from ⟨$⟩ sameElements 
+|f|-≈ (inj₁ a₀) (inj₂ tt) (₁∼₂ ())
+|f|-≈ (inj₁ a₀) (inj₁ b₀) (₁∼₁ a₀≈b₀) = from ⟨$⟩ sameElements 
   where
     p→ : (p : |P|) → p ∈P (|f| $ inj₁ a₀) → p ∈P (|f| $ inj₁ b₀)
     --[[[
@@ -330,12 +330,12 @@ f-≈ (inj₁ a₀) (inj₁ b₀) (₁∼₁ a₀≈b₀) = from ⟨$⟩ sameEle
     sameElements p = equivalence (p→ p) (p← p) 
 
     open Equivalence (FP.c1≈c2⇔sameElements (|f| $ inj₁ a₀) (|f| $ inj₁ b₀)) 
-f-≈ (inj₂ tt) (inj₂ tt) (₂∼₂ PE.refl) = ≈FP-refl {|f| $ inj₂ tt}
+|f|-≈ (inj₂ tt) (inj₂ tt) (₂∼₂ PE.refl) = ≈FP-refl {|f| $ inj₂ tt}
 --]]]
 
-f-⊥ : |f| ⊥S ≈FP ⊥FP
+|f|-⊥ : |f| ⊥S ≈FP ⊥FP
 --[[[
-f-⊥ = from ⟨$⟩ sameElements
+|f|-⊥ = from ⟨$⟩ sameElements
   where
     p→ : (p : |P|) → p ∈P (|f| ⊥S) → p ∈P ⊥FP
     p→ p p∈f⊥ with to ⟨$⟩ p∈f⊥
@@ -358,9 +358,9 @@ f-⊥ = from ⟨$⟩ sameElements
     open Equivalence (FP.c1≈c2⇔sameElements (|f| ⊥S) ⊥FP)
 --]]]
 
-f-∨ : (a b : |S|) → (|f| $ a ∨S b) ≈FP ((|f| a) ∨FP (|f| b))
+|f|-∨ : (a b : |S|) → (|f| $ a ∨S b) ≈FP ((|f| a) ∨FP (|f| b))
 --[[[
-f-∨ a@(inj₁ a₀) b@(inj₁ b₀) =
+|f|-∨ a@(inj₁ a₀) b@(inj₁ b₀) =
   from ⟨$⟩ sameElements
   where
     p→ : (p : |P|) → p ∈P (|f| $ a ∨S b) → p ∈P ((|f| a) ∨FP (|f| b))
@@ -572,7 +572,7 @@ f-∨ a@(inj₁ a₀) b@(inj₁ b₀) =
     sameElements p = equivalence (p→ p) (p← p)
  
     open Equivalence (FP.c1≈c2⇔sameElements (|f| $ a ∨S b) ((|f| a) ∨FP (|f| b)))
-f-∨ (inj₁ a₀) (inj₂ tt) =
+|f|-∨ (inj₁ a₀) (inj₂ tt) =
   begin
     (|f| $ (inj₁ a₀ ∨S inj₂ tt)) 
       ≡⟨ PE.refl ⟩
@@ -596,7 +596,7 @@ f-∨ (inj₁ a₀) (inj₂ tt) =
 
     |f|inj₁a₀∨|f|inj₂tt≈|f|inj₂tt : ((|f| $ inj₁ a₀) FP.∨ (|f| $ inj₂ tt)) ≈FP (|f| $ inj₂ tt)
     |f|inj₁a₀∨|f|inj₂tt≈|f|inj₂tt = connecting→ {A = FP.FP-JS} (|f| $ inj₁ a₀) (|f| $ inj₂ tt) |f|inj₁a₀≤|f|inj₂tt
-f-∨ (inj₂ tt) (inj₁ b₀) = 
+|f|-∨ (inj₂ tt) (inj₁ b₀) = 
   begin
     (|f| $ (inj₂ tt ∨S inj₁ b₀)) 
       ≡⟨ PE.refl ⟩
@@ -622,7 +622,7 @@ f-∨ (inj₂ tt) (inj₁ b₀) =
 
     |f|inj₁b₀∨|f|inj₂tt≈|f|inj₂tt : ((|f| $ inj₁ b₀) FP.∨ (|f| $ inj₂ tt)) ≈FP (|f| $ inj₂ tt)
     |f|inj₁b₀∨|f|inj₂tt≈|f|inj₂tt = connecting→ {A = FP.FP-JS} (|f| $ inj₁ b₀) (|f| $ inj₂ tt) |f|inj₁b₀≤|f|inj₂tt
-f-∨ (inj₂ tt) (inj₂ tt) = ∨-idempotent FP.FP-JS (|f| $ inj₂ tt)
+|f|-∨ (inj₂ tt) (inj₂ tt) = ∨-idempotent FP.FP-JS (|f| $ inj₂ tt)
   where
     open import Relation.Binary.Properties.JoinSemilattice
 --]]]
@@ -851,13 +851,10 @@ inj₂-∨FP-c≈inj₂ ((inj₂ tt) ∷ [] , ∷-Free (inj₂ tt) [] [] incomp 
     open import Relation.Binary.Properties.BoundedJoinSemilattice renaming (identityʳ to ∨-idʳ)
 |g|-∨ a@(inj₁ ha ∷ _ , _) b@(inj₁ hb ∷ _ , _) with decompose a | decompose b | decompose (a ∨FP b)
 |g|-∨ a@(inj₁ ha ∷ _ , _) b@(inj₁ hb ∷ _ , _) | inj₁ ((a' , fa') , a≡inj₁a') | inj₁ ((b' , fb') , b≡inj₁b') | inj₁ ((a∨b' , f-a∨b') , a∨b≡inj₁a∨b') = 
-  {- begin
-    (inj₁ $ |g₀| $ (a ∨FP b)) ≈⟨ ? ⟩
-    (inj₁ $ (|g₀| (a' , fa')) ∨S₀ (|g₀| (b' , fb')))
-   ∎ -}
    ₁∼₁ (≈S₀-trans (|g₀|-≈ (a∨b' , f-a∨b') ((a' , fa') ∨FP₀ (b' , fb')) a∨b'≈a'∨b') eq)
   where
     eq : (|g₀| $ ((a' , fa') ∨FP₀ (b' , fb'))) ≈S₀ ((|g₀| (a' , fa')) ∨S₀ (|g₀| (b' , fb')))
+    --[[[
     eq = 
       begin
         (|g₀| $ ((a' , fa') ∨FP₀ (b' , fb'))) ≈⟨ |g₀|-∨ (a' , fa') (b' , fb') ⟩
@@ -865,15 +862,15 @@ inj₂-∨FP-c≈inj₂ ((inj₂ tt) ∷ [] , ∷-Free (inj₂ tt) [] [] incomp 
        ∎
       where
         open import Relation.Binary.EqReasoning (≈S₀-setoid)
-
+    --]]]
 
     a∨b'≈a'∨b' : (a∨b' , f-a∨b') ≈FP₀ ((a' , fa') ∨FP₀ (b' , fb'))
-    a∨b'≈a'∨b' = {!!}
+    --[[[
+    a∨b'≈a'∨b' = from ⟨$⟩ sameElements
       where
-        open Equivalence (FP₀.c1≈c2⇔sameElements (a∨b' , f-a∨b') ((a' , fa') ∨FP₀ (b' , fb'))) 
-
         p→ : (p : |P₀|) → p ∈P₀ (a∨b' , f-a∨b') → p ∈P₀ ((a' , fa') ∨FP₀ (b' , fb'))
-        p→ p p∈a∨b' = {!!}
+        --[[[
+        p→ p p∈a∨b' = goal
           where
             module E1 = Equivalence (FP₀.x∈∨⇔P∨ 
                                       (a' , fa') (b' , fb') ((a' , fa') ∨FP₀ (b' , fb')) 
@@ -889,16 +886,33 @@ inj₂-∨FP-c≈inj₂ ((inj₂ tt) ∷ [] , ∷-Free (inj₂ tt) [] [] incomp 
 
             goal : p ∈P₀ ((a' , fa') ∨FP₀ (b' , fb'))
             goal with E2.to ⟨$⟩ inj₁p∈a∨b 
-            goal | inj₁ (inj₁p∈a , ¬inj₁p⊑b) = {!!}
+            goal | inj₁ (inj₁p∈a , ¬inj₁p⊑b) = E1.from ⟨$⟩ (inj₁ (p∈a' , ¬p⊑b'))
               where
                 p∈a' : p ∈P₀ (a' , fa')
                 p∈a' = pointwiseRespAny⃖ imp a' (proj₁ a) inj₁p∈a a≡inj₁a'
                   where
                     imp : {x : |P₀|} → {y : |P|} → inj₁ p ≈P y → y ≡ inj₁ x → p ≈P₀ x
                     imp {x} {y} (₁∼₁ p≈x) PE.refl = p≈x
-
-            goal | inj₂ (inj₁ (inj₁p∈b , ¬inj₁p⊑a)) = {!!}
-            goal | inj₂ (inj₂ (inj₁p∈a , inj₁p∈b)) = {!E1.from ⟨$⟩ (inj₂ (inj₂ (p∈a' , p∈b')))!}
+                
+                ¬p⊑b' : ¬ Any (p ⊑P₀_) b' 
+                ¬p⊑b' p⊑b' = ¬inj₁p⊑b $ pointwiseRespAny imp b' (proj₁ b) p⊑b' b≡inj₁b'
+                  where
+                    imp : {x : |P₀|} → {y : |P|} → p ⊑P₀ x → y ≡ inj₁ x → inj₁ p ⊑P y
+                    imp {x} {y} p⊑x PE.refl = ₁∼₁ p⊑x
+            goal | inj₂ (inj₁ (inj₁p∈b , ¬inj₁p⊑a)) = E1.from ⟨$⟩ inj₂ (inj₁ (p∈b' , ¬p⊑a'))
+              where
+                p∈b' : p ∈P₀ (b' , fb')
+                p∈b' = pointwiseRespAny⃖ imp b' (proj₁ b) inj₁p∈b b≡inj₁b'
+                  where
+                    imp : {x : |P₀|} → {y : |P|} → inj₁ p ≈P y → y ≡ inj₁ x → p ≈P₀ x
+                    imp {x} {y} (₁∼₁ p≈x) PE.refl = p≈x
+                
+                ¬p⊑a' : ¬ Any (p ⊑P₀_) a' 
+                ¬p⊑a' p⊑a' = ¬inj₁p⊑a $ pointwiseRespAny imp a' (proj₁ a) p⊑a' a≡inj₁a'
+                  where
+                    imp : {x : |P₀|} → {y : |P|} → p ⊑P₀ x → y ≡ inj₁ x → inj₁ p ⊑P y
+                    imp {x} {y} p⊑x PE.refl = ₁∼₁ p⊑x
+            goal | inj₂ (inj₂ (inj₁p∈a , inj₁p∈b)) = E1.from ⟨$⟩ (inj₂ (inj₂ (p∈a' , p∈b')))
               where
                 p∈a' : p ∈P₀ (a' , fa')
                 p∈a' = pointwiseRespAny⃖ imp a' (proj₁ a) inj₁p∈a a≡inj₁a'
@@ -911,7 +925,94 @@ inj₂-∨FP-c≈inj₂ ((inj₂ tt) ∷ [] , ∷-Free (inj₂ tt) [] [] incomp 
                   where
                     imp : {x : |P₀|} → {y : |P|} → inj₁ p ≈P y → y ≡ inj₁ x → p ≈P₀ x
                     imp {x} {y} (₁∼₁ p≈x) PE.refl = p≈x
+        --]]]
 
+        p← : (p : |P₀|) →  p ∈P₀ ((a' , fa') ∨FP₀ (b' , fb')) → p ∈P₀ (a∨b' , f-a∨b')
+        --[[[
+        p← p p∈a'∨b' with E.to ⟨$⟩ p∈a'∨b' 
+          where
+            module E = Equivalence (FP₀.x∈∨⇔P∨ 
+                                     (a' , fa') (b' , fb') ((a' , fa') ∨FP₀ (b' , fb')) 
+                                     (≈FP₀-refl {(a' , fa') ∨FP₀ (b' , fb')}) p) 
+        p← p p∈a'∨b' | inj₁ (p∈a' , ¬p⊑b') = 
+          pointwiseRespAny⃖ imp a∨b' (proj₁ (a ∨FP b)) inj₁p∈a∨b a∨b≡inj₁a∨b'
+          where
+            inj₁p∈a : inj₁ p ∈P a
+            inj₁p∈a = pointwiseRespAny imp a' (proj₁ a) p∈a' a≡inj₁a'
+              where
+                imp : {x : |P₀|} → {y : |P|} → p ≈P₀ x → y ≡ inj₁ x  → inj₁ p ≈P y
+                imp {x} {y} p≈x PE.refl = ₁∼₁ p≈x
+
+            ¬inj₁p⊑b : ¬ Any (inj₁ p ⊑P_) (proj₁ b)
+            ¬inj₁p⊑b inj₁p⊑b = ¬p⊑b' $ pointwiseRespAny⃖ imp b' (proj₁ b) inj₁p⊑b b≡inj₁b' 
+              where
+                open import Data.List.Any.Properties
+                open import Function.Inverse
+
+                imp : {x : |P₀|} → {y : |P|} → inj₁ p ⊑P y → y ≡ inj₁ x → p ⊑P₀ x
+                imp {x} {y} (₁∼₁ p⊑x) PE.refl = p⊑x
+
+            inj₁p∈a∨b : inj₁ p ∈P (a ∨FP b)
+            inj₁p∈a∨b = E.from ⟨$⟩ inj₁ (inj₁p∈a , ¬inj₁p⊑b) 
+              where
+                module E = Equivalence (FP.x∈∨⇔P∨ a b (a ∨FP b) (≈FP-refl {a ∨FP b}) (inj₁ p)) 
+
+            imp : {x : |P₀|} → {y : |P|} → inj₁ p ≈P y → y ≡ inj₁ x → p ≈P₀ x
+            imp {x} {y} (₁∼₁ p≈x) PE.refl = p≈x 
+        p← p p∈a'∨b' | inj₂ (inj₁ (p∈b' , ¬p⊑a')) = 
+          pointwiseRespAny⃖ imp a∨b' (proj₁ (a ∨FP b)) inj₁p∈a∨b a∨b≡inj₁a∨b'
+          where
+            inj₁p∈b : inj₁ p ∈P b
+            inj₁p∈b = pointwiseRespAny imp b' (proj₁ b) p∈b' b≡inj₁b'
+              where
+                imp : {x : |P₀|} → {y : |P|} → p ≈P₀ x → y ≡ inj₁ x  → inj₁ p ≈P y
+                imp {x} {y} p≈x PE.refl = ₁∼₁ p≈x
+
+            ¬inj₁p⊑a : ¬ Any (inj₁ p ⊑P_) (proj₁ a)
+            ¬inj₁p⊑a inj₁p⊑a = ¬p⊑a' $ pointwiseRespAny⃖ imp a' (proj₁ a) inj₁p⊑a a≡inj₁a' 
+              where
+                open import Data.List.Any.Properties
+                open import Function.Inverse
+
+                imp : {x : |P₀|} → {y : |P|} → inj₁ p ⊑P y → y ≡ inj₁ x → p ⊑P₀ x
+                imp {x} {y} (₁∼₁ p⊑x) PE.refl = p⊑x
+
+            inj₁p∈a∨b : inj₁ p ∈P (a ∨FP b)
+            inj₁p∈a∨b = E.from ⟨$⟩ inj₂ (inj₁ (inj₁p∈b , ¬inj₁p⊑a)) 
+              where
+                module E = Equivalence (FP.x∈∨⇔P∨ a b (a ∨FP b) (≈FP-refl {a ∨FP b}) (inj₁ p)) 
+
+            imp : {x : |P₀|} → {y : |P|} → inj₁ p ≈P y → y ≡ inj₁ x → p ≈P₀ x
+            imp {x} {y} (₁∼₁ p≈x) PE.refl = p≈x 
+        p← p p∈a'∨b' | inj₂ (inj₂ (p∈a' , p∈b')) = 
+          pointwiseRespAny⃖ imp a∨b' (proj₁ (a ∨FP b)) inj₁p∈a∨b a∨b≡inj₁a∨b'
+          where
+            inj₁p∈a : inj₁ p ∈P a
+            inj₁p∈a = pointwiseRespAny imp a' (proj₁ a) p∈a' a≡inj₁a'
+              where
+                imp : {x : |P₀|} → {y : |P|} → p ≈P₀ x → y ≡ inj₁ x  → inj₁ p ≈P y
+                imp {x} {y} p≈x PE.refl = ₁∼₁ p≈x
+
+            inj₁p∈b : inj₁ p ∈P b
+            inj₁p∈b = pointwiseRespAny imp b' (proj₁ b) p∈b' b≡inj₁b'
+              where
+                imp : {x : |P₀|} → {y : |P|} → p ≈P₀ x → y ≡ inj₁ x  → inj₁ p ≈P y
+                imp {x} {y} p≈x PE.refl = ₁∼₁ p≈x
+            
+            inj₁p∈a∨b : inj₁ p ∈P (a ∨FP b)
+            inj₁p∈a∨b = E.from ⟨$⟩ inj₂ (inj₂ (inj₁p∈a , inj₁p∈b)) 
+              where
+                module E = Equivalence (FP.x∈∨⇔P∨ a b (a ∨FP b) (≈FP-refl {a ∨FP b}) (inj₁ p)) 
+
+            imp : {x : |P₀|} → {y : |P|} → inj₁ p ≈P y → y ≡ inj₁ x → p ≈P₀ x
+            imp {x} {y} (₁∼₁ p≈x) PE.refl = p≈x 
+        --]]]
+
+        sameElements : (p : |P₀|) → (p ∈P₀ (a∨b' , f-a∨b')) ⇔ (p ∈P₀ ((a' , fa') ∨FP₀ (b' , fb')))
+        sameElements p = equivalence (p→ p) (p← p)
+
+        open Equivalence (FP₀.c1≈c2⇔sameElements (a∨b' , f-a∨b') ((a' , fa') ∨FP₀ (b' , fb'))) 
+    --]]]
 |g|-∨ a@(inj₁ ha ∷ _ , ∷-Free (inj₁ ha) ta _ incompa _) b@(inj₁ hb ∷ tb , ∷-Free (inj₁ hb) tb _ incompb _) | inj₁ ((a' , fa') , a≡inj₁a') | inj₁ ((b' , fb') , b≡inj₁b') | inj₂ eq = 
   ⊥-elim contr
   where
@@ -944,61 +1045,6 @@ inj₂-∨FP-c≈inj₂ ((inj₂ tt) ∷ [] , ∷-Free (inj₂ tt) [] [] incomp 
         aux {p} inj₂tt≈p = inj₁ $ DeltaPoset.⊑-respʳ-≈ P inj₂tt≈p (₁∼₂ tt) 
 |g|-∨ (inj₁ ha ∷ _ , _) (inj₁ hb ∷ _ , _) | _ | inj₂ () | _
 |g|-∨ (inj₁ ha ∷ _ , _) (inj₁ hb ∷ _ , _) | inj₂ () | _ | _
-
-
-{-
-|g|-∨ a b with decompose a | decompose b | decompose (a ∨FP b)
-|g|-∨ a b | inj₁ ((a' , fa') , a≡inj₁a') | inj₁ ((b' , fb') , b≡inj₁b') | inj₁ ((a∨b' , f-a∨b') , a∨b≡inj₁a∨b') = 
-  {!!}
-|g|-∨ a b | inj₁ ((a' , fa') , a≡inj₁a') | inj₁ ((b' , fb') , b≡inj₁b') | inj₂ eq = {!!}
-|g|-∨ a b | inj₁ ((a' , fa') , a≡inj₁a') | inj₂ PE.refl | inj₁ x₁ = {!!}
-|g|-∨ a b | inj₁ ((a' , fa') , a≡inj₁a') | inj₂ PE.refl | inj₂ y₁ = {!!}
--}
-
-{-
-|g|-∨ a@(.(inj₂ tt ∷ []) , _) b | inj₂ PE.refl | inj₁ ((b' , fb') , b≡inj₁b') | inj₁ ((a∨b' , f-a∨b') , a∨b≡inj₁a∨b') =
-  begin
-    (inj₁ $ |g₀| $ a∨b' , f-a∨b') ≈⟨ {!!} ⟩
-    (|g| a) ≈⟨ {!!} ⟩
-    (|g| a) ∨S (inj₁ $ |g₀| $ b' , fb')
-   ∎ 
-  where
-    open import Relation.Binary.EqReasoning (≈S-setoid)
-  -}  
-{-
-  where
-    trans : {p : |P|} → {q₀ : |P₀|} → {p₀ : |P₀|} → p ≡ inj₁ q₀ → (inj₁ q₀) ≡ (inj₁ p₀) → p ≡ inj₁ p₀
-    trans p≡q q≡inj₁p₀ = PE.trans p≡q q≡inj₁p₀
-
-    a∨b≡inj₂tt∷[] : (proj₁ $ a ∨FP b) ≡ inj₂ tt ∷ [] 
-    a∨b≡inj₂tt∷[] with lb 
-    a∨b≡inj₂tt∷[] | x = ?
-
-    inj₂tt∷[]≡inj₁b' : LPW.Pointwise (λ x y → x ≡ inj₁ y) (inj₂ tt ∷ []) b' 
-    inj₂tt∷[]≡inj₁b' = LPW.transitive {!!} {!LPW.symmetric PE.sym (LPW.map a∨b≡inj₁a∨b')!} {!b≡inj₁b'!}
--}
-
-{-
-|g|-∨ (.(inj₂ tt ∷ []) , _) b | inj₂ PE.refl | inj₁ ((b' , fb') , b≡inj₁b') | inj₂ eq = 
-  ₂∼₂ PE.refl
-|g|-∨ (.(inj₂ tt ∷ []) , _) (.(inj₂ tt ∷ []) , _) | inj₂ PE.refl | inj₂ PE.refl | inj₁ ((a∨b' ∷ _ , _) , () ∷ _)
-|g|-∨ (.(inj₂ tt ∷ []) , _) (.(inj₂ tt ∷ []) , _) | inj₂ PE.refl | inj₂ PE.refl | inj₁ (([] , []-Free) , ())
-|g|-∨ (.(inj₂ tt ∷ []) , snd) b | inj₂ PE.refl | inj₂ PE.refl | inj₂ eq = 
-  ₂∼₂ PE.refl
--}
-
-
-{-
-|g|-∨ ([] , []-Free) b | inj₁ (([] , []-Free) , []) | _ | _ = {!!}
-|g|-∨ a ([] , []-Free) | _ | inj₁ (([] , []-Free) , []) | _ = {!!}
-|g|-∨ a@(inj₁ _ ∷ _ , _) b@(inj₁ _ ∷ _ , _) | inj₁ ((a' , fa') , a≡inj₁a') | inj₁ ((b' , fb') , b≡inj₁b') | inj₁ ((a∨b' , f-a∨b') , a∨b≡inj₁a∨b') =
-  {!!}
-|g|-∨ a@(inj₁ _ ∷ _ , _) b@(.(inj₂ tt ∷ []) , _) | inj₁ ((a' , fa') , a≡inj₁a') | inj₂ PE.refl | inj₁ ((a∨b' , f-a∨b') , a∨b≡inj₁a∨b') = 
-  {!!}
-|g|-∨ a@(.(inj₂ tt ∷ []) , _) b@(inj₁ _ ∷ _ , _) | inj₂ PE.refl | inj₁ ((b' , fb') , b≡inj₁b') | inj₁ ((a∨b' , f-a∨b') , a∨b≡inj₁a∨b') = 
-  {!!}
-|g|-∨ .(inj₂ _ ∷ _ , _) .(inj₂ _ ∷ _ , _) | inj₂ PE.refl | inj₂ PE.refl | inj₂ PE.refl = ₂∼₂ PE.refl
--}
 
 inv-FP→S→FP₀ : (a₀ : FP₀.SemilatCarrier) → (|f₀| $ |g₀| a₀) ≈FP₀ a₀
 inv-FP→S→FP₀ = SemSemilatIso.inv-FP→S→FP semSemilatContent
@@ -1120,4 +1166,11 @@ inv-S→FP→S (inj₁ a₀) | inj₂ eq | (_ , () , _)
 inv-S→FP→S (inj₂ tt) = ₂∼₂ PE.refl 
 --]]]
 
+sem : SemSemilatIso l0 l0 l0 l0 l0 l0 l0 (PartialSemilat isSemilatContent)
+sem = record
+  { f = |f| , |f|-≈ , |f|-⊥ , |f|-∨
+  ; g = |g| , |g|-≈ , |g|-⊥ , |g|-∨
+  ; inv-S→FP→S = inv-S→FP→S
+  ; inv-FP→S→FP = inv-FP→S→FP
+  }
 

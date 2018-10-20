@@ -16,4 +16,10 @@ open import Util
 ⟦ ProductSemilat isSemilatL isSemilatR ⁂iso⟧ = sem
   where
     open import SemilatKinding.Product ⟦ isSemilatL ⁂iso⟧ ⟦ isSemilatR ⁂iso⟧  
-
+⟦ PartialSemilat isSemilatContent ⁂iso⟧ = sem
+  where
+    open import SemilatKinding.Partial ⟦ isSemilatContent ⁂iso⟧   
+⟦ IVarSemilat isStosetContent ⁂iso⟧ = yup
+  where
+    --open import SemilatKinding.Partial ⟦ isSemilatContent ⁂iso⟧   
+    postulate yup : SemSemilatIso l0 l0 l0 l0 l0 l0 l0 (IVarSemilat isStosetContent) 

@@ -43,7 +43,7 @@ data IsDeltaPoset where
   NatDelta : IsDeltaPoset τNat
   -- DiscreteProductDelta : {τL τR : τ} → IsToset τL → IsDeltaPoset τR → IsDeltaPoset (τProduct (τCapsule qAny τL) τR)
   SumDelta : {τL τR : τ} → IsDeltaPoset τL → IsDeltaPoset τR → IsDeltaPoset (τSum τL τR)
-  --DiscreteDelta : {τ₀ : τ} → IsToset τ₀ → IsDeltaPoset (τCapsule qAny τ₀) 
+  DiscreteDelta : {τ₀ : τ} → IsStoset τ₀ → IsDeltaPoset (τCapsule qAny' τ₀) 
   PartialDelta : {τ₀ : τ} → IsDeltaPoset τ₀ → IsDeltaPoset (τPartial τ₀)
 
 data IsSemilat where
@@ -52,7 +52,7 @@ data IsSemilat where
   --DictSemilat : {dom cod dCod : τ} → IsToset dom → IsSemilat cod dCod → 
   --              IsSemilat (τDict dom cod) (τProduct (τCapsule qAny dom) dCod) 
   ProductSemilat : {τL τR τL₀ τR₀ : τ} → IsSemilat τL τL₀ → IsSemilat τR τR₀ → IsSemilat (τProduct τL τR) (τSum τL₀ τR₀)
-  --IVarSemilat : {τ : τ} → IsToset τ → IsSemilat (τIVar τ) (τCapsule qAny τ)
+  IVarSemilat : {τ : τ} → IsStoset τ → IsSemilat (τIVar τ) (τCapsule qAny' τ)
   PartialSemilat : {τ τ₀ : τ} → IsSemilat τ τ₀ → IsSemilat (τPartial τ) (τPartial τ₀)
 
 isSemilatDeltaUnique : {τ₀ τ₀' τ₀'' : τ} → (p : IsSemilat τ₀ τ₀') → (q : IsSemilat τ₀ τ₀'') → τ₀' ≡ τ₀''
@@ -72,6 +72,8 @@ isSemilatDeltaUnique {.(τProduct _ _)} {τSum τL τR} {τSum τL' τR'} (Produ
     eqR = isSemilatDeltaUnique r r'
 isSemilatDeltaUnique {τPartial x} {τPartial y} {τPartial z} (PartialSemilat a) (PartialSemilat a') = 
   PE.cong τPartial (isSemilatDeltaUnique a a')
+isSemilatDeltaUnique {τIVar x} {τCapsule qAny' y} {τCapsule qAny' z} (IVarSemilat a) (IVarSemilat a') =
+  PE.refl
 
 
 isSemilatUnique {.τNat} {.τNat} NatSemilat NatSemilat = PE.refl
@@ -86,7 +88,8 @@ isSemilatUnique {.(τProduct _ _)} {.(τSum _ _)} (ProductSemilat l r) (ProductS
     eqR = isSemilatUnique r r'
 isSemilatUnique {.(τPartial _)} {.(τPartial _)} (PartialSemilat a) (PartialSemilat a')  =
   PE.cong PartialSemilat (isSemilatUnique a a')
-
+isSemilatUnique {.(τIVar _)} {.(τCapsule qAny' _)} (IVarSemilat a) (IVarSemilat a')  =
+  PE.cong IVarSemilat (isStosetUnique a a')
 
 isStosetUnique {.τUnit} UnitStoset UnitStoset = PE.refl
 isStosetUnique {.τNat} NatStoset NatStoset = PE.refl
@@ -157,19 +160,18 @@ isPosetUnique {.(τIVar _)} (IVarPoset contentStoset) (IVarPoset contentStoset')
 isPosetUnique {τCapsule q' _} (CapsulePoset .q' contentPoset) (CapsulePoset .q' contentPoset') =
   PE.cong (CapsulePoset q') (isPosetUnique contentPoset contentPoset')
 
-{-
-isPosetUnique {τCapsule qMono _} (CapsulePoset .q neq contentPoset) (CapsulePoset .q neq contentPoset') =
-  {!PE.cong (CapsulePoset {q} {neq}) (isPosetUnique contentPoset contentPoset')!}
-isPosetUnique {τCapsule qAnti _} (CapsulePoset .q neq contentPoset) (CapsulePoset .q neq contentPoset') =
-  {!PE.cong (CapsulePoset {q} {neq}) (isPosetUnique contentPoset contentPoset')!}
--}
 semilat→poset : {τ τ₀ : τ} → (p : IsSemilat τ τ₀) → IsPoset τ
+stoset→poset : {τ₀ : τ} → IsStoset τ₀ → IsPoset τ₀
+semilat→delta : {τ τ₀ : τ} → (p : IsSemilat τ τ₀) → IsDeltaPoset τ₀
+delta→poset : {τ₀ : τ} → IsDeltaPoset τ₀ → IsPoset τ₀
+semilat→deltaPoset : {τ τ₀ : τ} → IsSemilat τ τ₀ → IsPoset τ₀
+
 semilat→poset NatSemilat = NatPoset
 semilat→poset BoolSemilat = BoolPoset
 semilat→poset (ProductSemilat isSemilatL isSemilatR) = ProductPoset (semilat→poset isSemilatL) (semilat→poset isSemilatR)  
 semilat→poset (PartialSemilat isSemilatContents) = PartialPoset (semilat→poset isSemilatContents)
+semilat→poset (IVarSemilat isStosetContents) = IVarPoset isStosetContents
 
-semilat→delta : {τ τ₀ : τ} → (p : IsSemilat τ τ₀) → IsDeltaPoset τ₀
 semilat→delta NatSemilat = NatDelta
 semilat→delta BoolSemilat = UnitDelta
 --semilat→delta (DictSemilat domIsToset codIsSemilat) = 
@@ -178,9 +180,31 @@ semilat→delta (ProductSemilat isSemilatL isSemilatR) =
   SumDelta (semilat→delta isSemilatL) (semilat→delta isSemilatR)
 semilat→delta (PartialSemilat isSemilatContents) = 
   PartialDelta (semilat→delta isSemilatContents)
+semilat→delta (IVarSemilat isStosetContents) = 
+  DiscreteDelta isStosetContents
 
+semilat→deltaPoset BoolSemilat = UnitPoset
+semilat→deltaPoset NatSemilat = NatPoset
+semilat→deltaPoset (ProductSemilat isSemilatL isSemilatR) = 
+  SumPoset (semilat→deltaPoset isSemilatL) (semilat→deltaPoset isSemilatR)
+semilat→deltaPoset (PartialSemilat isSemilatContents) =
+  PartialPoset (semilat→deltaPoset isSemilatContents)
+semilat→deltaPoset (IVarSemilat isStosetContents) =
+  CapsulePoset qAny' (stoset→poset isStosetContents)
 
-stoset→poset : {τ₀ : τ} → IsStoset τ₀ → IsPoset τ₀
+{-
+semilat→delta BoolSemilat = UnitDelta
+semilat→delta NatSemilat = NatPoset
+--semilat→delta (DictSemilat domIsToset codIsSemilat) = 
+--  DiscreteProductDelta domIsToset (semilat→delta codIsSemilat) 
+semilat→delta (ProductSemilat isSemilatL isSemilatR) = 
+  SumDelta (semilat→delta isSemilatL) (semilat→delta isSemilatR)
+semilat→delta (PartialSemilat isSemilatContents) = 
+  PartialDelta (semilat→delta isSemilatContents)
+semilat→delta (IVarSemilat isStosetContents) = 
+  DiscreteDelta isStosetContents
+-}
+
 stoset→poset UnitStoset = UnitPoset
 stoset→poset NatStoset = NatPoset
 stoset→poset BoolStoset = BoolPoset
@@ -188,8 +212,8 @@ stoset→poset (ProductStoset isStosetL isStosetR) = ProductPoset (stoset→pose
 stoset→poset (SumStoset isStosetL isStosetR) = SumPoset (stoset→poset isStosetL) (stoset→poset isStosetR)
 stoset→poset (PartialStoset isStosetContents) = PartialPoset (stoset→poset isStosetContents)
 
-delta→poset : {τ₀ : τ} → IsDeltaPoset τ₀ → IsPoset τ₀
 delta→poset UnitDelta = UnitPoset
 delta→poset NatDelta = NatPoset
 delta→poset (SumDelta deltaL deltaR) = SumPoset (delta→poset deltaL) (delta→poset deltaR) 
 delta→poset (PartialDelta deltaContents) = PartialPoset (delta→poset deltaContents)
+delta→poset (DiscreteDelta stosetContents) = CapsulePoset qAny' (stoset→poset stosetContents) 
