@@ -228,6 +228,7 @@ _≈e_ : |E| → |E| → Set
     
     e∈a∨b→P∨ : (a : List |E|) → (da : IsDict a) → (b : List |E|) → (db : IsDict b) → (e : |E|) → 
                    (e ∈' ((a , da) ∨' (b , db))) → (P∨ (a , da) (b , db) e)
+    --[[[
     e∈a∨b→P∨ _ _ _ _ _ (inj₂ v≈⊥) = 
       (⊥v , ⊥v , inj₂ ≈v-refl , inj₂ ≈v-refl , ≤-respˡ-≈ (≈v-sym v≈⊥) ⊥≤⊥∨⊥)
       where
@@ -322,10 +323,11 @@ _≈e_ : |E| → |E| → Set
       va , vb , va∈a , inj₁ (there vb≤tb) , v≤va∨vb
     e∈a∨b→P∨ ((kha , vha) ∷ ta) (∷-Dict .(kha , vha) ta mina ¬ha≈⊥ dta) lb@((khb , vhb) ∷ tb) db@(∷-Dict .(khb , vhb) tb minb ¬hb≈⊥ dtb) e@(k , v) (inj₁ (there e∈ta∨b)) | tri> kha<khb _ _ | va , vb , va∈a , inj₂ vb≈⊥ , v≤va∨vb = 
       va , vb , va∈a , inj₂ vb≈⊥  , v≤va∨vb
-
+    --]]]
 
     P∨→e∈a∨b : (a : List |E|) → (da : IsDict a) → (b : List |E|) → (db : IsDict b) → (e : |E|) → 
                (P∨ (a , da) (b , db) e) → (e ∈' ((a , da) ∨' (b , db)))
+    --[[[
     P∨→e∈a∨b [] []-Dict [] []-Dict e@(k , v) (va , vb , inj₁ () , kvb∈b , v≤va∨vb)
     P∨→e∈a∨b [] []-Dict [] []-Dict e@(k , v) (va , vb , inj₂ va≈⊥ , inj₁ () , v≤va∨vb)
     P∨→e∈a∨b [] []-Dict [] []-Dict e@(k , v) (va , vb , inj₂ va≈⊥ , inj₂ vb≈⊥ , v≤va∨vb) = inj₂ (≤v-antisym v≤⊥ (minimum v))
@@ -483,7 +485,130 @@ _≈e_ : |E| → |E| → Set
         v≈⊥ : v ≈v ⊥v
         v≈⊥ = ≤v-antisym v≤⊥ (minimum v)
 
--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    P∨→e∈a∨b ((kha , vha) ∷ ta) (∷-Dict .(kha , vha) ta mina ¬ha≈⊥ dta) ((khb , vhb) ∷ tb) (∷-Dict .(khb , vhb) tb minb ¬hb≈⊥ dtb) (k , v) (va , vb , inj₁ (here (k≈kha , va≤vha)) , inj₁ (here (k≈khb , vb≤vhb)) , v≤va∨vb) | tri≈ _ kha≈khb _ = 
+      inj₁ $ here (k≈kha , v≤vha∨vhb)
+      where
+        v≤vha∨vhb : v ≤v (vha ∨v vhb)
+        v≤vha∨vhb = 
+          begin
+            v ≤⟨ v≤va∨vb ⟩
+            (va ∨v vb) ≤⟨ ∨-monotonic joinSemiLattice va≤vha vb≤vhb ⟩
+            (vha ∨v vhb)
+           ∎
+          where
+            open BoundedJoinSemilattice V
+            open import Relation.Binary.PartialOrderReasoning (BoundedJoinSemilattice.poset V)
+    P∨→e∈a∨b ((kha , vha) ∷ ta) (∷-Dict .(kha , vha) ta mina ¬ha≈⊥ dta) ((khb , vhb) ∷ tb) (∷-Dict .(khb , vhb) tb minb ¬hb≈⊥ dtb) (k , v) (va , vb , inj₁ (here (k≈kha , va≤vha)) , inj₁ (there vb≤tb) , v≤va∨vb) | tri≈ _ kha≈khb _ = 
+      ⊥-elim $ anyEliminate tb elim vb≤tb
+      where
+        elim : AnyEliminator {ℓQ = l0} |E| ⊥ ((k , vb) ≤e_) tb
+        elim (kz , vz) f (k≈kz , vb≤vz) z∈≡tb = <-irrefl k≈kz k<kz
+          where
+            k<kz : k < kz
+            k<kz = <-respˡ-≈ (≈k-trans (≈k-sym kha≈khb) (≈k-sym k≈kha)) (LAll.lookup minb z∈≡tb)
+    P∨→e∈a∨b ((kha , vha) ∷ ta) (∷-Dict .(kha , vha) ta mina ¬ha≈⊥ dta) ((khb , vhb) ∷ tb) (∷-Dict .(khb , vhb) tb minb ¬hb≈⊥ dtb) (k , v) (va , vb , inj₁ (there va≤ta) , inj₁ (here (k≈khb , vb≤vhb)) , v≤va∨vb) | tri≈ _ kha≈khb _ = 
+      ⊥-elim $ anyEliminate ta elim va≤ta
+      where
+        elim : AnyEliminator {ℓQ = l0} |E| ⊥ ((k , va) ≤e_) ta
+        elim (kz , vz) f (k≈kz , va≤vz) z∈≡ta = <-irrefl k≈kz k<kz
+          where
+            k<kz : k < kz
+            k<kz = <-respˡ-≈ (≈k-trans kha≈khb (≈k-sym k≈khb)) (LAll.lookup mina z∈≡ta)
+    P∨→e∈a∨b ((kha , vha) ∷ ta) (∷-Dict .(kha , vha) ta mina ¬ha≈⊥ dta) ((khb , vhb) ∷ tb) (∷-Dict .(khb , vhb) tb minb ¬hb≈⊥ dtb) e@(k , v) (va , vb , inj₁ (there va≤ta) , inj₁ (there vb≤tb) , v≤va∨vb) | tri≈ _ kha≈khb _ 
+      with P∨→e∈a∨b ta dta tb dtb e (va , vb , inj₁ va≤ta , inj₁ vb≤tb , v≤va∨vb)
+    P∨→e∈a∨b ((kha , vha) ∷ ta) (∷-Dict .(kha , vha) ta mina ¬ha≈⊥ dta) ((khb , vhb) ∷ tb) (∷-Dict .(khb , vhb) tb minb ¬hb≈⊥ dtb) (k , v) (va , vb , inj₁ (there va≤ta) , inj₁ (there vb≤tb) , v≤va∨vb) | tri≈ _ kha≈khb _ | inj₁ e≤ta∨tb =
+      inj₁ $ there e≤ta∨tb
+    P∨→e∈a∨b ((kha , vha) ∷ ta) (∷-Dict .(kha , vha) ta mina ¬ha≈⊥ dta) ((khb , vhb) ∷ tb) (∷-Dict .(khb , vhb) tb minb ¬hb≈⊥ dtb) (k , v) (va , vb , inj₁ (there va≤ta) , inj₁ (there vb≤tb) , v≤va∨vb) | tri≈ _ kha≈khb _ | inj₂ v≈⊥ =
+      inj₂ v≈⊥ 
+    P∨→e∈a∨b ((kha , vha) ∷ ta) (∷-Dict .(kha , vha) ta mina ¬ha≈⊥ dta) ((khb , vhb) ∷ tb) (∷-Dict .(khb , vhb) tb minb ¬hb≈⊥ dtb) (k , v) (va , vb , inj₁ va≤a , inj₂ vb≈⊥ , v≤va∨vb) | tri≈ _ kha≈khb _ with v≤va 
+      where
+        open BoundedJoinSemilattice V
+        v≤va : v ≤v va 
+        v≤va =
+          begin
+            v ≤⟨ v≤va∨vb ⟩
+            (va ∨v vb) ≈⟨ ∨-cong joinSemiLattice ≈v-refl vb≈⊥ ⟩
+            (va ∨v ⊥v) ≈⟨ identityʳ V va ⟩
+            va
+           ∎
+          where
+            open import Relation.Binary.PartialOrderReasoning (BoundedJoinSemilattice.poset V)
+    P∨→e∈a∨b ((kha , vha) ∷ ta) (∷-Dict .(kha , vha) ta mina ¬ha≈⊥ dta) ((khb , vhb) ∷ tb) (∷-Dict .(khb , vhb) tb minb ¬hb≈⊥ dtb) (k , v) (va , vb , inj₁ (here (k≈kha , va≤vha)) , inj₂ vb≈⊥ , v≤va∨vb) | tri≈ _ kha≈khb _ | v≤va =
+      inj₁ $ here (k≈kha , v≤vha∨vhb) 
+      where
+        v≤vha∨vhb : v ≤v (vha ∨v vhb)
+        v≤vha∨vhb = 
+          begin
+            v ≤⟨ v≤va ⟩ 
+            va ≤⟨ va≤vha ⟩
+            vha ≤⟨ proj₁ $ BoundedJoinSemilattice.supremum V vha vhb ⟩
+            (vha ∨v vhb)
+           ∎ 
+          where
+            open import Relation.Binary.PartialOrderReasoning (BoundedJoinSemilattice.poset V)
+    P∨→e∈a∨b ((kha , vha) ∷ ta) (∷-Dict .(kha , vha) ta mina ¬ha≈⊥ dta) ((khb , vhb) ∷ tb) (∷-Dict .(khb , vhb) tb minb ¬hb≈⊥ dtb) e@(k , v) (va , vb , inj₁ (there va≤ta) , inj₂ vb≈⊥ , v≤va∨vb) | tri≈ _ kha≈khb _ | v≤va
+      with P∨→e∈a∨b ta dta tb dtb e (v , ⊥v , inj₁ e≤ta , inj₂ ≈v-refl , (≤v-reflexive $ ≈v-sym $ identityʳ V v))
+      where
+        e≤ta : Any (e ≤e_) ta
+        e≤ta = LAny.map aux va≤ta
+          where
+            aux : {x : |E|} → (k , va) ≤e x → (k , v) ≤e x
+            aux {kx , vx} (k≈kx , va≤vx) = k≈kx , ≤v-trans v≤va va≤vx 
+    P∨→e∈a∨b ((kha , vha) ∷ ta) (∷-Dict .(kha , vha) ta mina ¬ha≈⊥ dta) ((khb , vhb) ∷ tb) (∷-Dict .(khb , vhb) tb minb ¬hb≈⊥ dtb) (k , v) (va , vb , inj₁ (there e≤ta) , inj₂ vb≈⊥ , v≤va∨vb) | tri≈ _ kha≈khb _ | v≤va | inj₁ e≤ta∨tb = 
+      inj₁ $ there e≤ta∨tb
+    P∨→e∈a∨b ((kha , vha) ∷ ta) (∷-Dict .(kha , vha) ta mina ¬ha≈⊥ dta) ((khb , vhb) ∷ tb) (∷-Dict .(khb , vhb) tb minb ¬hb≈⊥ dtb) (k , v) (va , vb , inj₁ (there e≤ta) , inj₂ vb≈⊥ , v≤va∨vb) | tri≈ _ kha≈khb _ | v≤va | inj₂ v≈⊥ = 
+      inj₂ v≈⊥
+    P∨→e∈a∨b ((kha , vha) ∷ ta) (∷-Dict .(kha , vha) ta mina ¬ha≈⊥ dta) ((khb , vhb) ∷ tb) (∷-Dict .(khb , vhb) tb minb ¬hb≈⊥ dtb) (k , v) (va , vb , inj₂ va≈⊥ , inj₁ vb≤b , v≤va∨vb) | tri≈ _ kha≈khb _ with v≤vb
+      where
+        open BoundedJoinSemilattice V
+        v≤vb : v ≤v vb 
+        v≤vb =
+          begin
+            v ≤⟨ v≤va∨vb ⟩
+            (va ∨v vb) ≈⟨ ∨-cong joinSemiLattice va≈⊥ ≈v-refl ⟩
+            (⊥v ∨v vb) ≈⟨ identityˡ V vb ⟩
+            vb
+           ∎
+          where
+            open import Relation.Binary.PartialOrderReasoning (BoundedJoinSemilattice.poset V)
+    P∨→e∈a∨b ((kha , vha) ∷ ta) (∷-Dict .(kha , vha) ta mina ¬ha≈⊥ dta) ((khb , vhb) ∷ tb) (∷-Dict .(khb , vhb) tb minb ¬hb≈⊥ dtb) (k , v) (va , vb , inj₂ va≈⊥ , inj₁ (here (k≈khb , va≤vhb)) , v≤va∨vb) | tri≈ _ kha≈khb _ | v≤vb =
+      inj₁ $ here ((≈k-trans k≈khb (≈k-sym kha≈khb)) , v≤vha∨vhb) 
+      where
+        v≤vha∨vhb : v ≤v (vha ∨v vhb)
+        v≤vha∨vhb = 
+          begin
+            v ≤⟨ v≤vb ⟩ 
+            vb ≤⟨ va≤vhb ⟩
+            vhb ≤⟨ proj₁ $ proj₂ $ BoundedJoinSemilattice.supremum V vha vhb ⟩
+            (vha ∨v vhb)
+           ∎ 
+          where
+            open import Relation.Binary.PartialOrderReasoning (BoundedJoinSemilattice.poset V)
+    P∨→e∈a∨b ((kha , vha) ∷ ta) (∷-Dict .(kha , vha) ta mina ¬ha≈⊥ dta) ((khb , vhb) ∷ tb) (∷-Dict .(khb , vhb) tb minb ¬hb≈⊥ dtb) e@(k , v) (va , vb , inj₂ va≈⊥ , inj₁ (there vb≤tb) , v≤va∨vb) | tri≈ _ kha≈khb _ | v≤vb
+      with P∨→e∈a∨b ta dta tb dtb e (⊥v , v , inj₂ ≈v-refl , inj₁ e≤tb , (≤v-reflexive $ ≈v-sym $ identityˡ V v))
+      where
+        e≤tb : Any (e ≤e_) tb
+        e≤tb = LAny.map aux vb≤tb
+          where
+            aux : {x : |E|} → (k , vb) ≤e x → (k , v) ≤e x
+            aux {kx , vx} (k≈kx , vb≤vx) = k≈kx , ≤v-trans v≤vb vb≤vx 
+    P∨→e∈a∨b ((kha , vha) ∷ ta) (∷-Dict .(kha , vha) ta mina ¬ha≈⊥ dta) ((khb , vhb) ∷ tb) (∷-Dict .(khb , vhb) tb minb ¬hb≈⊥ dtb) (k , v) (va , vb , inj₂ va≈⊥ , inj₁ (there vb≤tb) , v≤va∨vb) | tri≈ _ kha≈khb _ | v≤vb | inj₁ e≤ta∨tb = 
+      inj₁ $ there e≤ta∨tb
+    P∨→e∈a∨b ((kha , vha) ∷ ta) (∷-Dict .(kha , vha) ta mina ¬ha≈⊥ dta) ((khb , vhb) ∷ tb) (∷-Dict .(khb , vhb) tb minb ¬hb≈⊥ dtb) (k , v) (va , vb , inj₂ va≈⊥ , inj₁ (there vb≤tb) , v≤va∨vb) | tri≈ _ kha≈khb _ | v≤vb | inj₂ v≈⊥ = 
+      inj₂ v≈⊥
+
+    P∨→e∈a∨b ((kha , vha) ∷ ta) (∷-Dict .(kha , vha) ta mina ¬ha≈⊥ dta) ((khb , vhb) ∷ tb) (∷-Dict .(khb , vhb) tb minb ¬hb≈⊥ dtb) (k , v) (va , vb , inj₂ va≈⊥ , inj₂ vb≈⊥ , v≤va∨vb) | tri≈ _ khb≈kha _ = inj₂ (≤v-antisym v≤⊥ (minimum v))
+      where
+        open BoundedJoinSemilattice V
+
+        ⊥∨⊥≈⊥ : ⊥v ∨v ⊥v ≈ ⊥v
+        ⊥∨⊥≈⊥ = identityˡ V ⊥v
+
+        va∨vb≈⊥∨⊥ : (va ∨v vb) ≈v (⊥v ∨v ⊥v)
+        va∨vb≈⊥∨⊥ = ∨-cong joinSemiLattice va≈⊥ vb≈⊥ 
+
+        v≤⊥ : v ≤v ⊥v
+        v≤⊥ = ≤v-trans v≤va∨vb (≤v-reflexive (≈v-trans va∨vb≈⊥∨⊥ ⊥∨⊥≈⊥))
     P∨→e∈a∨b la@((kha , vha) ∷ ta) da@(∷-Dict (kha , vha) ta mina ¬ha≈⊥ dta) lb@((khb , vhb) ∷ tb) db@(∷-Dict (khb , vhb) tb minb ¬hb≈⊥ dtb) e@(k , v) (va , vb , inj₁ (here (k≈kha , v≤vha)) , inj₁ (here (k≈khb , v≤vhb)) , v≤va∨vb) | tri> _ _ khb<kha = 
       ⊥-elim $ <-irrefl (≈k-trans (≈k-sym k≈khb) k≈kha) khb<kha
     P∨→e∈a∨b la@((kha , vha) ∷ ta) da@(∷-Dict (kha , vha) ta mina ¬ha≈⊥ dta) lb@((khb , vhb) ∷ tb) db@(∷-Dict (khb , vhb) tb minb ¬hb≈⊥ dtb) e@(k , v) (va , vb , inj₁ (there va≤ta) , inj₁ (here (k≈khb , v≤vhb)) , v≤va∨vb) | tri> _ _ khb<kha = 
@@ -497,53 +622,53 @@ _≈e_ : |E| → |E| → Set
       inj₁ (there e≤a∨tb)
     P∨→e∈a∨b la@((kha , vha) ∷ ta) da@(∷-Dict (kha , vha) ta mina ¬ha≈⊥ dta) lb@((khb , vhb) ∷ tb) db@(∷-Dict (khb , vhb) tb minb ¬hb≈⊥ dtb) e@(k , v) (va , vb , inj₁ va≤a , inj₁ (there vb≤tb) , v≤va∨vb) | tri> _ _ khb<kha | inj₂ v≈⊥ = 
       inj₂ v≈⊥
-    P∨→e∈a∨b la@((kha , vha) ∷ ta) da@(∷-Dict (kha , vha) ta mina ¬ha≈⊥ dta) lb@((khb , vhb) ∷ tb) db@(∷-Dict (khb , vhb) tb minb ¬hb≈⊥ dtb) e@(k , v) (va , vb , inj₁ va≤a , inj₂ vb≈⊥ , v≤va∨vb) | tri> _ _ khb<kha with kv≤b
+    P∨→e∈a∨b la@((kha , vha) ∷ ta) da@(∷-Dict (kha , vha) ta mina ¬ha≈⊥ dta) lb@((khb , vhb) ∷ tb) db@(∷-Dict (khb , vhb) tb minb ¬hb≈⊥ dtb) e@(k , v) (va , vb , inj₂ va≈⊥ , inj₁ vb≤b , v≤va∨vb) | tri> _ _ khb<kha with kv≤b
       where
         open BoundedJoinSemilattice V
 
-        v≤va : v ≤v va
-        v≤va = 
+        v≤vb : v ≤v vb
+        v≤vb = 
           begin
             v ≤⟨ v≤va∨vb ⟩
-            va ∨v vb ≈⟨ ∨-cong joinSemiLattice ≈v-refl vb≈⊥ ⟩
-            va ∨v ⊥v ≈⟨ identityʳ V va ⟩
-            va
+            va ∨v vb ≈⟨ ∨-cong joinSemiLattice va≈⊥ ≈v-refl ⟩
+            ⊥v ∨v vb ≈⟨ identityˡ V vb ⟩
+            vb
            ∎
           where
             open import Relation.Binary.PartialOrderReasoning (BoundedJoinSemilattice.poset V)
 
-        kv≤a : Any (e ≤e_) la
-        kv≤a = LAny.map aux va≤a
+        kv≤b : Any (e ≤e_) lb
+        kv≤b = LAny.map aux vb≤b
           where
-            aux : {x : |E|} → (k , va) ≤e x → (k , v) ≤e x
-            aux {kx , vx} (k≈kx , va≤vx) = k≈kx , ≤v-trans v≤va va≤vx
-    P∨→e∈a∨b la@((kha , vha) ∷ ta) da@(∷-Dict (kha , vha) ta mina ¬ha≈⊥ dta) lb@((khb , vhb) ∷ tb) db@(∷-Dict (khb , vhb) tb minb ¬hb≈⊥ dtb) e@(k , v) (va , vb , inj₁ va≤a , inj₂ vb≈⊥ , v≤va∨vb) | tri> _ _ khb<kha | here kv≤h = 
+            aux : {x : |E|} → (k , vb) ≤e x → (k , v) ≤e x
+            aux {kx , vx} (k≈kx , vb≤vx) = k≈kx , ≤v-trans v≤vb vb≤vx
+    P∨→e∈a∨b la@((kha , vha) ∷ ta) da@(∷-Dict (kha , vha) ta mina ¬ha≈⊥ dta) lb@((khb , vhb) ∷ tb) db@(∷-Dict (khb , vhb) tb minb ¬hb≈⊥ dtb) e@(k , v) (va , vb , inj₂ va≈⊥ , inj₁ vb≤b , v≤va∨vb) | tri> _ _ khb<kha | here kv≤h = 
       inj₁ $ here kv≤h
-    P∨→e∈a∨b la@((kha , vha) ∷ ta) da@(∷-Dict (kha , vha) ta mina ¬ha≈⊥ dta) lb@((khb , vhb) ∷ tb) db@(∷-Dict (khb , vhb) tb minb ¬hb≈⊥ dtb) e@(k , v) (va , vb , inj₁ va≤a , inj₂ vb≈⊥ , v≤va∨vb) | tri> _ _ khb<kha | there kv≤ta 
-      with P∨→e∈a∨b ta dta lb db e (v , ⊥v , inj₁ kv≤ta , inj₂ ≈v-refl , ≤v-reflexive (≈v-sym $ identityʳ V v)) 
+    P∨→e∈a∨b la@((kha , vha) ∷ ta) da@(∷-Dict (kha , vha) ta mina ¬ha≈⊥ dta) lb@((khb , vhb) ∷ tb) db@(∷-Dict (khb , vhb) tb minb ¬hb≈⊥ dtb) e@(k , v) (va , vb , inj₂ va≈⊥ , inj₁ vb≤b , v≤va∨vb) | tri> _ _ khb<kha | there kv≤tb 
+      with P∨→e∈a∨b la da tb dtb e (⊥v , v , inj₂ ≈v-refl , inj₁ kv≤tb , ≤v-reflexive (≈v-sym $ identityˡ V v)) 
       where
         open BoundedJoinSemilattice V
-    P∨→e∈a∨b la@((kha , vha) ∷ ta) da@(∷-Dict (kha , vha) ta mina ¬ha≈⊥ dta) lb@((khb , vhb) ∷ tb) db@(∷-Dict (khb , vhb) tb minb ¬hb≈⊥ dtb) e@(k , v) (va , vb , inj₁ va≤a , inj₂ vb≈⊥ , v≤va∨vb) | tri> _ _ khb<kha | there kv≤ta | inj₁ kv≤t = 
+    P∨→e∈a∨b la@((kha , vha) ∷ ta) da@(∷-Dict (kha , vha) ta mina ¬ha≈⊥ dta) lb@((khb , vhb) ∷ tb) db@(∷-Dict (khb , vhb) tb minb ¬hb≈⊥ dtb) e@(k , v) (va , vb , inj₂ va≈⊥ , inj₁ vb≤b , v≤va∨vb) | tri> _ _ khb<kha | there kv≤ta | inj₁ kv≤t = 
       inj₁ (there kv≤t)
-    P∨→e∈a∨b la@((kha , vha) ∷ ta) da@(∷-Dict (kha , vha) ta mina ¬ha≈⊥ dta) lb@((khb , vhb) ∷ tb) db@(∷-Dict (khb , vhb) tb minb ¬hb≈⊥ dtb) e@(k , v) (va , vb , inj₁ va≤a , inj₂ vb≈⊥ , v≤va∨vb) | tri> _ _ khb<kha | there kv≤ta | inj₂ v≈⊥ = 
+    P∨→e∈a∨b la@((kha , vha) ∷ ta) da@(∷-Dict (kha , vha) ta mina ¬ha≈⊥ dta) lb@((khb , vhb) ∷ tb) db@(∷-Dict (khb , vhb) tb minb ¬hb≈⊥ dtb) e@(k , v) (va , vb , inj₂ va≈⊥ , inj₁ vb≤b , v≤va∨vb) | tri> _ _ khb<kha | there kv≤ta | inj₂ v≈⊥ = 
       inj₂ v≈⊥
-    P∨→e∈a∨b la@((kha , vha) ∷ ta) da@(∷-Dict (kha , vha) ta mina ¬ha≈⊥ dta) lb@((khb , vhb) ∷ tb) db@(∷-Dict (khb , vhb) tb minb ¬hb≈⊥ dtb) e@(k , v) (va , vb , inj₂ va≈⊥ , inj₁ vb≤b , v≤va∨vb) | tri> _ _ khb<kha
-      with P∨→e∈a∨b ta dta lb db e (⊥v , vb , inj₂ ≈v-refl , inj₁ vb≤b , v≤⊥∨vb)
+    P∨→e∈a∨b la@((kha , vha) ∷ ta) da@(∷-Dict (kha , vha) ta mina ¬ha≈⊥ dta) lb@((khb , vhb) ∷ tb) db@(∷-Dict (khb , vhb) tb minb ¬hb≈⊥ dtb) e@(k , v) (va , vb , inj₁ va≤a , inj₂ vb≈⊥ , v≤va∨vb) | tri> _ _ khb<kha
+      with P∨→e∈a∨b la da tb dtb e (va , ⊥v , inj₁ va≤a , inj₂ ≈v-refl , v≤va∨⊥)
       where
         open BoundedJoinSemilattice V
 
-        v≤⊥∨vb : v ≤v (⊥v ∨v vb)
-        v≤⊥∨vb = 
+        v≤va∨⊥ : v ≤v (va ∨v ⊥v)
+        v≤va∨⊥ = 
           begin
             v ≤⟨ v≤va∨vb ⟩
-            va ∨v vb ≈⟨ ∨-cong joinSemiLattice va≈⊥ ≈v-refl ⟩
-            ⊥v ∨v vb
+            va ∨v vb ≈⟨ ∨-cong joinSemiLattice ≈v-refl vb≈⊥ ⟩
+            va ∨v ⊥v
            ∎ 
           where
             open import Relation.Binary.PartialOrderReasoning (BoundedJoinSemilattice.poset V)      
-    P∨→e∈a∨b la@((kha , vha) ∷ ta) da@(∷-Dict (kha , vha) ta mina ¬ha≈⊥ dta) lb@((khb , vhb) ∷ tb) db@(∷-Dict (khb , vhb) tb minb ¬hb≈⊥ dtb) e@(k , v) (va , vb , inj₂ va≈⊥ , inj₁ vb≤b , v≤va∨vb) | tri> _ _ khb<kha | inj₁ x≤ta∨b = 
-      inj₁ (there x≤ta∨b)
-    P∨→e∈a∨b la@((kha , vha) ∷ ta) da@(∷-Dict (kha , vha) ta mina ¬ha≈⊥ dta) lb@((khb , vhb) ∷ tb) db@(∷-Dict (khb , vhb) tb minb ¬hb≈⊥ dtb) e@(k , v) (va , vb , inj₂ va≈⊥ , inj₁ vb≤b , v≤va∨vb) | tri> _ _ khb<kha | inj₂ v≈⊥ = 
+    P∨→e∈a∨b la@((kha , vha) ∷ ta) da@(∷-Dict (kha , vha) ta mina ¬ha≈⊥ dta) lb@((khb , vhb) ∷ tb) db@(∷-Dict (khb , vhb) tb minb ¬hb≈⊥ dtb) e@(k , v) (va , vb , inj₁ va≤a , inj₂ vb≈⊥ , v≤va∨vb) | tri> _ _ khb<kha | inj₁ x≤a∨tb = 
+      inj₁ (there x≤a∨tb)
+    P∨→e∈a∨b la@((kha , vha) ∷ ta) da@(∷-Dict (kha , vha) ta mina ¬ha≈⊥ dta) lb@((khb , vhb) ∷ tb) db@(∷-Dict (khb , vhb) tb minb ¬hb≈⊥ dtb) e@(k , v) (va , vb , inj₁ va≤a , inj₂ vb≈⊥ , v≤va∨vb) | tri> _ _ khb<kha | inj₂ v≈⊥ = 
       inj₂ v≈⊥
     P∨→e∈a∨b la@((kha , vha) ∷ ta) da@(∷-Dict (kha , vha) ta mina ¬ha≈⊥ dta) lb@((khb , vhb) ∷ tb) db@(∷-Dict (khb , vhb) tb minb ¬hb≈⊥ dtb) e@(k , v) (va , vb , inj₂ va≈⊥ , inj₂ vb≈⊥ , v≤va∨vb) | tri> _ _ khb<kha =
       inj₂ v≈⊥
@@ -563,55 +688,16 @@ _≈e_ : |E| → |E| → Set
 
         v≈⊥ : v ≈v ⊥v
         v≈⊥ = ≤v-antisym v≤⊥ (minimum v)
-{-
-    e∈a∨b⇔P∨' : (a : List |E|) → (da : IsDict a) → (b : List |E|) → (db : IsDict b) → (e : |E|) → 
-               (e ∈' ((a , da) ∨' (b , db))) ⇔ (P∨ (a , da) (b , db) e)
-
-
-        e← (va , vb , inj₁ va≤a , inj₂ vb≈⊥ , v≤va∨vb)
-          with Equivalence.from (e∈a∨b⇔P∨' la da tb dtb e) ⟨$⟩ (va , ⊥v , inj₁ va≤a , inj₂ ≈v-refl , v≤va∨⊥)
-          where
-
-            v≤va∨⊥ : v ≤v (va ∨v ⊥v)
-            v≤va∨⊥ = 
-              begin
-                v ≤⟨ v≤va∨vb ⟩
-                va ∨v vb ≈⟨ ∨-cong joinSemiLattice ≈v-refl vb≈⊥ ⟩
-                va ∨v ⊥v
-               ∎ 
-              where
-                open import Relation.Binary.PartialOrderReasoning (BoundedJoinSemilattice.poset V)
-                open BoundedJoinSemilattice V
-
-        e← (va , vb , inj₁ va≤a , inj₂ vb≈⊥ , v≤va∨vb) | inj₁ x≤ta∨b = inj₁ {!!}
-        e← (va , vb , inj₁ va≤a , inj₂ vb≈⊥ , v≤va∨vb) | inj₂ v≈⊥ = inj₂ v≈⊥
-        e← (va , vb , inj₂ va≈⊥ , inj₂ vb≈⊥ , v≤va∨vb) = 
-          inj₂ v≈⊥
-          where
-            open BoundedJoinSemilattice V
-            
-            v≤⊥ : v ≤v ⊥v
-            v≤⊥ = 
-              begin
-                v ≤⟨ v≤va∨vb ⟩
-                va ∨v vb ≈⟨ ∨-cong joinSemiLattice va≈⊥ vb≈⊥  ⟩
-                ⊥v ∨v ⊥v ≈⟨ identityˡ V ⊥v ⟩ 
-                ⊥v
-               ∎
-              where
-                open import Relation.Binary.PartialOrderReasoning (BoundedJoinSemilattice.poset V)
-
-            v≈⊥ : v ≈v ⊥v
-            v≈⊥ = ≤v-antisym v≤⊥ (minimum v)
-    -}
+    --]]]
 
     e∈a∨b⇔P∨ : (a b : Carrier') → (e : |E|) → (e ∈' (a ∨' b)) ⇔ (P∨ a b e)
-    e∈a∨b⇔P∨ (la , da) (lb , db) e = {!!} -- e∈a∨b⇔P∨' la da lb db e
+    e∈a∨b⇔P∨ (la , da) (lb , db) e = equivalence (e∈a∨b→P∨ la da lb db e) (P∨→e∈a∨b la da lb db e)
 
     ∨-monoˡ : (a b c : Carrier') → a ≤' b → (a ∨' c) ≤' (b ∨' c)
     ∨-monoˡ a@(la , da) b@(lb , db) c@(lc , dc) a≤b = LAll.tabulate tab'
       where
         tab : {kv : |E|} → kv ∈ (proj₁ $ a ∨' c) → kv ∈' (b ∨' c)
+        --[[[
         tab {kv@(k , v)} kv∈a∨c with to ⟨$⟩ (inj₁ $ LAny.map aux kv∈a∨c) 
           where
             open Equivalence (e∈a∨b⇔P∨ a c kv)
@@ -649,6 +735,7 @@ _≈e_ : |E| → |E| → Set
             open Equivalence (e∈a∨b⇔P∨ b c kv)          
             open BoundedJoinSemilattice V 
             open import Relation.Binary.Properties.JoinSemilattice
+        --]]]
 
         p : All (λ z → z ∈' (b ∨' c)) (proj₁ $ (a ∨' c))
         p = LAll.tabulate tab
@@ -663,12 +750,67 @@ _≈e_ : |E| → |E| → Set
             ¬v≈⊥ = dict-no⊥ (proj₁ $ a ∨' c) (∨-Dict da dc) (k , v) kv∈a∨c
         --]]]
 
-    ub1 : (a b : Carrier') → a ≤' (a ∨' b)
-    ub1 ([] , da) (lb , db) = []
-    ub1 (ha ∷ ta , da) ([] , db) = {!!}
-    ub1 (x ∷ la , da) (x₁ ∷ lb , db) = {!!}
+    ∨-monoʳ : (a b c : Carrier') → b ≤' c → (a ∨' b) ≤' (a ∨' c)
+    --[[[
+    ∨-monoʳ a@(la , da) b@(lb , db) c@(lc , dc) b≤c = LAll.tabulate tab'
+      where
+        tab : {kv : |E|} → kv ∈ (proj₁ $ a ∨' b) → kv ∈' (a ∨' c)
+        --[[[
+        tab {kv@(k , v)} kv∈a∨b with to ⟨$⟩ (inj₁ $ LAny.map aux kv∈a∨b) 
+          where
+            open Equivalence (e∈a∨b⇔P∨ a b kv)
+            aux : {x : |E|} → kv ≡ x → kv ≤e x
+            aux {x} PE.refl = (≈k-refl , ≤v-refl)
+        tab {kv@(k , v)} kv∈a∨b | va , vb , kva∈a , inj₁ kvb≤b , v≤va∨vb = 
+          anyEliminate lb elim kvb≤b 
+          where
+            elim : AnyEliminator {ℓQ = l0} |E| (kv ∈' (a ∨' c)) ((k , vb) ≤e_) lb
+            elim z@(kz , vz) f (k≈kz , vb≤vz) z∈≡lb with LAll.lookup b≤c z∈≡lb
+            elim z@(kz , vz) f (k≈kz , vb≤vz) z∈≡la | z≤c = anyEliminate lc elim' z≤c
+              where
+                elim' : AnyEliminator {ℓQ = l0} |E| (kv ∈' (a ∨' c)) (z ≤e_) lc
+                elim' w@(kw , vw) f (kz≈kw , vz≤vw) w∈≡lc = 
+                  from ⟨$⟩ (va , vw , kva∈a , (inj₁ $ LAny.map aux w∈≡lc) , v≤va∨vw)
+                  where
+                    open Equivalence (e∈a∨b⇔P∨ a c kv)
+                    open BoundedJoinSemilattice V 
+                    open import Relation.Binary.Properties.JoinSemilattice
+                   
+                    k≈kw : k ≈k kw
+                    k≈kw = ≈k-trans k≈kz kz≈kw
+                    
+                    vb≤vw : vb ≤v vw
+                    vb≤vw = ≤v-trans vb≤vz vz≤vw
 
+                    v≤va∨vw : v ≤v (va ∨v vw)
+                    v≤va∨vw = ≤v-trans v≤va∨vb (∨-monotonic joinSemiLattice ≤v-refl vb≤vw)
+                  
+                    aux : {x : |E|} → (kw , vw) ≡ x → (k , vw) ≤e x
+                    aux {x} PE.refl = k≈kw , ≤v-refl
+        tab {kv@(k , v)} kv∈a∨b | va , vb , kva∈a , inj₂ vb≈⊥ , v≤va∨vc = 
+          from ⟨$⟩ (va , ⊥v , kva∈a , inj₂ ≈v-refl , ≤-respʳ-≈ (∨-cong joinSemiLattice ≈v-refl vb≈⊥) v≤va∨vc ) 
+          where
+            open Equivalence (e∈a∨b⇔P∨ a c kv)          
+            open BoundedJoinSemilattice V 
+            open import Relation.Binary.Properties.JoinSemilattice
+        --]]]
+
+        p : All (λ z → z ∈' (a ∨' c)) (proj₁ $ (a ∨' b))
+        p = LAll.tabulate tab
+
+        tab' : {kv : |E|} → kv ∈ (proj₁ $ (a ∨' b)) → Any (kv ≤e_) (proj₁ $ a ∨' c)
+        --[[[
+        tab' {k , v} kv∈a∨b with LAll.lookup p kv∈a∨b
+        tab' {k , v} kv∈a∨b | inj₁ kv≤a∨b = kv≤a∨b
+        tab' {k , v} kv∈a∨b | inj₂ v≈⊥ = ⊥-elim $ ¬v≈⊥ v≈⊥ 
+          where
+            ¬v≈⊥ : ¬ (v ≈v ⊥v) 
+            ¬v≈⊥ = dict-no⊥ (proj₁ $ a ∨' b) (∨-Dict da db) (k , v) kv∈a∨b
+        --]]]
+      --]]]
     --]]]
+
+    
 
     reflexive' : _≈'_ Implies _≤'_
     reflexive' (x , _) = x
