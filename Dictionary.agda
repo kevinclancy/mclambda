@@ -71,6 +71,83 @@ _≤e_ : |E| → |E| → Set
 _≈e_ : |E| → |E| → Set
 (k1 , v1) ≈e (k2 , v2) = (k1 ≈k k2) × (v1 ≈v v2)
 
+{-
+▹-poset : Poset l0 l0 l0
+▹-poset = 
+  record
+  { Carrier = Carrier'
+  ; _≤_ = _≤'_ 
+  ; _≈_ = _≈'_
+  ; isPartialOrder = record
+    { isPreorder = record
+      { reflexive = λ {x} {y} → reflexive' {x} {y}
+      ; trans = λ {x} {y} {z} → trans-≤' {x} {y} {z}
+      ; isEquivalence = record
+        { trans = λ {x} {y} {z} → trans-≈' {x} {y} {z}
+        ; refl = λ {x} → refl' {x} , refl' {x}
+        ; sym = λ {x} {y} → sym-≈' {x} {y}
+        }
+      }
+      ; antisym = λ {x} {y} → antisym-≤' {x} {y}
+    }
+  } 
+  where
+    open import Data.List.Any renaming (map to mapAny)
+    open import Data.List.All renaming (map to mapAll ; tabulate to tabulateAll)
+    open import Data.List.Membership.Propositional
+    open import Relation.Binary renaming (_⇒_ to _Implies_)
+
+    Carrier' : Set
+    Carrier' = ▹-Ty
+
+
+    trans-≤e : Transitive _≤e_
+    trans-≤e (k1≈k2 , v1≤v2) (k2≈k3 , v2≤v3) = 
+      StrictTotalOrder.Eq.trans K k1≈k2 k2≈k3 , BoundedJoinSemilattice.trans V v1≤v2 v2≤v3
+
+    _≤'_ : Carrier' → Carrier' → Set
+    (l₁ , _) ≤' (l₂ , _) = All (λ e₁ → Any (λ e₂ → e₁ ≤e e₂) l₂) l₁
+
+    _≈'_ : Carrier' → Carrier' → Set
+    i ≈' j = (i ≤' j) × (j ≤' i)
+
+    reflexive' : _≈'_ Implies _≤'_
+    reflexive' (x , _) = x
+
+    refl' : Reflexive _≤'_
+    refl' {l , _} = tabulateAll f 
+      where
+        f : ∀ {x} → x ∈ l → Any (x ≤e_) l
+        f {x} x∈l = mapAny p x∈l
+          where
+            p : ∀ {y} → x ≡ y → x ≤e y
+            p {l , d} PE.refl = StrictTotalOrder.Eq.refl K , BoundedJoinSemilattice.refl V
+
+    trans-≤' : Transitive _≤'_
+    trans-≤' {l1 , _} {l2 , _} {l3 , _} d1≤d2 d2≤d3 =
+      LAll.tabulate tab
+      where
+        open import Data.List.Membership.Propositional
+        open import Data.List.All as LAll
+        open import Data.List.Any as LAny
+
+        tab : {x : |E|} → x ∈ l1 → Any (x ≤e_) l3
+        tab {x} x∈l1 = anyEliminate l2 elim (LAll.lookup d1≤d2 x∈l1)
+          where
+            elim : AnyEliminator {ℓQ = l0} |E| (Any (x ≤e_) l3) (x ≤e_) l2
+            elim a f x≤a a∈l2 = LAny.map (λ a≤· → trans-≤e x≤a a≤·) (LAll.lookup d2≤d3 a∈l2)
+
+    trans-≈' : Transitive _≈'_
+    trans-≈' {d1} {d2} {d3} (l1∼l2 , l2∼l1) (l2∼l3 , l3∼l2) = 
+      trans-≤' {d1} {d2} {d3} l1∼l2 l2∼l3 , trans-≤' {d3} {d2} {d1} l3∼l2 l2∼l1 
+
+    sym-≈' : Symmetric _≈'_
+    sym-≈' (d1∼d2 , d2∼d1) = (d2∼d1 , d1∼d2)
+
+    antisym-≤' : Antisymmetric _≈'_ _≤'_
+    antisym-≤' a≤b b≤a = a≤b , b≤a
+-}
+
 ▹-semilat : BoundedJoinSemilattice l0 l0 l0
 ▹-semilat = record
   { Carrier = ▹-Ty
@@ -80,7 +157,7 @@ _≈e_ : |E| → |E| → Set
   ; ⊥ = ⊥'
   ; isBoundedJoinSemilattice = record
     { isJoinSemilattice = record 
-      { isPartialOrder = {!!}
+      { isPartialOrder = Poset.isPartialOrder poset
       ; supremum = {!!}
       } 
     ; minimum = minimum'
@@ -216,18 +293,12 @@ _≈e_ : |E| → |E| → Set
     ----- Proof that _∨'_ is a supremum
     --[[[
 
-    k-union : (a b : Carrier') → (k : |K|) → (k ∈k a) ⊎ (k ∈k b) → k ∈k (a ∨' b)
-    k-union ([] , da) ([] , db) k (inj₁ k∈[]) = ⊥-elim $ ¬Any[] k∈[]
-    k-union ([] , da) ([] , db) k (inj₂ k∈[]) = ⊥-elim $ ¬Any[] k∈[]
-    k-union ([] , da) (hb ∷ tb , db) k (inj₁ k∈[]) = ⊥-elim $ ¬Any[] k∈[]
-    k-union ([] , da) (hb ∷ tb , db) k (inj₂ k∈b) = {!!}
-    k-union (x ∷ la , da) (lb , db) k = {!!}
-
     P∨ : (a b : Carrier') → (e : |E|) → Set
     P∨ a b (k , v) = Σ[ va ∈ |V| ] Σ[ vb ∈ |V| ] ((k , va) ∈' a) × ((k , vb) ∈' b) × (v ≤v (va ∨v vb))   
     
-    e∈a∨b→P∨ : (a : List |E|) → (da : IsDict a) → (b : List |E|) → (db : IsDict b) → (e : |E|) → 
+    postulate e∈a∨b→P∨ : (a : List |E|) → (da : IsDict a) → (b : List |E|) → (db : IsDict b) → (e : |E|) → 
                    (e ∈' ((a , da) ∨' (b , db))) → (P∨ (a , da) (b , db) e)
+    {-
     --[[[
     e∈a∨b→P∨ _ _ _ _ _ (inj₂ v≈⊥) = 
       (⊥v , ⊥v , inj₂ ≈v-refl , inj₂ ≈v-refl , ≤-respˡ-≈ (≈v-sym v≈⊥) ⊥≤⊥∨⊥)
@@ -324,9 +395,11 @@ _≈e_ : |E| → |E| → Set
     e∈a∨b→P∨ ((kha , vha) ∷ ta) (∷-Dict .(kha , vha) ta mina ¬ha≈⊥ dta) lb@((khb , vhb) ∷ tb) db@(∷-Dict .(khb , vhb) tb minb ¬hb≈⊥ dtb) e@(k , v) (inj₁ (there e∈ta∨b)) | tri> kha<khb _ _ | va , vb , va∈a , inj₂ vb≈⊥ , v≤va∨vb = 
       va , vb , va∈a , inj₂ vb≈⊥  , v≤va∨vb
     --]]]
+    -} 
 
-    P∨→e∈a∨b : (a : List |E|) → (da : IsDict a) → (b : List |E|) → (db : IsDict b) → (e : |E|) → 
+    postulate P∨→e∈a∨b : (a : List |E|) → (da : IsDict a) → (b : List |E|) → (db : IsDict b) → (e : |E|) → 
                (P∨ (a , da) (b , db) e) → (e ∈' ((a , da) ∨' (b , db)))
+    {-
     --[[[
     P∨→e∈a∨b [] []-Dict [] []-Dict e@(k , v) (va , vb , inj₁ () , kvb∈b , v≤va∨vb)
     P∨→e∈a∨b [] []-Dict [] []-Dict e@(k , v) (va , vb , inj₂ va≈⊥ , inj₁ () , v≤va∨vb)
@@ -689,6 +762,7 @@ _≈e_ : |E| → |E| → Set
         v≈⊥ : v ≈v ⊥v
         v≈⊥ = ≤v-antisym v≤⊥ (minimum v)
     --]]]
+    -}
 
     e∈a∨b⇔P∨ : (a b : Carrier') → (e : |E|) → (e ∈' (a ∨' b)) ⇔ (P∨ a b e)
     e∈a∨b⇔P∨ (la , da) (lb , db) e = equivalence (e∈a∨b→P∨ la da lb db e) (P∨→e∈a∨b la da lb db e)
@@ -810,8 +884,6 @@ _≈e_ : |E| → |E| → Set
       --]]]
     --]]]
 
-    
-
     reflexive' : _≈'_ Implies _≤'_
     reflexive' (x , _) = x
 
@@ -845,84 +917,157 @@ _≈e_ : |E| → |E| → Set
     sym-≈' : Symmetric _≈'_
     sym-≈' (d1∼d2 , d2∼d1) = (d2∼d1 , d1∼d2)
 
+    refl-≈' : {a : Carrier'} → a ≈' a
+    refl-≈' {a} = (refl' {a} , refl' {a})
+
     antisym-≤' : Antisymmetric _≈'_ _≤'_
     antisym-≤' a≤b b≤a = a≤b , b≤a
 
-{-
-▹-poset : Poset l0 l0 l0
-▹-poset = 
-  record
-  { Carrier = Carrier'
-  ; _≤_ = _≤'_ 
-  ; _≈_ = _≈'_
-  ; isPartialOrder = record
-    { isPreorder = record
-      { reflexive = λ {x} {y} → reflexive' {x} {y}
-      ; trans = λ {x} {y} {z} → trans-≤' {x} {y} {z}
-      ; isEquivalence = record
-        { trans = λ {x} {y} {z} → trans-≈' {x} {y} {z}
-        ; refl = λ {x} → refl' {x} , refl' {x}
-        ; sym = λ {x} {y} → sym-≈' {x} {y}
-        }
+    poset : Poset l0 l0 l0
+    poset = record
+      { Carrier = Carrier'
+      ; _≈_ = _≈'_
+      ; _≤_ = _≤'_
+      ; isPartialOrder = record
+        { isPreorder = record
+          { reflexive = λ {x} {y} → reflexive' {x} {y}
+          ; trans = λ {x} {y} {z} → trans-≤' {x} {y} {z}
+          ; isEquivalence = record
+            { trans = λ {x} {y} {z} → trans-≈' {x} {y} {z}
+            ; refl = λ {x} → refl' {x} , refl' {x}
+            ; sym = λ {x} {y} → sym-≈' {x} {y}
+            }
+          }
+          ; antisym = λ {x} {y} → antisym-≤' {x} {y}
+        }      
       }
-      ; antisym = λ {x} {y} → antisym-≤' {x} {y}
-    }
-  } 
-  where
-    open import Data.List.Any renaming (map to mapAny)
-    open import Data.List.All renaming (map to mapAll ; tabulate to tabulateAll)
-    open import Data.List.Membership.Propositional
-    open import Relation.Binary renaming (_⇒_ to _Implies_)
 
-    Carrier' : Set
-    Carrier' = ▹-Ty
+    ∨'-unitʳ : (a : Carrier') → (a ∨' ⊥') ≈' a
+    ∨'-unitʳ a@([] , []-Dict) = refl-≈' {a}
+    ∨'-unitʳ a@(h ∷ t , ∷-Dict h t min ¬h≈⊥ dt) = refl-≈' {a} 
 
+    ∨'-unitˡ : (a : Carrier') → (⊥' ∨' a) ≈' a
+    ∨'-unitˡ a@([] , []-Dict) = refl-≈' {a}
+    ∨'-unitˡ a@(h ∷ t , ∷-Dict h t min ¬h≈⊥ dt) = refl-≈' {a} 
 
-    trans-≤e : Transitive _≤e_
-    trans-≤e (k1≈k2 , v1≤v2) (k2≈k3 , v2≤v3) = 
-      StrictTotalOrder.Eq.trans K k1≈k2 k2≈k3 , BoundedJoinSemilattice.trans V v1≤v2 v2≤v3
-
-    _≤'_ : Carrier' → Carrier' → Set
-    (l₁ , _) ≤' (l₂ , _) = All (λ e₁ → Any (λ e₂ → e₁ ≤e e₂) l₂) l₁
-
-    _≈'_ : Carrier' → Carrier' → Set
-    i ≈' j = (i ≤' j) × (j ≤' i)
-
-    reflexive' : _≈'_ Implies _≤'_
-    reflexive' (x , _) = x
-
-    refl' : Reflexive _≤'_
-    refl' {l , _} = tabulateAll f 
+    ▹-functional : (l : List |E|) → (d : IsDict l) → (e1 e2 : |E|) → e1 ∈' (l , d) → e2 ∈' (l , d) → ((proj₁ e1) ≈k (proj₁ e2)) → ((proj₁ e1) , (proj₂ e1) ∨v (proj₂ e2)) ∈' (l , d)
+    ▹-functional [] []-Dict e1 e2 (inj₁ ()) _ k1≈k2  
+    ▹-functional [] []-Dict e1 e2 _ (inj₁ ()) k1≈k2
+    ▹-functional [] []-Dict (k1 , v1) (k2 , v2) (inj₂ v1≈⊥) (inj₂ v2≈⊥) k1≈k2 = 
+      inj₂ (≈v-trans v1∨v2≈⊥∨⊥ ⊥∨⊥≈⊥)
       where
-        f : ∀ {x} → x ∈ l → Any (x ≤e_) l
-        f {x} x∈l = mapAny p x∈l
-          where
-            p : ∀ {y} → x ≡ y → x ≤e y
-            p {l , d} PE.refl = StrictTotalOrder.Eq.refl K , BoundedJoinSemilattice.refl V
+        open BoundedJoinSemilattice V
 
-    trans-≤' : Transitive _≤'_
-    trans-≤' {l1 , _} {l2 , _} {l3 , _} d1≤d2 d2≤d3 =
-      LAll.tabulate tab
+        ⊥∨⊥≈⊥ : (⊥v ∨v ⊥v) ≈v ⊥v
+        ⊥∨⊥≈⊥ = identityˡ V ⊥v
+
+        v1∨v2≈⊥∨⊥ : (v1 ∨v v2) ≈v (⊥v ∨v ⊥v)
+        v1∨v2≈⊥∨⊥ = ∨-cong joinSemiLattice v1≈⊥ v2≈⊥ 
+    ▹-functional ((kh , vh) ∷ t) (∷-Dict h t min ¬hv≈⊥ dt) (k1 , v1) (k2 , v2) (inj₁ (here (k1≈kh , v1≤vh))) (inj₁ (here (k2≈kh , v2≤vh))) k1≈k2 = 
+      {!!}
+    ▹-functional ((kh , vh) ∷ t) (∷-Dict h t min ¬hv≈⊥ dt) (k1 , v1) (k2 , v2) (inj₁ (here px)) (inj₁ (there e2≤l)) k1≈k2 = {!!}
+    ▹-functional ((kh , vh) ∷ t) (∷-Dict h t min ¬hv≈⊥ dt) (k1 , v1) (k2 , v2) (inj₁ (there e1≤l)) (inj₁ (here px)) k1≈k2 = {!!}
+    ▹-functional ((kh , vh) ∷ t) (∷-Dict h t min ¬hv≈⊥ dt) (k1 , v1) (k2 , v2) (inj₁ (there e1≤l)) (inj₁ (there e2≤l)) k1≈k2 = {!!}
+    ▹-functional l@(h ∷ t) (∷-Dict h t min ¬hv≈⊥ dt) (k1 , v1) (k2 , v2) (inj₁ v1≤l) (inj₂ v2≈⊥) k1≈k2 = 
+      inj₁ (LAny.map aux v1≤l)
       where
-        open import Data.List.Membership.Propositional
-        open import Data.List.All as LAll
-        open import Data.List.Any as LAny
-
-        tab : {x : |E|} → x ∈ l1 → Any (x ≤e_) l3
-        tab {x} x∈l1 = anyEliminate l2 elim (LAll.lookup d1≤d2 x∈l1)
+        open BoundedJoinSemilattice V
+        v1∨v2≈v1 : (v1 ∨v v2) ≈v v1
+        v1∨v2≈v1 = 
+          begin
+            v1 ∨v v2 ≈⟨ ∨-cong joinSemiLattice ≈v-refl v2≈⊥ ⟩
+            v1 ∨v ⊥v ≈⟨ identityʳ V v1 ⟩
+            v1
+           ∎
           where
-            elim : AnyEliminator {ℓQ = l0} |E| (Any (x ≤e_) l3) (x ≤e_) l2
-            elim a f x≤a a∈l2 = LAny.map (λ a≤· → trans-≤e x≤a a≤·) (LAll.lookup d2≤d3 a∈l2)
+            open import Relation.Binary.EqReasoning (poset→setoid (BoundedJoinSemilattice.poset V))
+        
+        aux : {x : |E|} → ((k1 , v1) ≤e x) → ((k1 , (v1 ∨v v2)) ≤e x)
+        aux {kx , vx} (k1≈kx , v1≤vx) = k1≈kx , ≤v-trans (≤v-reflexive v1∨v2≈v1) v1≤vx 
+    ▹-functional (h ∷ t) (∷-Dict h t min ¬hv≈⊥ dt) (k1 , v1) (k2 , v2) (inj₂ v1≈⊥) (inj₁ v2≤l) k1≈k2 = 
+      inj₁ (LAny.map aux v2≤l)
+      where
+        open BoundedJoinSemilattice V
+        v1∨v2≈v2 : (v1 ∨v v2) ≈v v2
+        v1∨v2≈v2 = 
+          begin
+            v1 ∨v v2 ≈⟨ ∨-cong joinSemiLattice v1≈⊥ ≈v-refl ⟩
+            ⊥v ∨v v2 ≈⟨ identityˡ V v2 ⟩
+            v2
+           ∎
+          where
+            open import Relation.Binary.EqReasoning (poset→setoid (BoundedJoinSemilattice.poset V))
+        
+        aux : {x : |E|} → ((k2 , v2) ≤e x) → ((k1 , (v1 ∨v v2)) ≤e x)
+        aux {kx , vx} (k2≈kx , v2≤vx) = (≈k-trans k1≈k2 k2≈kx) , ≤v-trans (≤v-reflexive v1∨v2≈v2) v2≤vx 
+    ▹-functional (h ∷ t) (∷-Dict h t min ¬hv≈⊥ dt) (k1 , v1) (k2 , v2) (inj₂ v1≈⊥) (inj₂ v2≈⊥) k1≈k2 = 
+      {!!}
 
-    trans-≈' : Transitive _≈'_
-    trans-≈' {d1} {d2} {d3} (l1∼l2 , l2∼l1) (l2∼l3 , l3∼l2) = 
-      trans-≤' {d1} {d2} {d3} l1∼l2 l2∼l3 , trans-≤' {d3} {d2} {d1} l3∼l2 l2∼l1 
+    sup' : Supremum _≤'_ _∨'_ 
+    sup' a@(la , da) b@(lb , db) = a≤a∨b , b≤a∨b , {!!}
+      where
+        open import Relation.Binary.PartialOrderReasoning (poset)
 
-    sym-≈' : Symmetric _≈'_
-    sym-≈' (d1∼d2 , d2∼d1) = (d2∼d1 , d1∼d2)
+        a≤a∨b : (la , da) ≤' ((la , da) ∨' (lb , db))
+        a≤a∨b = 
+          begin
+            (la , da) ≈⟨ sym-≈' {la ∨ [] , ∨-Dict da []-Dict} {la , da} (∨'-unitʳ (la , da)) ⟩
+            (la ∨ [] , ∨-Dict da []-Dict) ≤⟨ ∨-monoʳ (la , da) ([] , []-Dict) (lb , db) (minimum' $ lb , db)  ⟩ 
+            (la ∨ lb , ∨-Dict da db)
+           ∎ 
 
-    antisym-≤' : Antisymmetric _≈'_ _≤'_
-    antisym-≤' a≤b b≤a = a≤b , b≤a
+        b≤a∨b : (lb , db) ≤' ((la , da) ∨' (lb , db))
+        b≤a∨b = 
+          begin
+            (lb , db) ≈⟨ sym-≈' {[] ∨ lb , ∨-Dict []-Dict db} {lb , db} (∨'-unitˡ (lb , db)) ⟩
+            ([] ∨ lb , ∨-Dict []-Dict db) ≤⟨ ∨-monoˡ ([] , []-Dict) (la , da) (lb , db) (minimum' $ la , da)  ⟩ 
+            (la ∨ lb , ∨-Dict da db)
+           ∎ 
+
+        a≤c&b≤c→a∨b≤c : (c : Carrier') → (la , da) ≤' c → (lb , db) ≤' c → ((la , da) ∨' (lb , db)) ≤' c
+        a≤c&b≤c→a∨b≤c c@(lc , dc) a≤c b≤c = LAll.tabulate aux
+          where
+            aux : {x : |E|} → x ∈ (la ∨ lb) → Any (x ≤e_) lc
+            aux {x@(kx , vx)} x∈la∨lb with Equivalence.to (e∈a∨b⇔P∨ (la , da) (lb , db) x) ⟨$⟩ (inj₁ x≤a∨b)
+              where
+                x≤a∨b : Any (x ≤e_) (la ∨ lb)
+                x≤a∨b = LAny.map aux' x∈la∨lb
+                  where
+                    aux' : {z : |E|} → x ≡ z → x ≤e z
+                    aux' {z} PE.refl = (≈k-refl , ≤v-refl) 
+            aux {kx , vx} x∈la∨lb | va , vb , inj₁ kxva≤a , inj₁ kxvb≤b , vx≤va∨vb = 
+              anyEliminate la elim kxva≤a
+              where
+                elim : AnyEliminator {ℓQ = l0} |E| (Any ((kx , vx) ≤e_) lc) ((kx , va) ≤e_) la
+                elim a'@(ka' , va') _ (kx≈ka' , va≤va') a'∈≡la =
+                  anyEliminate lb elim' kxvb≤b
+                  where
+                    elim' : AnyEliminator {ℓQ = l0} |E| (Any ((kx , vx) ≤e_) lc) ((kx , vb) ≤e_) lb
+                    elim' b'@(kb' , vb') _ (kx≈kb' , vb≤vb') b'∈≡lb =
+                      anyEliminate lc elim'' (LAll.lookup a≤c a'∈≡la)
+                      where
+                        elim'' : AnyEliminator {ℓQ = l0} |E| (Any ((kx , vx) ≤e_) lc) ((ka' , va') ≤e_) lc
+                        elim'' ca@(kca , vca) _ (ka'≈kca , va'≤vca) ca∈≡lc =
+                          anyEliminate lc elim''' (LAll.lookup b≤c b'∈≡lb)
+                          where
+                            elim''' : AnyEliminator {ℓQ = l0} |E| (Any ((kx , vx) ≤e_) lc) ((kb' , vb') ≤e_) lc
+                            elim''' cb@(kcb , vcb) _ (kb'≈kcb , vb'≤vcb) cb∈≡lc =
+                              {!!}
+                              where
+                                ka'≈kb' : ka' ≈k kb'
+                                ka'≈kb' = ≈k-trans (≈k-sym kx≈ka') kx≈kb'
+                  
+                                kca≈kcb : kca ≈k kcb
+                                kca≈kcb = ≈k-trans (≈k-trans (≈k-sym ka'≈kca) ka'≈kb') kb'≈kcb 
+
+                                vcb≈vca : vcb ≈v vca
+                                vcb≈vca = {!!}
+
+            aux {kx , vx} x∈la∨lb | va , vb , inj₁ kxva≤a , inj₂ vb≈⊥ , vx≤va∨vb = {!!}
+            aux {kx , vx} x∈la∨lb | va , vb , inj₂ va≈⊥ , inj₁ vb≤b , vx≤va∨vb = {!!}
+            aux {kx , vx} x∈la∨lb | va , vb , inj₂ va≈⊥ , inj₂ vb≈⊥ , vx≤va∨vb = {!!}
+{-
+
 -}
 ▹-poset : Poset l0 l0 l0
 ▹-poset = BoundedJoinSemilattice.poset ▹-semilat
