@@ -22,9 +22,10 @@ open import Data.Nat as N renaming (_⊔_ to _⊔N_ ; _<_ to _<N_ ; _≤_ to _�
 open import Function using (_$_)
 open import Relation.Binary.PropositionalEquality as PE hiding ([_])
 open import SemScalars
+open import PosetScalars
 open import Preorders
 
------ IVars
+----- Stoset conversion (for dealing with the eq field of SemStoset)
 --[[[
 conv : {P : Poset l0 l0 l0} → {T : StrictTotalOrder l0 l0 l0} → (eq : StrictTotalOrder.Eq.setoid T ≡ (poset→setoid P)) →
        (t : StrictTotalOrder.Eq.Carrier T) → Poset.Carrier P
@@ -256,111 +257,6 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
     open UnitStrictTotal using (⊤-strictTotalOrder)
     open import Data.Sum.Relation.Pointwise using (⊎-setoid)
 
-{-      
--- KEEP THIS: it  will be used for dictionary's P component
-
-⟦ DiscreteProductDelta isTosetL isDeltaR ⁑⟧ = record
-  { Carrier = |L×R|
-  ; _⊑_ = _⊑_
-  ; _<_ = _<_
-  ; isStrictTotalOrder = <-strict
-  ; isDecPartialOrder = record
-    { isPartialOrder = ⊑-decPartialOrder
-    ; _≟_ = ≈'-decidable
-    ; _≤?_ = ⊑-decidable
-    }
-  ; unimodality = unimodality
-  }
-  where
-    open import Data.Product.Relation.Lex.Strict as LS
-    open import Data.Product.Relation.Pointwise.NonDependent as PW
-    open import DiscreteDelta ⟦ isTosetL T⟧ renaming (unimodality to unimodalityL)
-
-    deltaL = deltaPoset
-    deltaR = ⟦ isDeltaR ⁑⟧
-    |L×R| = (DeltaPoset.Carrier deltaL) × (DeltaPoset.Carrier deltaR) 
-    _L<_ = DeltaPoset._<_ deltaL
-    compareL = DeltaPoset.compare deltaL
-    _R<_ = DeltaPoset._<_ deltaR
-    compareR = DeltaPoset.compare deltaR
-    _L⊑_ = DeltaPoset._⊑_  deltaL
-    _R⊑_ = DeltaPoset._⊑_ deltaR    
-    _L∥_ = DeltaPoset._∥_  deltaL
-    _R∥_ = DeltaPoset._∥_ deltaR
-    unimR = DeltaPoset.unimodality deltaR
-
-    _≈'_ = Pointwise (DeltaPoset._≈_ deltaL) (DeltaPoset._≈_ deltaR)
-    _<_ = ×-Lex (DeltaPoset._≈_ deltaL) _L<_ _R<_
-    _⊑_ = Pointwise _L⊑_ _R⊑_
-
-    _∦_ : Rel |L×R| _
-    a ∦ b = a ⊑ b ⊎ b ⊑ a 
-
-    _∥_ : Rel |L×R| _
-    a ∥ b = ¬ (a ∦ b)
-
-    ⊑-decPartialOrder : IsPartialOrder _≈'_ _⊑_
-    ⊑-decPartialOrder = ×-isPartialOrder (DeltaPoset.isPartialOrder deltaL) (DeltaPoset.isPartialOrder deltaR)
-
-    ≈'-decidable : Decidable _≈'_
-    ≈'-decidable = PW.×-decidable (DeltaPoset._≈?_ deltaL) (DeltaPoset._≈?_ deltaR)
-
-    ⊑-decidable : Decidable _⊑_
-    ⊑-decidable = PW.×-decidable (DeltaPoset._⊑?_ deltaL) (DeltaPoset._⊑?_ deltaR)
-
-    <-strict : IsStrictTotalOrder _≈'_ _<_
-    <-strict = LS.×-isStrictTotalOrder (DeltaPoset.isStrictTotalOrder deltaL) (DeltaPoset.isStrictTotalOrder deltaR)
-
-    unimodality : {a b c : |L×R|} → a < b → b < c → a ∥ b → b ∥ c → a ∥ c
-    unimodality {aL , aR} {bL , bR} {cL , cR} (inj₁ aL<bL) (inj₁ bL<cL) a∥b b∥c (inj₁ (⊑-refl aL≈cL , aR⊑cR)) = 
-      irrefl< {aL} {cL} aL≈cL aL<cL
-      where
-        aL<cL : aL L< cL
-        aL<cL = DeltaPoset.trans< deltaL {aL} {bL} {cL} aL<bL bL<cL
-    unimodality {aL , aR} {bL , bR} {cL , cR} (inj₁ aL<bL) (inj₁ bL<cL) a∥b b∥c (inj₂ (⊑-refl cL≈aL , cR⊑aR)) = 
-      irrefl< {aL} {cL} (sym≈ {cL} {aL} cL≈aL) aL<cL 
-      where
-        aL<cL : aL L< cL
-        aL<cL = DeltaPoset.trans< deltaL {aL} {bL} {cL} aL<bL bL<cL        
-    unimodality {aL , aR} {bL , bR} {cL , cR} (inj₁ aL<bL) (inj₂ (bL≈cL , bR<cR)) a∥b b∥c (inj₁ (⊑-refl aL≈cL , aR⊑cR)) = 
-      irrefl< {aL} {cL} aL≈cL aL<cL 
-      where
-        aL<cL : aL L< cL
-        aL<cL = DeltaPoset.<-respʳ-≈ deltaL {aL} {bL} {cL} bL≈cL aL<bL 
-    unimodality {aL , aR} {bL , bR} {cL , cR} (inj₁ aL<bL) (inj₂ (bL≈cL , bR<cR)) a∥b b∥c (inj₂ (⊑-refl cL≈aL , aR⊑cR)) = 
-      irrefl< {aL} {cL} (sym≈ {cL} {aL} cL≈aL) aL<cL 
-      where
-        aL<cL : aL L< cL
-        aL<cL = DeltaPoset.<-respʳ-≈ deltaL {aL} {bL} {cL} bL≈cL aL<bL 
-    unimodality {aL , aR} {bL , bR} {cL , cR} (inj₂ (aL≈bL , aR<bR)) (inj₁ bL<cL) a∥b b∥c (inj₁ (⊑-refl aL≈cL , cR⊑aR)) = 
-      irrefl< {aL} {cL} aL≈cL aL<cL 
-      where
-        aL<cL : aL L< cL
-        aL<cL = DeltaPoset.<-respˡ-≈ deltaL {cL} {bL} {aL} (sym≈ {aL} {bL} aL≈bL) bL<cL 
-    unimodality {aL , aR} {bL , bR} {cL , cR} (inj₂ (aL≈bL , aR<bR)) (inj₁ bL<cL) a∥b b∥c (inj₂ (⊑-refl cL≈aL , aR⊑cR)) = 
-      irrefl< {aL} {cL} (sym≈ {cL} {aL} cL≈aL) aL<cL 
-      where
-        aL<cL : aL L< cL
-        aL<cL = DeltaPoset.<-respˡ-≈ deltaL {cL} {bL} {aL} (sym≈ {aL} {bL} aL≈bL) bL<cL
-    unimodality {aL , aR} {bL , bR} {cL , cR} (inj₂ (aL≈bL , aR<bR)) (inj₂ (bL≈cL , bR<cR)) a∥b b∥c a∦c with aR∥bR | bR∥cR 
-      where
-        aR∥bR : aR R∥ bR
-        aR∥bR (inj₁ aR⊑bR) = a∥b $ inj₁ (DeltaPoset.reflexive⊑ deltaL aL≈bL , aR⊑bR)
-        aR∥bR (inj₂ bR⊑aR) = a∥b $ inj₂ (DeltaPoset.reflexive⊑ deltaL (sym≈ {aL} {bL} aL≈bL) , bR⊑aR)
-
-        bR∥cR : bR R∥ cR
-        bR∥cR (inj₁ bR⊑cR) = b∥c $ inj₁ (DeltaPoset.reflexive⊑ deltaL bL≈cL , bR⊑cR)
-        bR∥cR (inj₂ cR⊑bR) = b∥c $ inj₂ (DeltaPoset.reflexive⊑ deltaL (sym≈ {bL} {cL} bL≈cL) , cR⊑bR)
-    unimodality {aL , aR} {bL , bR} {cL , cR} (inj₂ (aL≈bL , aR<bR)) (inj₂ (bL≈cL , bR<cR)) a∥b b∥c (inj₁ (⊑-refl aL≈cL , aR⊑cR)) | aR∥bR | bR∥cR = 
-      (unimR aR<bR bR<cR aR∥bR bR∥cR) (inj₁ aR⊑cR)
-    unimodality {aL , aR} {bL , bR} {cL , cR} (inj₂ (aL≈bL , aR<bR)) (inj₂ (bL≈cL , bR<cR)) a∥b b∥c (inj₂ (⊑-refl cL≈aL , cR⊑aR)) | aR∥bR | bR∥cR = 
-      (unimR aR<bR bR<cR aR∥bR bR∥cR) (inj₂ cR⊑aR)
--}
-
--- ⟦ DiscreteDelta isTosetContents ⁑⟧ = discreteDelta ⟦ isTosetContents T⟧ 
-
------------------------------------------- semilat kinding: comment these out to speed things up
-{-
 ⟦ BoolSemilat ⁂⟧  =
   record
   { S = S
@@ -1059,12 +955,12 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
         (preorder→setoid ⟦ semilat→deltaPoset $ IVarSemilat isContentStoset ⁎⟧') 
         |i|
     |i|-injective {p} {p'} |i|p≈|i|p' = conv-inj eq p p' |i|p≈|i|p'
--}
+
 ⟦ DictSemilat isDomStoset isCodSemilat ⁂⟧ = record
   { S = ▹-semilat (SemStoset.T ⟦ isDomStoset ⁑⟧) (SemSemilatCore.S ⟦ isCodSemilat ⁂⟧)
   ; P = P
   ; US = PE.refl
-  ; i = {!!}
+  ; i = |i| , |i|-monotone , |i|-injective 
   }
   where
     open import Dictionary
@@ -1077,7 +973,26 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
     P₀ : DeltaPoset {l0} {l0} {l0} {l0}
     P₀ = SemSemilatCore.P ⟦ isCodSemilat ⁂⟧ 
 
+    _≈T₀_ = StrictTotalOrder._≈_ T₀
+    _<T₀_ = StrictTotalOrder._<_ T₀
+    _⊑P₀_ = DeltaPoset._⊑_ P₀
+    _<P₀_ = DeltaPoset._<_ P₀
+    _∦P₀_ = DeltaPoset._∦_ P₀
+    _∥P₀_ = DeltaPoset._∥_ P₀
+
+    |P| = (StrictTotalOrder.Carrier T₀) × (DeltaPoset.Carrier P₀)
+    _≈'_ = PW.Pointwise (StrictTotalOrder._≈_ T₀) (DeltaPoset._≈_ P₀)
+    _<'_ = LS.×-Lex (StrictTotalOrder._≈_ T₀) (StrictTotalOrder._<_ T₀) (DeltaPoset._<_ P₀)
+    _⊑'_ = PW.Pointwise (StrictTotalOrder._≈_ T₀) (DeltaPoset._⊑_ P₀)
+
+    _∦'_ : |P| → |P| → Set
+    p₁ ∦' p₂ = (p₁ ⊑' p₂) ⊎ (p₂ ⊑' p₁) 
+
+    _∥'_ : |P| → |P| → Set
+    p₁ ∥' p₂ = ¬ (p₁ ∦' p₂) 
+
     P : DeltaPoset {l0} {l0} {l0} {l0}
+    --[[[
     P = record
       { Carrier = |P|
       ; _≈_ = _≈'_
@@ -1104,22 +1019,104 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
             }
           ; antisym = λ {x} {y} x≈y y≈x → x≈y
           }
-
-        |P| = (StrictTotalOrder.Carrier T₀) × (DeltaPoset.Carrier P₀)
-        _≈'_ = PW.Pointwise (StrictTotalOrder._≈_ T₀) (DeltaPoset._≈_ P₀)
-        _<'_ = LS.×-Lex (StrictTotalOrder._≈_ T₀) (StrictTotalOrder._<_ T₀) (DeltaPoset._<_ P₀)
-        _⊑'_ = PW.Pointwise (StrictTotalOrder._≈_ T₀) (DeltaPoset._⊑_ P₀)
-
-        _∦'_ : |P| → |P| → Set
-        p₁ ∦' p₂ = (p₁ ⊑' p₂) ⊎ (p₂ ⊑' p₁) 
-
-        _∥'_ : |P| → |P| → Set
-        p₁ ∥' p₂ = ¬ (p₁ ∦' p₂) 
         
         unimodality : {a b c : |P|} → a <' b → b <' c → a ∥' b → b ∥' c → a ∥' c
-        unimodality {al , ar} {bl , br} {cl , cr} (inj₁ al<bl) (inj₁ bl<cl) a∥b b∥c = {!!}
-        unimodality {al , ar} {bl , br} {cl , cr} (inj₁ al<bl) (inj₂ (bl≈cl , br<cr)) a∥b b∥c = {!!}
-        unimodality {al , ar} {bl , br} {cl , cr} (inj₂ (al≈bl , ar<br)) b<c a∥b b∥c = {!!} 
+        --[[[
+        unimodality {a@(al , ar)} {b@(bl , br)} {c@(cl , cr)} (inj₁ al<bl) (inj₁ bl<cl) a∥b b∥c = 
+          a∥c
+          where
+            al<cl : al <T₀ cl
+            al<cl = StrictTotalOrder.trans T₀ al<bl bl<cl
 
-        --_≟_ : Decidable $ PW.Pointwise (StrictTotalOrder._≈_ T₀) (DeltaPoset._≈_ P₀)
-        --_≟_ = ×-decidable (StrictTotalOrder._≟_ T₀) (IsStrictTotalOrder._≟_ $ DeltaPoset.isStrictTotalOrder T₀)
+            a∥c : a ∥' c
+            a∥c (inj₁ (al≈cl , ar⊑cr)) = StrictTotalOrder.irrefl T₀ al≈cl al<cl   
+            a∥c (inj₂ (cl≈al , cr⊑ar)) = StrictTotalOrder.irrefl T₀ (StrictTotalOrder.Eq.sym T₀ cl≈al) al<cl
+        unimodality {a@(al , ar)} {b@(bl , br)} {c@(cl , cr)} (inj₁ al<bl) (inj₂ (bl≈cl , br<cr)) a∥b b∥c = 
+          a∥c
+          where
+            al<cl : al <T₀ cl
+            al<cl = StrictTotalOrder.<-respʳ-≈  T₀ bl≈cl al<bl
+
+            a∥c : a ∥' c
+            a∥c (inj₁ (al≈cl , ar⊑cr)) = StrictTotalOrder.irrefl T₀ al≈cl al<cl   
+            a∥c (inj₂ (cl≈al , cr⊑ar)) = StrictTotalOrder.irrefl T₀ (StrictTotalOrder.Eq.sym T₀ cl≈al) al<cl
+        unimodality {a@(al , ar)} {b@(bl , br)} {c@(cl , cr)} (inj₂ (al≈bl , ar<br)) (inj₁ bl<cl) a∥b b∥c = 
+          a∥c
+          where
+            al<cl : al <T₀ cl
+            al<cl = StrictTotalOrder.<-respˡ-≈  T₀ (StrictTotalOrder.Eq.sym T₀ al≈bl) bl<cl
+
+            a∥c : a ∥' c
+            a∥c (inj₁ (al≈cl , ar⊑cr)) = StrictTotalOrder.irrefl T₀ al≈cl al<cl   
+            a∥c (inj₂ (cl≈al , cr⊑ar)) = StrictTotalOrder.irrefl T₀ (StrictTotalOrder.Eq.sym T₀ cl≈al) al<cl
+        unimodality {a@(al , ar)} {b@(bl , br)} {c@(cl , cr)} (inj₂ (al≈bl , ar<br)) (inj₂ (bl≈cl , br<cr)) a∥b b∥c = 
+          a∥c
+          where
+            ar∥br : ar ∥P₀ br
+            ar∥br (inj₁ ar⊑br) = a∥b $ inj₁ (al≈bl , ar⊑br)
+            ar∥br (inj₂ br⊑ar) = a∥b $ inj₂ (StrictTotalOrder.Eq.sym T₀ al≈bl , br⊑ar)
+
+            br∥cr : br ∥P₀ cr
+            br∥cr (inj₁ br⊑cr) = b∥c $ inj₁ (bl≈cl , br⊑cr)
+            br∥cr (inj₂ cr⊑br) = b∥c $ inj₂ (StrictTotalOrder.Eq.sym T₀ bl≈cl , cr⊑br)
+
+            ar∥cr : ar ∥P₀ cr            
+            ar∥cr = DeltaPoset.unimodality P₀ ar<br br<cr ar∥br br∥cr
+ 
+            a∥c : a ∥' c
+            a∥c (inj₁ (al≈cl , ar⊑cr)) = ar∥cr $ inj₁ ar⊑cr
+            a∥c (inj₂ (cl≈al , cr⊑ar)) = ar∥cr $ inj₂ cr⊑ar 
+        --]]]
+    --]]]
+
+    eq = SemStoset.eq ⟦ isDomStoset ⁑⟧
+
+    |i| : (DeltaPoset.Carrier P) → (Poset.Carrier ⟦ semilat→deltaPoset $ DictSemilat isDomStoset isCodSemilat ⁎⟧)
+    |i| (t , s) = 
+      (conv {P = ⟦ stoset→poset isDomStoset ⁎⟧} {T = T₀} eq t) , ((proj₁ $ SemSemilatCore.i ⟦ isCodSemilat ⁂⟧) s)
+
+    |i|-monotone : 
+      Monotone
+        (DeltaPoset.preorder P) 
+        ⟦ ProductPoset (CapsulePoset qAny' $ stoset→poset isDomStoset) (semilat→deltaPoset isCodSemilat) ⁎⟧'
+        |i|
+    --[[[
+    |i|-monotone {t , s} {t' , s'} (t≈t' , s≤s') = 
+      ((ct≤ct' , ct'≤ct) , (proj₁ $ proj₂ $ SemSemilatCore.i ⟦ isCodSemilat ⁂⟧) s≤s') 
+      where
+        Q : Poset l0 l0 l0
+        Q = ⟦ stoset→poset isDomStoset ⁎⟧
+        _≤Q_ = Poset._≤_ Q
+ 
+        ct = conv {P = ⟦ stoset→poset isDomStoset ⁎⟧} {T = T₀} eq t
+        ct' = conv {P = ⟦ stoset→poset isDomStoset ⁎⟧} {T = T₀} eq t'
+
+        ct≈ct' = conv-≈ eq t t' t≈t'
+
+        ct≤ct' : ct ≤Q ct'
+        ct≤ct' = (Poset.reflexive Q ct≈ct') 
+
+        ct'≤ct : ct' ≤Q ct
+        ct'≤ct = (Poset.reflexive Q $ Poset.Eq.sym Q ct≈ct') 
+    --]]]
+                
+    |i|-injective :
+      Injective 
+        (preorder→setoid (DeltaPoset.preorder P))
+        (preorder→setoid ⟦ ProductPoset (CapsulePoset qAny' (stoset→poset isDomStoset)) (semilat→deltaPoset isCodSemilat) ⁎⟧')
+        |i|
+    |i|-injective {t , s} {t' , s'} (convt≈convt' , |i|s≈|i|s') = 
+      (conv-inj eq t t' convt≈convt' , (proj₂ $ proj₂ $ SemSemilatCore.i ⟦ isCodSemilat ⁂⟧) |i|s≈|i|s') 
+
+{-
+conv-≈ : {P : Poset l0 l0 l0} → {T : StrictTotalOrder l0 l0 l0} → (eq : StrictTotalOrder.Eq.setoid T ≡ (poset→setoid P)) →
+         (t₁ t₂ : StrictTotalOrder.Eq.Carrier T) → (StrictTotalOrder.Eq._≈_ T t₁ t₂) → 
+         (Poset._≈_ P (conv {P} {T} eq t₁) (conv {P} {T} eq t₂))
+conv-≈ {P} {T} PE.refl t₁ t₂ t₁≈t₂ = t₁≈t₂
+
+conv-inj : {P : Poset l0 l0 l0} → {T : StrictTotalOrder l0 l0 l0} → (eq : StrictTotalOrder.Eq.setoid T ≡ (poset→setoid P)) →
+         (t₁ t₂ : StrictTotalOrder.Eq.Carrier T) → 
+         (Poset._≈_ P (conv {P} {T} eq t₁) (conv {P} {T} eq t₂)) → 
+         (StrictTotalOrder.Eq._≈_ T t₁ t₂)
+conv-inj {P} {T} PE.refl t₁ t₂ t₁≈t₂ = t₁≈t₂
+-}

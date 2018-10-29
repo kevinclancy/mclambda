@@ -19,7 +19,6 @@ open import Util
 ⟦ PartialSemilat isSemilatContent ⁂iso⟧ = sem
   where
     open import SemilatKinding.Partial ⟦ isSemilatContent ⁂iso⟧   
-⟦ IVarSemilat isStosetContent ⁂iso⟧ = yup
+⟦ IVarSemilat isStosetContent ⁂iso⟧ = sem
   where
-    --open import SemilatKinding.Partial ⟦ isSemilatContent ⁂iso⟧   
-    postulate yup : SemSemilatIso l0 l0 l0 l0 l0 l0 l0 (IVarSemilat isStosetContent) 
+    open import SemilatKinding.IVar
