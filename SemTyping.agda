@@ -440,7 +440,7 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
     τ₁-wf' = semilat→poset τ₁⁂
 
     τ₁'-wf' : IsPoset τ₁'
-    τ₁'-wf' = delta→poset (semilat→delta τ₁⁂)
+    τ₁'-wf' = semilat→deltaPoset τ₁⁂
 
     τ₂-wf' : IsPoset τ₂
     τ₂-wf' = semilat→poset τ₂⁂

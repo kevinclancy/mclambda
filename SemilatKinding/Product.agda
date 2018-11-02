@@ -16,7 +16,6 @@ module SemilatKinding.Product
  where
 
 open import FreeForgetfulAdjunction
-open import SemDeltaPoset 
 
 open import Data.Product
 open import Data.Product.Relation.Pointwise.NonDependent as PW

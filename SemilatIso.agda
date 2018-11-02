@@ -22,3 +22,6 @@ open import Util
 ⟦ IVarSemilat isStosetContent ⁂iso⟧ = sem
   where
     open import SemilatKinding.IVar
+⟦ DictSemilat isStosetDom isSemilatCod ⁂iso⟧ = sem
+  where
+    postulate sem : SemSemilatIso l0 l0 l0 l0 l0 l0 l0 (DictSemilat isStosetDom isSemilatCod)

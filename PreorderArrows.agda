@@ -134,7 +134,8 @@ open import Preorders
   where
     open import Relation.Binary.Lattice
     open import Data.List
-    open import Dictionary T valS renaming (_<_ to _<k_)
+    open import Dictionary T valS
+    _<k_ = StrictTotalOrder._<_ T
 
     P' = Poset.preorder P
     valS' = BoundedJoinSemilattice.preorder valS
@@ -210,7 +211,6 @@ open import Preorders
         _≤s_ = BoundedJoinSemilattice._≤_ targetS
 
         open Poset P renaming (reflexive to ≤k-reflexive)
-        open StrictTotalOrder.Eq T renaming (sym to ≈k-sym)
         open import Relation.Binary.PartialOrderReasoning (BoundedJoinSemilattice.poset targetS)
 
         t1≤t2 : Poset._≤_ ▹-poset (t1 , dt1) (t2 , dt2)
@@ -305,7 +305,6 @@ open import Preorders
                   where
                     open import Data.Empty using (⊥-elim)
                     open StrictTotalOrder T using (<-respʳ-≈ ; irrefl)
-                    open StrictTotalOrder.Eq T renaming (refl to ≈k-refl ; sym to ≈k-sym)
                 elim (kz , vz) f k1v1≤kzvz (there kzvz∈t2) = 
                   LAny.map (λ kzvz≡· → ≤e-trans k1v1≤kzvz (≤e-reflexive kzvz≡·)) kzvz∈t2 
 
@@ -318,7 +317,7 @@ open import Preorders
               where
                 open import Data.Empty using (⊥-elim)
                 open StrictTotalOrder T renaming (trans to <k-trans ; irrefl to <k-irrefl ; <-respˡ-≈ to <k-respˡ-≈k)
-                open StrictTotalOrder.Eq T renaming (sym to ≈k-sym ; reflexive to ≈k-reflexive)
+                open StrictTotalOrder.Eq T renaming (reflexive to ≈k-reflexive)
 
                 k1'<k1 : k1' <k k1
                 k1'<k1 = <k-respˡ-≈k (≈k-sym k1'≈k2) k2<k1

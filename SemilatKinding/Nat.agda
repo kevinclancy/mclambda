@@ -23,7 +23,6 @@ open import Level
 open import Syntax
 open import Kinding
 open import Util
-open import SemDeltaPoset
 open import FreeForgetfulAdjunction
 open import BoolPoset
 open import FinPoset
