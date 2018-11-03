@@ -1,12 +1,7 @@
-open import Relation.Binary renaming (_⇒_ to _Implies_)
-open import Relation.Binary.PropositionalEquality as PE using (_≡_)
+open import Relation.Binary
 open import Relation.Binary.Lattice
+
 open import Util
-open import Data.List
-open import Data.List.Membership.Propositional
-open import Data.List.All
-open import Data.List.Any
-open import Data.Product
 
 module IVar (E : StrictTotalOrder l0 l0 l0) where
 

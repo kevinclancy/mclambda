@@ -143,19 +143,9 @@ record SemStoset {τ : τ} (isStoset : IsStoset τ) : Set l1 where
     T : StrictTotalOrder l0 l0 l0
     eq : StrictTotalOrder.Eq.setoid T ≡ (poset→setoid ⟦ stoset→poset isStoset ⁎⟧)
 
-
---SemStoset→sto : {τ : τ} → (isStoset : IsStoset τ) → (semStoset : SemStoset isStoset) → StrictTotalOrder l0 l0 l0
---SemStoset→sto {τ : τ} → 
-
 -- agda-mode: ⁑ is \asterisk, second choice
 ⟦_⁑⟧ : ∀ {τ : τ} → (p : IsStoset τ) → SemStoset p
 
--- TODO: create a function semilat→posetDelta in the kinding module
--- move ⟦_Δ⟧ into ⟦_⁂⟧ as the definition of P
--- then we could get rid of the "delta interpretations" ⟦_Δ⟧
---
--- only that portion of semilattice kinding needed by poset semantics
--- (separating this out allows faster type checking of mutual definitions, which would otherwise take a looong time)
 record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Level) {τ τ₀ : τ} (isSemilat : IsSemilat τ τ₀)
                       : Set (Level.suc $ cₛ ⊔ ℓₛ₁ ⊔ ℓₛ₂ ⊔ cₚ ⊔ ℓ⊑ₚ ⊔ ℓ<ₚ ⊔ ℓ~ₚ) where
   field
@@ -170,6 +160,7 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
 -- partial interpretation of semilattice kinding judgment
 -- this only includes the portion necessary for mutual recursion with poset kinding interpretation
 -- the other portion is implemented in the SemilatKinding directory
+-- agda-mode: ⁂ is \asterisk, third choice
 ⟦_⁂⟧ : ∀ {τ τ₀ : τ} → (isSemilat : IsSemilat τ τ₀) → SemSemilatCore l0 l0 l0 l0 l0 l0 l0 isSemilat   
 
 ⟦ FunPoset {q = q} domIsPoset codIsPoset ⁎⟧ = ⇒-poset (⟦ q q⟧ ⟦ domIsPoset ⁎⟧') ⟦ codIsPoset ⁎⟧
@@ -1107,16 +1098,3 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
         |i|
     |i|-injective {t , s} {t' , s'} (convt≈convt' , |i|s≈|i|s') = 
       (conv-inj eq t t' convt≈convt' , (proj₂ $ proj₂ $ SemSemilatCore.i ⟦ isCodSemilat ⁂⟧) |i|s≈|i|s') 
-
-{-
-conv-≈ : {P : Poset l0 l0 l0} → {T : StrictTotalOrder l0 l0 l0} → (eq : StrictTotalOrder.Eq.setoid T ≡ (poset→setoid P)) →
-         (t₁ t₂ : StrictTotalOrder.Eq.Carrier T) → (StrictTotalOrder.Eq._≈_ T t₁ t₂) → 
-         (Poset._≈_ P (conv {P} {T} eq t₁) (conv {P} {T} eq t₂))
-conv-≈ {P} {T} PE.refl t₁ t₂ t₁≈t₂ = t₁≈t₂
-
-conv-inj : {P : Poset l0 l0 l0} → {T : StrictTotalOrder l0 l0 l0} → (eq : StrictTotalOrder.Eq.setoid T ≡ (poset→setoid P)) →
-         (t₁ t₂ : StrictTotalOrder.Eq.Carrier T) → 
-         (Poset._≈_ P (conv {P} {T} eq t₁) (conv {P} {T} eq t₂)) → 
-         (StrictTotalOrder.Eq._≈_ T t₁ t₂)
-conv-inj {P} {T} PE.refl t₁ t₂ t₁≈t₂ = t₁≈t₂
--}

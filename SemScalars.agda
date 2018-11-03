@@ -42,7 +42,6 @@ open import Preorders
           ; trans = trans
          }
       }
-
 ⟦_q⟧ qMono P = P  
 ⟦_q⟧ qAnti P = P' 
   where
@@ -313,8 +312,6 @@ q-cartesian⃖ P Q qConst =
 
     monotone : (Preorder._∼_ (×-preorder (⟦ qConst q⟧ P) (⟦ qConst q⟧ Q))) =[ fun ]⇒ (Preorder._∼_ $ ⟦ qConst q⟧ $ ×-preorder P Q)
     monotone (p₁∼p₂ , q₁∼q₂) = monotone' p₁∼p₂ q₁∼q₂
-
-  
 --]]]
 
 -- comultiplication
@@ -502,7 +499,6 @@ q-preserves-+⃗ P Q qConst =
     monotone {inj₂ q₁} {inj₂ q₂} (inj₂ (₂∼₂ ∼q₁) ◅ q₁∼q₂') with monotone q₁∼q₂'
     monotone {inj₂ q₁} {inj₂ q₂} (inj₂ (₂∼₂ ∼q₁) ◅ _) | ₂∼₂ q₁∼q₂' = ₂∼₂ $ inj₂ ∼q₁ ◅ q₁∼q₂'
     monotone {inj₂ q₁} {inj₂ q₂} (inj₂ (₁∼₂ ()) ◅ _)
-
 q-preserves-+⃗ P Q qAny = 
   record
   { fun = fun

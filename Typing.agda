@@ -12,10 +12,6 @@ open import Data.Product
 open import Relation.Binary.PropositionalEquality as PE using (_≡_)
 open import Relation.Nullary
 
--- data IsPoset : τ → Set
--- data IsToset : τ → Set
--- data IsSemilat : τ → τ → Set
-
 wfτ : Set
 wfτ = Σ[ τ₀ ∈ τ ] IsPoset τ₀
 
@@ -138,8 +134,3 @@ data _∣_⊢_∣_ where
 τRes-wf (TyCapIntro {q₀' = q₀'} d) = CapsulePoset q₀' (τRes-wf d)
 τRes-wf (TyCapElim _ d2) = τRes-wf d2 
 τRes-wf {τRes = τRes} (TyVar  {m = m} {Γ = Γ} {eq1 = PE.refl}) = proj₂ (V.lookup m Γ)   
-
-{-
-τRes-wf Γ₀ R₀ .(Inr _ _ _) .(τSum _ _) (TyInr zzz) = {!!}
-τRes-wf Γ₀ .(zipWith _q+_ (V.map (_q∘_ (_ q+ _)) _) (zipWith _q+_ _ _)) .(Case _ _ _) τRes (TyCase zzz zzz₁ zzz₂) = {!!}
--}
