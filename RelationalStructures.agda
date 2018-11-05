@@ -99,7 +99,7 @@ record DeltaPoset {c ℓ⊑ ℓ< ℓ≈ : Level} : Set (Level.suc $ c ⊔ ℓ⊑
   a ∥ b = ¬ (a ∦ b)
 
   field    
-    unimodality : {a b c : Carrier} → (a < b) → (b < c) → (a ∥ b) → (b ∥ c) → (a ∥ c)  
+    convexity : {a b c : Carrier} → (a < b) → (b < c) → (a ∥ b) → (b ∥ c) → (a ∥ c)  
 
   -- comparable
   data Comparison : Carrier → Carrier → Set (ℓ⊑ ⊔ ℓ≈) where

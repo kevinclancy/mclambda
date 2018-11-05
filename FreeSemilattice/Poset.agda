@@ -14,7 +14,7 @@ open import Relation.Nullary
 open import Relation.Binary
 open import Relation.Binary.Lattice
 open import Relation.Binary.PropositionalEquality as PE
-open import RelationalStructures
+open import Deltas
 open import Util
 
 module FreeSemilattice.Poset {c ℓ⊑ ℓ< ℓ~} (P : DeltaPoset {c} {ℓ⊑} {ℓ<} {ℓ~}) where
@@ -155,7 +155,7 @@ mutual
         elim' x f h2⊑x (here x≡h1@PE.refl) = 
           h2∥h1 $ inj₁ (trans⊑ h2⊑x $ reflexive refl~) 
         elim' x f h2⊑x (there x∈≡t1) = 
-          (unimodality h2<h1 (LA.lookup min1 x∈≡t1) h2∥h1 h1∥x) (inj₁ h2⊑x) 
+          (convexity h2<h1 (LA.lookup min1 x∈≡t1) h2∥h1 h1∥x) (inj₁ h2⊑x) 
           where
             h1∥x : h1 ∥ x
             h1∥x h1∦x = incomp1 $ LAny.map (λ x≡· → PE.subst (λ · → h1 ∦ ·) x≡· h1∦x) x∈≡t1

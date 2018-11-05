@@ -1,7 +1,7 @@
 
 open import SemilatKinding.Core
 open import Relation.Binary
-open import RelationalStructures
+open import Deltas
 open import Level 
 open import Syntax
 open import Kinding

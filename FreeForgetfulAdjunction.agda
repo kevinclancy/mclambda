@@ -16,7 +16,7 @@ open import Relation.Binary.Lattice
 open import Relation.Binary.PropositionalEquality as PE
 open import Level
 
-open import RelationalStructures
+open import Deltas
 open import Util
 open import Preorders
 

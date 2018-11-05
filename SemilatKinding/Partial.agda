@@ -3,7 +3,7 @@ open import SemilatKinding.Core
 open import Relation.Nullary
 open import Relation.Binary
 open import Relation.Binary.PropositionalEquality as PE using (_≡_)
-open import RelationalStructures
+open import Deltas
 open import Util
 open import Syntax using (τ)
 open import Kinding using (IsSemilat)

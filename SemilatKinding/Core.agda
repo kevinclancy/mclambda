@@ -8,7 +8,7 @@ open import BoolPoset
 
 open import Level
 open import FreeForgetfulAdjunction
-open import RelationalStructures
+open import Deltas
 open import SemKinding
 
 open import Relation.Binary

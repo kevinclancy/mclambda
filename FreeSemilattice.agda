@@ -11,7 +11,7 @@ open import Relation.Binary.PropositionalEquality as PE hiding (preorder)
 open import Level renaming (_⊔_ to _v_) 
 open import Function.Equivalence as FE
 open import Algebra.FunctionProperties
-open import RelationalStructures
+open import Deltas
 open import Util
 
 module FreeSemilattice {c ℓ⊑ ℓ< ℓ≈} (P : DeltaPoset {c} {ℓ⊑} {ℓ<} {ℓ≈}) where

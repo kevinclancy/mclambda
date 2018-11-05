@@ -8,7 +8,7 @@ open import BoolPoset
 
 open import Level
 open import FreeForgetfulAdjunction
-open import RelationalStructures
+open import Deltas
 
 open import Relation.Nullary
 open import Relation.Binary hiding (_⇒_)
@@ -270,7 +270,7 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
     open import Data.Bool
 
     open import Relation.Binary
-    open import RelationalStructures
+    open import Deltas
     open import Level 
     open import Syntax
     open import Kinding
@@ -331,7 +331,7 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
       ; _<_ = _<_
       ; isStrictTotalOrder = UnitStrictTotal.⊤-IsStrictTotalOrder
       ; isDecPartialOrder = ⊤≤-isDecPartialOrder
-      ; unimodality = unimodality
+      ; convexity = convexity
       }
      where
        open import UnitPoset
@@ -344,8 +344,8 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
        _∥_ : ⊤ → ⊤ → Set
        _∥_ x y = ¬ (x ∦ y)
 
-       unimodality : {a b c : ⊤} → a < b → b < c → a ∥ b → b ∥ c → a ∥ c
-       unimodality () () _ _
+       convexity : {a b c : ⊤} → a < b → b < c → a ∥ b → b ∥ c → a ∥ c
+       convexity () () _ _
 
 
     |i| : (DeltaPoset.Carrier P) → (DeltaPoset.Carrier P)
@@ -404,7 +404,7 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
       ; _≈_ = _≈₀_
       ; isStrictTotalOrder = isStrictTotalOrder₀
       ; isDecPartialOrder = isDecPartialOrder₀
-      ; unimodality = λ {a} → λ {b} → λ {c} → unimodality {a} {b} {c}
+      ; convexity = λ {a} → λ {b} → λ {c} → convexity {a} {b} {c}
       }
       where
         open import Relation.Binary renaming (_⇒_ to _⇛_)
@@ -428,8 +428,8 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
         _∥₀_ : C → C → Set
         a ∥₀ b = ¬ (a ∦₀ b)
 
-        unimodality : {a b c : C} → (a <₀ b) → (b <₀ c) → (a ∥₀ b) → (b ∥₀ c) → (a ∥₀ c)
-        unimodality {a , _} {b , _} {c , _} _ _ a∥b b∥c = ⊥-elim $ a∥b (≤-total a b)
+        convexity : {a b c : C} → (a <₀ b) → (b <₀ c) → (a ∥₀ b) → (b ∥₀ c) → (a ∥₀ c)
+        convexity {a , _} {b , _} {c , _} _ _ a∥b b∥c = ⊥-elim $ a∥b (≤-total a b)
 
         <₀-compare : Trichotomous _≈₀_ _<₀_
         <₀-compare (a , _) (b , _) = <-cmp a b
@@ -638,14 +638,100 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
       }
     _≈R₀_ : |R₀| → |R₀| → Set
     _≈R₀_ = DeltaPoset._≈_ deltaR
-    unimL = DeltaPoset.unimodality deltaL
-    unimR = DeltaPoset.unimodality deltaR
+    convexL = DeltaPoset.convexity deltaL
+    convexR = DeltaPoset.convexity deltaR
 
     P : DeltaPoset {l0} {l0} {l0} {l0}
     P = sumDeltaPoset
       where 
-        open import SumDelta deltaL deltaR
+        open import Data.Sum.Relation.LeftOrder as LO
+        open import Data.Sum.Relation.Pointwise as SPW
 
+        CarrierL = DeltaPoset.Carrier deltaL
+        CarrierR = DeltaPoset.Carrier deltaR
+        _L<_ = DeltaPoset._<_ deltaL
+        _R<_ = DeltaPoset._<_ deltaR
+        _L⊑_ = DeltaPoset._⊑_ deltaL
+        _R⊑_ = DeltaPoset._⊑_ deltaR
+        _L∥_ = DeltaPoset._∥_ deltaL
+        _R∥_ = DeltaPoset._∥_ deltaR
+        _L∦_ = DeltaPoset._∦_ deltaL
+        _R∦_ = DeltaPoset._∦_ deltaR
+        _L≈_ =  DeltaPoset._≈_ deltaL
+        _R≈_ =  DeltaPoset._≈_ deltaR
+
+        |P| = CarrierL ⊎ CarrierR
+        _<ₚ_ = _L<_ ⊎-< _R<_
+        _⊑ₚ_ = SPW.Pointwise _L⊑_ _R⊑_
+        _≈ₚ_ = SPW.Pointwise _L≈_ _R≈_
+
+        _∦ₚ_ : |P| → |P| → Set _
+        a ∦ₚ b = (a ⊑ₚ b) ⊎ (b ⊑ₚ a)  
+
+        _∥ₚ_ : |P| → |P| → Set _
+        a ∥ₚ b = ¬ (a ∦ₚ b)
+
+        tosetLR : IsStrictTotalOrder _≈ₚ_ _<ₚ_ 
+        tosetLR = ⊎-<-isStrictTotalOrder (DeltaPoset.isStrictTotalOrder deltaL) (DeltaPoset.isStrictTotalOrder deltaR)
+
+        partialOrderLR : IsPartialOrder _≈ₚ_ _⊑ₚ_
+        partialOrderLR = ⊎-isPartialOrder (DeltaPoset.isPartialOrder deltaL) (DeltaPoset.isPartialOrder deltaR)
+
+        ≈ₚ-equiv : IsEquivalence _≈ₚ_
+        ≈ₚ-equiv = IsPartialOrder.isEquivalence partialOrderLR
+
+        ≈ₚ-setoid : Setoid _ _
+        ≈ₚ-setoid = record
+          { Carrier = |P|
+          ; isEquivalence = ≈ₚ-equiv
+          }
+
+        convexity : {a b c : |P|} → a <ₚ b → b <ₚ c → a ∥ₚ b → b ∥ₚ c → a ∥ₚ c
+        convexity {inj₁ a'} {inj₂ b'} {inj₁ c'} (₁∼₂ .tt) () a∥b b∥c a∦c
+        convexity {inj₁ a'} {inj₂ b'} {inj₂ c'} (₁∼₂ .tt) (₂∼₂ b'<c') a∥b b∥c (inj₁ (₁∼₂ ()))
+        convexity {inj₁ a'} {inj₂ b'} {inj₂ c'} (₁∼₂ .tt) (₂∼₂ b'<c') a∥b b∥c (inj₂ ())
+        convexity {inj₁ a'} {inj₁ b'} {inj₂ c'} (₁∼₁ a'<b') (₁∼₂ .tt) a∥b b∥c (inj₁ (₁∼₂ ()))
+        convexity {inj₁ a'} {inj₁ b'} {inj₂ c'} (₁∼₁ a'<b') (₁∼₂ .tt) a∥b b∥c (inj₂ ())
+        convexity {inj₁ a'} {inj₁ b'} {inj₁ c'} (₁∼₁ a'<b') (₁∼₁ b'<c') a∥b b∥c a∦c with a'∥b' | b'∥c'
+          where
+            a'∥b' : a' L∥ b'
+            a'∥b' (inj₁ a'⊑b') = a∥b $ inj₁ (₁∼₁ a'⊑b')
+            a'∥b' (inj₂ b'⊑a') = a∥b $ inj₂ (₁∼₁ b'⊑a')
+
+            b'∥c' : b' L∥ c'
+            b'∥c' (inj₁ b'⊑c') = b∥c $ inj₁ (₁∼₁ b'⊑c')
+            b'∥c' (inj₂ c'⊑b') = b∥c $ inj₂ (₁∼₁ c'⊑b')
+        convexity {inj₁ a'} {inj₁ b'} {inj₁ c'} (₁∼₁ a'<b') (₁∼₁ b'<c') a∥b b∥c (inj₁ (₁∼₁ a'⊑c')) | a'∥b' | b'∥c' =
+          (convexL a'<b' b'<c' a'∥b' b'∥c') (inj₁ a'⊑c')
+        convexity {inj₁ a'} {inj₁ b'} {inj₁ c'} (₁∼₁ a'<b') (₁∼₁ b'<c') a∥b b∥c (inj₂ (₁∼₁ c'⊑a')) | a'∥b' | b'∥c' =
+          (convexL a'<b' b'<c' a'∥b' b'∥c') (inj₂ c'⊑a')
+        convexity {inj₂ a'} {inj₂ b'} {inj₂ c'} (₂∼₂ a'<b') (₂∼₂ b'<c') a∥b b∥c a∦c with a'∥b' | b'∥c'
+          where
+            a'∥b' : a' R∥ b'
+            a'∥b' (inj₁ a'⊑b') = a∥b $ inj₁ (₂∼₂ a'⊑b')
+            a'∥b' (inj₂ b'⊑a') = a∥b $ inj₂ (₂∼₂ b'⊑a')
+
+            b'∥c' : b' R∥ c'
+            b'∥c' (inj₁ b'⊑c') = b∥c $ inj₁ (₂∼₂ b'⊑c')
+            b'∥c' (inj₂ c'⊑b') = b∥c $ inj₂ (₂∼₂ c'⊑b')
+        convexity {inj₂ a'} {inj₂ b'} {inj₂ c'} (₂∼₂ a'<b') (₂∼₂ b'<c') a∥b b∥c (inj₁ (₂∼₂ a'⊑c')) | a'∥b' | b'∥c' =
+          (convexR a'<b' b'<c' a'∥b' b'∥c') (inj₁ a'⊑c')
+        convexity {inj₂ a'} {inj₂ b'} {inj₂ c'} (₂∼₂ a'<b') (₂∼₂ b'<c') a∥b b∥c (inj₂ (₂∼₂ c'⊑a')) | a'∥b' | b'∥c' =
+          (convexR a'<b' b'<c' a'∥b' b'∥c') (inj₂ c'⊑a')
+
+        sumDeltaPoset : DeltaPoset {_} {_} {_} {_}
+        sumDeltaPoset = record  
+          { Carrier = |P|
+          ; _⊑_ = _⊑ₚ_
+          ; _<_ = _<ₚ_
+          ; isStrictTotalOrder = tosetLR
+          ; isDecPartialOrder = record
+            { isPartialOrder = partialOrderLR
+            ; _≟_ = ⊎-decidable (DeltaPoset._≈?_ deltaL) (DeltaPoset._≈?_ deltaR) 
+            ; _≤?_ = ⊎-decidable (DeltaPoset._⊑?_ deltaL) (DeltaPoset._⊑?_ deltaR) 
+            }
+          ; convexity = convexity
+          }
 
     |P| : Set
     |P| = DeltaPoset.Carrier P
@@ -811,7 +897,7 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
         ; _≟_ = _≟₀_
         ; _≤?_ = _≤₀?_
         } 
-      ; unimodality = unimodality
+      ; convexity = convexity
       } 
       where
         open import Data.Sum.Relation.Pointwise as SPW using (⊎-setoid)
@@ -871,8 +957,8 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
         _∦_ = DeltaPoset._∦_ P'
         _⊑_ = DeltaPoset._⊑_ P'
 
-        unimodality : {a b c : Carrier₀} → (a <₀ b) → (b <₀ c) → (a ∥₀ b) → (b ∥₀ c) → (a ∥₀ c)
-        unimodality {inj₁ a'} {inj₁ b'} {inj₁ c'} (₁∼₁ a'<b') (₁∼₁ b'<c') a∥b b∥c = a∥c
+        convexity : {a b c : Carrier₀} → (a <₀ b) → (b <₀ c) → (a ∥₀ b) → (b ∥₀ c) → (a ∥₀ c)
+        convexity {inj₁ a'} {inj₁ b'} {inj₁ c'} (₁∼₁ a'<b') (₁∼₁ b'<c') a∥b b∥c = a∥c
           where
             a'∥b' : a' ∥ b'
             a'∥b' (inj₁ a'⊑b') = a∥b (inj₁ $ ₁∼₁ a'⊑b')
@@ -883,15 +969,15 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
             b'∥c' (inj₂ c'⊑b') = b∥c (inj₂ $ ₁∼₁ c'⊑b')
 
             a'∥c' : a' ∥ c'
-            a'∥c' = (DeltaPoset.unimodality P') a'<b' b'<c' a'∥b' b'∥c' 
+            a'∥c' = (DeltaPoset.convexity P') a'<b' b'<c' a'∥b' b'∥c' 
 
             a∥c : (inj₁ a') ∥₀ (inj₁ c')
             a∥c (inj₁ (₁∼₁ a'⊑c')) = a'∥c' (inj₁ a'⊑c')
             a∥c (inj₂ (₁∼₁ c'⊑a')) = a'∥c' (inj₂ c'⊑a')
-        unimodality {inj₁ a'} {inj₁ b'} {inj₂ tt} (₁∼₁ a'⊑b') (₁∼₂ tt) a∥b b∥c = ⊥-elim $ b∥c (inj₁ (₁∼₂ tt))
-        unimodality {inj₁ x} {inj₂ y} {c} a<b b<c a∥b b∥c = ⊥-elim $ a∥b (inj₁ (₁∼₂ tt))
-        unimodality {inj₂ y} {inj₁ x} {c} () b<c a∥b b∥c
-        unimodality {inj₂ y} {inj₂ y₁} {c} (₂∼₂ ()) b<c a∥b b∥c
+        convexity {inj₁ a'} {inj₁ b'} {inj₂ tt} (₁∼₁ a'⊑b') (₁∼₂ tt) a∥b b∥c = ⊥-elim $ b∥c (inj₁ (₁∼₂ tt))
+        convexity {inj₁ x} {inj₂ y} {c} a<b b<c a∥b b∥c = ⊥-elim $ a∥b (inj₁ (₁∼₂ tt))
+        convexity {inj₂ y} {inj₁ x} {c} () b<c a∥b b∥c
+        convexity {inj₂ y} {inj₂ y₁} {c} (₂∼₂ ()) b<c a∥b b∥c
 
     |i| : (DeltaPoset.Carrier P) → -- ((DeltaPoset.Carrier deltaContents) ⊎ ⊤) → 
           (Poset.Carrier ⟦ PartialPoset (semilat→deltaPoset isContentsSemilat) ⁎⟧) 
@@ -995,7 +1081,7 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
         ; _≤?_ = PW.×-decidable (StrictTotalOrder._≟_ T₀) (IsDecPartialOrder._≤?_ $ DeltaPoset.isDecPartialOrder P₀)
         ; _≟_ = PW.×-decidable (StrictTotalOrder._≟_ T₀) (IsStrictTotalOrder._≟_ $ DeltaPoset.isStrictTotalOrder P₀) 
         }
-      ; unimodality = unimodality
+      ; convexity = convexity
       }
       where
         ⊑-isPartial : IsPartialOrder (DeltaPoset._≈_ P₀) (DeltaPoset._⊑_ P₀)
@@ -1011,9 +1097,9 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
           ; antisym = λ {x} {y} x≈y y≈x → x≈y
           }
         
-        unimodality : {a b c : |P|} → a <' b → b <' c → a ∥' b → b ∥' c → a ∥' c
+        convexity : {a b c : |P|} → a <' b → b <' c → a ∥' b → b ∥' c → a ∥' c
         --[[[
-        unimodality {a@(al , ar)} {b@(bl , br)} {c@(cl , cr)} (inj₁ al<bl) (inj₁ bl<cl) a∥b b∥c = 
+        convexity {a@(al , ar)} {b@(bl , br)} {c@(cl , cr)} (inj₁ al<bl) (inj₁ bl<cl) a∥b b∥c = 
           a∥c
           where
             al<cl : al <T₀ cl
@@ -1022,7 +1108,7 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
             a∥c : a ∥' c
             a∥c (inj₁ (al≈cl , ar⊑cr)) = StrictTotalOrder.irrefl T₀ al≈cl al<cl   
             a∥c (inj₂ (cl≈al , cr⊑ar)) = StrictTotalOrder.irrefl T₀ (StrictTotalOrder.Eq.sym T₀ cl≈al) al<cl
-        unimodality {a@(al , ar)} {b@(bl , br)} {c@(cl , cr)} (inj₁ al<bl) (inj₂ (bl≈cl , br<cr)) a∥b b∥c = 
+        convexity {a@(al , ar)} {b@(bl , br)} {c@(cl , cr)} (inj₁ al<bl) (inj₂ (bl≈cl , br<cr)) a∥b b∥c = 
           a∥c
           where
             al<cl : al <T₀ cl
@@ -1031,7 +1117,7 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
             a∥c : a ∥' c
             a∥c (inj₁ (al≈cl , ar⊑cr)) = StrictTotalOrder.irrefl T₀ al≈cl al<cl   
             a∥c (inj₂ (cl≈al , cr⊑ar)) = StrictTotalOrder.irrefl T₀ (StrictTotalOrder.Eq.sym T₀ cl≈al) al<cl
-        unimodality {a@(al , ar)} {b@(bl , br)} {c@(cl , cr)} (inj₂ (al≈bl , ar<br)) (inj₁ bl<cl) a∥b b∥c = 
+        convexity {a@(al , ar)} {b@(bl , br)} {c@(cl , cr)} (inj₂ (al≈bl , ar<br)) (inj₁ bl<cl) a∥b b∥c = 
           a∥c
           where
             al<cl : al <T₀ cl
@@ -1040,7 +1126,7 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
             a∥c : a ∥' c
             a∥c (inj₁ (al≈cl , ar⊑cr)) = StrictTotalOrder.irrefl T₀ al≈cl al<cl   
             a∥c (inj₂ (cl≈al , cr⊑ar)) = StrictTotalOrder.irrefl T₀ (StrictTotalOrder.Eq.sym T₀ cl≈al) al<cl
-        unimodality {a@(al , ar)} {b@(bl , br)} {c@(cl , cr)} (inj₂ (al≈bl , ar<br)) (inj₂ (bl≈cl , br<cr)) a∥b b∥c = 
+        convexity {a@(al , ar)} {b@(bl , br)} {c@(cl , cr)} (inj₂ (al≈bl , ar<br)) (inj₂ (bl≈cl , br<cr)) a∥b b∥c = 
           a∥c
           where
             ar∥br : ar ∥P₀ br
@@ -1052,7 +1138,7 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
             br∥cr (inj₂ cr⊑br) = b∥c $ inj₂ (StrictTotalOrder.Eq.sym T₀ bl≈cl , cr⊑br)
 
             ar∥cr : ar ∥P₀ cr            
-            ar∥cr = DeltaPoset.unimodality P₀ ar<br br<cr ar∥br br∥cr
+            ar∥cr = DeltaPoset.convexity P₀ ar<br br<cr ar∥br br∥cr
  
             a∥c : a ∥' c
             a∥c (inj₁ (al≈cl , ar⊑cr)) = ar∥cr $ inj₁ ar⊑cr

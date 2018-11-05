@@ -12,7 +12,7 @@ open import Data.List.All
 open import Function using (_$_)
 
 open import Util
-open import RelationalStructures
+open import Deltas
 open import FreeForgetfulAdjunction
 open import FreeSemilattice hiding (∷-Free ; []-Free ; FP-BJS ; ⊥ ; _∨_)
 open import SemScalars

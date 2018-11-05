@@ -15,7 +15,7 @@ open import Relation.Nullary
 open import Relation.Binary
 open import Relation.Binary.Lattice
 open import Relation.Binary.PropositionalEquality as PE
-open import RelationalStructures
+open import Deltas
 open import Util
 
 module FreeSemilattice.Core {c ℓ⊑ ℓ< ℓ~} (P : DeltaPoset {c} {ℓ⊑} {ℓ<} {ℓ~}) where
@@ -244,7 +244,7 @@ data _⋜_ : Carrier-FP → Carrier-FP → Set (Level.suc $ ℓ⊑ ⊔ ℓ< ⊔ 
         h2∥a : h2 ∥ a
         h2∥a h2∦a = incomp2 $ f (h2 ∦_) h2∦a
       in
-      (unimodality h1<h2 (LA.lookup min2 a∈t2) h1∥h2 h2∥a) (inj₁ h1⊑a)
+      (convexity h1<h2 (LA.lookup min2 a∈t2) h1∥h2 h2∥a) (inj₁ h1⊑a)
 ≤→⋜ {h1 ∷ t1 , f1@(∷-Free _ _ _ _ ft1)} {h2 ∷ t2 , f2@(∷-Free _ _ min2 incomp2 _)} t1⋜l2@(there h1⊑t2 ∷ t1≤l2) | t1⋜l2 | l∥r h1∥h2 | tri≈ _ h1~h2 _ =
   ⊥-elim $ h1∥h2 (inj₁ $ reflexive h1~h2) 
 ≤→⋜ {h1 ∷ t1 , f1@(∷-Free _ _ min1 incomp1 ft1)} {h2 ∷ t2 , f2@(∷-Free _ _ min2 incomp2 ft2)} l1⋜l2@(there h1⊑t2 ∷ t1≤l2) | t1⋜l2 | l∥r h1∥h2 | tri> _ _ h2<h1 =
@@ -255,7 +255,7 @@ data _⋜_ : Carrier-FP → Carrier-FP → Set (Level.suc $ ℓ⊑ ⊔ ℓ< ⊔ 
 
     q : {x : Carrier} → x ∈≡ t1 → Any (x ⊑_) t2
     q {x} x∈≡t1 with (LA.lookup l1⋜l2 (there x∈≡t1))
-    q {x} x∈≡t1 | (here x⊑h2) = ⊥-elim $ (unimodality h2<h1 h1<x (∥-sym h1∥h2) h1∥x) (inj₂ x⊑h2)
+    q {x} x∈≡t1 | (here x⊑h2) = ⊥-elim $ (convexity h2<h1 h1<x (∥-sym h1∥h2) h1∥x) (inj₂ x⊑h2)
       where
         h1<x : h1 < x
         h1<x = LA.lookup min1 x∈≡t1
@@ -354,7 +354,7 @@ _∨_ : List Carrier → List Carrier → List Carrier
     incomp p = ∨-Any t1 (h2 ∷ t2) incomp1 h1∥h2t2 p
         where
         anyEliminator : AnyEliminator {ℓQ = l0} Carrier ⊥ (λ x → h1 ∦ x) t2
-        anyEliminator a f p a∈≡t2 = unimodality h1<h2 h2<a h1∥h2 h2∥a p
+        anyEliminator a f p a∈≡t2 = convexity h1<h2 h2<a h1∥h2 h2∥a p
             where
             h2<a : h2 < a
             h2<a = LA.lookup min2 a∈≡t2
@@ -391,7 +391,7 @@ _∨_ : List Carrier → List Carrier → List Carrier
     incomp p = ∨-Any (h1 ∷ t1) t2 h2∥h1t1 incomp2 p
         where
         anyEliminator : AnyEliminator {ℓQ = l0} Carrier ⊥ (λ x → h2 ∦ x) t1
-        anyEliminator a f p a∈≡t1 = unimodality h2<h1 h1<a (∥-sym h1∥h2) h1∥a p
+        anyEliminator a f p a∈≡t1 = convexity h2<h1 h1<a (∥-sym h1∥h2) h1∥a p
             where
             h1<a : h1 < a
             h1<a = LA.lookup min1 a∈≡t1
@@ -509,7 +509,7 @@ a∈∨→P∨ {h1 ∷ t1} {h2 ∷ t2} {h3 ∷ t3} f1 f2@(∷-Free _ _ min2 inco
     ¬a⊑l2 (there a⊑t2) = anyEliminate t2 eliminator a⊑t2
       where
         eliminator : AnyEliminator {ℓQ = l0} Carrier ⊥ (a ⊑_) t2
-        eliminator x f a⊑x x∈≡t2 = (unimodality a<h2 (LA.lookup min2 x∈≡t2) h1∥h2 h2∥x) (inj₁ $ ⊑-respˡ-~ (trans~ a~h3 (sym~ h1~h3)) a⊑x)
+        eliminator x f a⊑x x∈≡t2 = (convexity a<h2 (LA.lookup min2 x∈≡t2) h1∥h2 h2∥x) (inj₁ $ ⊑-respˡ-~ (trans~ a~h3 (sym~ h1~h3)) a⊑x)
           where
             h2∥x : h2 ∥ x
             h2∥x h2∦x = incomp2 $ LAny.map (λ x≡· → PE.subst (λ · → h2 ∦ ·) x≡· h2∦x) x∈≡t2
@@ -535,7 +535,7 @@ a∈∨→P∨ {l1@(h1 ∷ t1)} {l2@(h2 ∷ t2)} {l3@(h3 ∷ t3)} f1@(∷-Free _
       inj₂ $ inj₁ $ (there a∈t2 , ¬a⊑l1)
       where
         a∥h1 : a ∥ h1
-        a∥h1 = ∥-sym $ unimodality h1<h2 (anyEliminate t2 eliminator a∈t2) h1∥h2 h2∥a 
+        a∥h1 = ∥-sym $ convexity h1<h2 (anyEliminate t2 eliminator a∈t2) h1∥h2 h2∥a 
           where
             h2∥a : h2 ∥ a
             h2∥a h2∦a = incomp2 $ LAny.map (λ a~· → ∦-respʳ-~ a~· h2∦a) a∈t2
@@ -559,7 +559,7 @@ a∈∨→P∨ {l1@(h1 ∷ t1)} {l2@(h2 ∷ t2)} {l3@(h3 ∷ t3)} f1@(∷-Free _
     ¬a⊑l1 (there a⊑t1) = anyEliminate t1 eliminator a⊑t1
       where
         eliminator : AnyEliminator {ℓQ = l0} Carrier ⊥ (a ⊑_) t1
-        eliminator x f a⊑x x∈≡t1 = (unimodality h2<h1 (LA.lookup min1 x∈≡t1) (∥-sym h1∥h2) h1∥x) (inj₁ $ ⊑-respˡ-~ (trans~ a~h3 (sym~ $ PW.head h2∷l1∨t2~l3)) a⊑x)
+        eliminator x f a⊑x x∈≡t1 = (convexity h2<h1 (LA.lookup min1 x∈≡t1) (∥-sym h1∥h2) h1∥x) (inj₁ $ ⊑-respˡ-~ (trans~ a~h3 (sym~ $ PW.head h2∷l1∨t2~l3)) a⊑x)
           where
             h1∥x : h1 ∥ x
             h1∥x h1∦x = incomp1 $ LAny.map (λ x≡· → PE.subst (λ · → h1 ∦ ·) x≡· h1∦x) x∈≡t1 
@@ -581,7 +581,7 @@ a∈∨→P∨ {l1@(h1 ∷ t1)} {l2@(h2 ∷ t2)} {l3@(h3 ∷ t3)} f1@(∷-Free _
       inj₁ (there a∈t1 , ¬a⊑l2)
       where
         a∥h2 : a ∥ h2
-        a∥h2 = ∥-sym $ unimodality h2<h1 (anyEliminate t1 eliminator a∈t1) (∥-sym h1∥h2) h1∥a
+        a∥h2 = ∥-sym $ convexity h2<h1 (anyEliminate t1 eliminator a∈t1) (∥-sym h1∥h2) h1∥a
           where
             h1∥a : h1 ∥ a
             h1∥a h1∦a = incomp1 $ LAny.map (λ a~· → ∦-respʳ-~ a~· h1∦a) a∈t1

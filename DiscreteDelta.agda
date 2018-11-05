@@ -1,4 +1,4 @@
-open import RelationalStructures 
+open import Deltas 
 open import Relation.Binary
 open import Relation.Nullary
 open import Data.Sum
@@ -38,9 +38,9 @@ a ∦₀ b = a ⊑₀ b ⊎ b ⊑₀ a
 _∥₀_ : |C| → |C| → Set _
 a ∥₀ b = ¬ (a ∦₀ b)
 
-unimodality : {a b c : |C|} → a <₀ b → b <₀ c → a ∥₀ b → b ∥₀ c → a ∥₀ c
-unimodality a<b b<c a∥b b∥c (inj₁ (⊑-refl a≈c)) = irrefl< a≈c (trans< a<b b<c)
-unimodality a<b b<c a∥b b∥c (inj₂ (⊑-refl c≈a)) = irrefl< (sym≈ c≈a) (trans< a<b b<c)
+convexity : {a b c : |C|} → a <₀ b → b <₀ c → a ∥₀ b → b ∥₀ c → a ∥₀ c
+convexity a<b b<c a∥b b∥c (inj₁ (⊑-refl a≈c)) = irrefl< a≈c (trans< a<b b<c)
+convexity a<b b<c a∥b b∥c (inj₂ (⊑-refl c≈a)) = irrefl< (sym≈ c≈a) (trans< a<b b<c)
 
 deltaPoset = record
   { Carrier = |C| 
@@ -60,6 +60,6 @@ deltaPoset = record
       ; _≟_ = _≟₀_
       ; _≤?_ = _⊑?_
     }
-  ; unimodality = unimodality
+  ; convexity = convexity
   }
 

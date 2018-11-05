@@ -24,7 +24,7 @@ open import SemScalars
 open import SemKinding
 open import SemilatIso
 open import Relation.Binary.Lattice
-open import RelationalStructures
+open import Deltas
 open import FreeForgetfulAdjunction
 open import FreeSemilattice hiding (∷-Free ; []-Free ; FP-BJS ; ⊥ ; _∨_)
 
@@ -121,7 +121,6 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
   ; monotone = λ {_} {_} _ → codP.refl
   }
   where
-    open import SemSemilatKinding
     open import Relation.Binary.Lattice
     open SemSemilatCore ⟦ τ₀-semilat ⁂⟧
     open BoundedJoinSemilattice S
@@ -138,7 +137,6 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
 --[[[
   ⟨ wk1 , wk2 ⟩ >> (f₁ ⟨×⟩ f₂) >> _∨'_
   where
-    open import SemSemilatKinding
     open import Relation.Binary.Lattice
     open import Data.Product.Relation.Pointwise.NonDependent
     open SemSemilatCore ⟦ τ₀-semilat ⁂⟧
@@ -398,8 +396,6 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
   ⟦Γ∣R₀⟧⇒⟦P⇒S⟧ >> (♯ P₁ S₂) >> precomp-f 
   where
     open import Relation.Binary.Lattice
-    open import SemSemilatKinding
-    open import RelationalStructures
     open import FreeForgetfulAdjunction
 
     semilat₁ : SemSemilatCore _ _ _ _ _ _ _ τ₁⁂
