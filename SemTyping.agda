@@ -58,7 +58,7 @@ S≤R+S {n} R S = S≤R+S' {n} R S
     rest = ⟦ Γ₀ Γ∣ R₀ R⟧
 
     first : Preorder l0 l0 l0
-    first = ⟦ q₀ q⟧ ⟦ poset-τ₀ ⁎⟧' 
+    first = ⟦ q₀ q⟧ ⟦ poset-τ₀ ⋆⟧' 
 
 strengthenR : {n : ℕ} → (Γ₀ : Vec wfτ n) → (R₀ : Vec q n) → (R₀' : Vec q n) → (VPW.Pointwise _q≤_ R₀' R₀) → 
               (⟦ Γ₀ Γ∣ R₀ R⟧ ⇒ ⟦ Γ₀ Γ∣ R₀' R⟧)
@@ -67,16 +67,16 @@ strengthenR {.0} Γ₀ .[] .[] [] = record
   ; monotone = λ {x} {y} x≤y → x≤y
   }
 strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀≤q₀' ∷ R₀≤R₀') = 
-  (q≤⟦ q₀≤q₀' ⟧ ⟦ proj₂ wfτ ⁎⟧') ⟨×⟩ (strengthenR Γ₀' R₀ R₀' R₀≤R₀')  
+  (q≤⟦ q₀≤q₀' ⟧ ⟦ proj₂ wfτ ⋆⟧') ⟨×⟩ (strengthenR Γ₀' R₀ R₀' R₀≤R₀')  
 
 -- structural comultiplication
 Δ : {n : ℕ} → (q₀ : q) → (Γ₀ : Vec wfτ n) → (R₀ : Vec q n) → ⟦ Γ₀ Γ∣ (q₀ qR∘ R₀) R⟧ ⇒ (⟦ q₀ q⟧ ⟦ Γ₀ Γ∣ R₀ R⟧)
 --[[[
 Δ {n} q₀ (wfτ₀ ∷ Γ₀) (r₀ ∷ R₀) =
-  (δ q₀ r₀ ⟦ proj₂ wfτ₀ ⁎⟧') ⟨×⟩ (Δ q₀ Γ₀ R₀) >> p  
+  (δ q₀ r₀ ⟦ proj₂ wfτ₀ ⋆⟧') ⟨×⟩ (Δ q₀ Γ₀ R₀) >> p  
   where
-    p : (×-preorder (⟦ q₀ q⟧ (⟦ r₀ q⟧ ⟦ proj₂ wfτ₀ ⁎⟧')) (⟦ q₀ q⟧ ⟦ Γ₀ Γ∣ R₀ R⟧)) ⇒ (⟦ q₀ q⟧ $ ×-preorder (⟦ r₀ q⟧ ⟦ proj₂ wfτ₀ ⁎⟧') ⟦ Γ₀ Γ∣ R₀ R⟧)
-    p = q-cartesian⃖ (⟦ r₀ q⟧ ⟦ proj₂ wfτ₀ ⁎⟧') ⟦ Γ₀ Γ∣ R₀ R⟧ q₀ 
+    p : (×-preorder (⟦ q₀ q⟧ (⟦ r₀ q⟧ ⟦ proj₂ wfτ₀ ⋆⟧')) (⟦ q₀ q⟧ ⟦ Γ₀ Γ∣ R₀ R⟧)) ⇒ (⟦ q₀ q⟧ $ ×-preorder (⟦ r₀ q⟧ ⟦ proj₂ wfτ₀ ⋆⟧') ⟦ Γ₀ Γ∣ R₀ R⟧)
+    p = q-cartesian⃖ (⟦ r₀ q⟧ ⟦ proj₂ wfτ₀ ⋆⟧') ⟦ Γ₀ Γ∣ R₀ R⟧ q₀ 
 Δ {.0} qMono [] [] =
   record
   { fun = λ x → tt
@@ -112,7 +112,7 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
 --]]]
 
 ⟦_⊢⟧ : {n : ℕ} → {Γ₀ : Vec wfτ n} → {R₀ : Vec q n} → {e₀ : e} → {τ₀ : τ} → {τ₀-wf : IsPoset τ₀} →
-       (x : Γ₀ ∣ R₀ ⊢ e₀ ∣ τ₀) → ⟦ Γ₀ Γ∣ R₀ R⟧  ⇒ ⟦ τ₀-wf ⁎⟧' 
+       (x : Γ₀ ∣ R₀ ⊢ e₀ ∣ τ₀) → ⟦ Γ₀ Γ∣ R₀ R⟧  ⇒ ⟦ τ₀-wf ⋆⟧' 
 --[[[
 ⟦_⊢⟧ {τ₀-wf = τ₀-wf} (TyBot {n} {Γ} {τ₀} {τ₀'} {τ₀-semilat}) = 
 --[[[
@@ -122,16 +122,16 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
   }
   where
     open import Relation.Binary.Lattice
-    open SemSemilatCore ⟦ τ₀-semilat ⁂⟧
+    open SemSemilatCore ⟦ τ₀-semilat Δ⟧
     open BoundedJoinSemilattice S
 
-    module codP = Poset ⟦ τ₀-wf ⁎⟧ 
+    module codP = Poset ⟦ τ₀-wf ⋆⟧ 
 
     isPosetEq : τ₀-wf ≡ (semilat→poset τ₀-semilat)
     isPosetEq = isPosetUnique (τ₀-wf) (semilat→poset τ₀-semilat)
 
-    ⊥' : Poset.Carrier ⟦ τ₀-wf ⁎⟧
-    ⊥' rewrite (PE.cong (λ · → Poset.Carrier ⟦ · ⁎⟧) isPosetEq) | (PE.sym US) = ⊥
+    ⊥' : Poset.Carrier ⟦ τ₀-wf ⋆⟧
+    ⊥' rewrite (PE.cong (λ · → Poset.Carrier ⟦ · ⋆⟧) isPosetEq) | (PE.sym US) = ⊥
   --]]]
 ⟦_⊢⟧ {τ₀-wf = τ₀-wf} (TyJoin {n} {Γ₀} {R₁} {R₂} {e₁} {e₂} {τ₀} {τ₀'} {τ₀-semilat} Γ∣R₁⊢e₁∣τ₀ Γ∣R₂⊢e₂∣τ₀) = 
 --[[[
@@ -139,9 +139,9 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
   where
     open import Relation.Binary.Lattice
     open import Data.Product.Relation.Pointwise.NonDependent
-    open SemSemilatCore ⟦ τ₀-semilat ⁂⟧
+    open SemSemilatCore ⟦ τ₀-semilat Δ⟧
     open BoundedJoinSemilattice S
-    module codP = IsPartialOrder (Poset.isPartialOrder ⟦ τ₀-wf ⁎⟧)
+    module codP = IsPartialOrder (Poset.isPartialOrder ⟦ τ₀-wf ⋆⟧)
 
     R₁≤R₁+R₂ : R₁ R≤ (R₁ R+ R₂)
     R₁≤R₁+R₂ = R≤R+S R₁ R₂
@@ -155,13 +155,13 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
     wk2 : ⟦ Γ₀ Γ∣ R₁ R+ R₂ R⟧ ⇒ ⟦ Γ₀ Γ∣ R₂ R⟧
     wk2 = strengthenR Γ₀ (R₁ R+ R₂) R₂ R₂≤R₁+R₂
 
-    f₁ : ⟦ Γ₀ Γ∣ R₁ R⟧ ⇒ ⟦ τ₀-wf ⁎⟧' 
+    f₁ : ⟦ Γ₀ Γ∣ R₁ R⟧ ⇒ ⟦ τ₀-wf ⋆⟧' 
     f₁ = ⟦_⊢⟧ {n} {Γ₀} {R₁} {e₁} {τ₀} {τ₀-wf} Γ∣R₁⊢e₁∣τ₀
     
-    f₂ : ⟦ Γ₀ Γ∣ R₂ R⟧ ⇒ ⟦ τ₀-wf ⁎⟧'
+    f₂ : ⟦ Γ₀ Γ∣ R₂ R⟧ ⇒ ⟦ τ₀-wf ⋆⟧'
     f₂ = ⟦_⊢⟧ {n} {Γ₀} {R₂} {e₂} {τ₀} {τ₀-wf} Γ∣R₂⊢e₂∣τ₀
 
-    _∨'_ : (×-preorder ⟦ τ₀-wf ⁎⟧' ⟦ τ₀-wf ⁎⟧') ⇒ ⟦ τ₀-wf ⁎⟧'
+    _∨'_ : (×-preorder ⟦ τ₀-wf ⋆⟧' ⟦ τ₀-wf ⋆⟧') ⇒ ⟦ τ₀-wf ⋆⟧'
     _∨'_ rewrite (isPosetUnique τ₀-wf (semilat→poset τ₀-semilat)) | PE.sym US = record
       { fun = fun
       ; monotone = monotone
@@ -183,7 +183,7 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
   rewrite isPosetUnique codPoset τ₁-wf | isPosetUnique domPoset σ₁-wf =
   Λ ⟦σ₁∷Γ∣q₁∷R⟧⇒⟦τ₁⟧ 
   where
-    ⟦σ₁∷Γ∣q₁∷R⟧⇒⟦τ₁⟧ : ⟦ (σ₁ , σ₁-wf) ∷ Γ₀ Γ∣ q₁ ∷ R₀ R⟧ ⇒ ⟦ τ₁-wf ⁎⟧'
+    ⟦σ₁∷Γ∣q₁∷R⟧⇒⟦τ₁⟧ : ⟦ (σ₁ , σ₁-wf) ∷ Γ₀ Γ∣ q₁ ∷ R₀ R⟧ ⇒ ⟦ τ₁-wf ⋆⟧'
     ⟦σ₁∷Γ∣q₁∷R⟧⇒⟦τ₁⟧ = ⟦_⊢⟧ {τ₀-wf = τ₁-wf} σ₁∷Γ∣q₁∷R⊢body∣τ₁
 --]]]
 ⟦_⊢⟧ {τ₀-wf = τ₀-wf} (TyApp {n} {Γ₀} {R₁} {R₂} {q₀} {e₁} {e₂} {σ₀} {τ₀} Γ₀∣R₁⊢e₁∣σ₀→τ₀ Γ₀∣R₂⊢e₂∣σ₀) =
@@ -211,16 +211,16 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
     ⟦Γ₀∣R₁+q₀R₂⟧⇒⟦Γ₀∣q₀R₂⟧ : ⟦ Γ₀ Γ∣ (R₁ R+ (q₀ qR∘ R₂)) R⟧ ⇒ ⟦ Γ₀ Γ∣ (q₀ qR∘ R₂) R⟧
     ⟦Γ₀∣R₁+q₀R₂⟧⇒⟦Γ₀∣q₀R₂⟧ = strengthenR Γ₀ (R₁ R+ (q₀ qR∘ R₂)) (q₀ qR∘ R₂) q₀R₂≤R₁+q₀R₂
 
-    ⟦Γ₀∣R₁⟧⇒⟦q₀σ₀⇒τ₀⟧ : ⟦ Γ₀ Γ∣ R₁ R⟧ ⇒ ⟦ σ₀→τ₀-wf' ⁎⟧'
+    ⟦Γ₀∣R₁⟧⇒⟦q₀σ₀⇒τ₀⟧ : ⟦ Γ₀ Γ∣ R₁ R⟧ ⇒ ⟦ σ₀→τ₀-wf' ⋆⟧'
     ⟦Γ₀∣R₁⟧⇒⟦q₀σ₀⇒τ₀⟧ rewrite isPosetUnique σ₀→τ₀-wf' σ₀→τ₀-wf = ⟦_⊢⟧ {τ₀-wf = σ₀→τ₀-wf'} Γ₀∣R₁⊢e₁∣σ₀→τ₀
 
-    ⟦Γ₀∣R₁+q₀R₂⟧⇒⟦q₀σ₀⇒τ₀⟧ : ⟦ Γ₀ Γ∣ (R₁ R+ (q₀ qR∘ R₂)) R⟧ ⇒ ⟦ σ₀→τ₀-wf' ⁎⟧'
+    ⟦Γ₀∣R₁+q₀R₂⟧⇒⟦q₀σ₀⇒τ₀⟧ : ⟦ Γ₀ Γ∣ (R₁ R+ (q₀ qR∘ R₂)) R⟧ ⇒ ⟦ σ₀→τ₀-wf' ⋆⟧'
     ⟦Γ₀∣R₁+q₀R₂⟧⇒⟦q₀σ₀⇒τ₀⟧ rewrite isPosetUnique σ₀→τ₀-wf' σ₀→τ₀-wf' = ⟦Γ₀∣R₁+q₀R₂⟧⇒⟦Γ₀∣R₁⟧ >> ⟦Γ₀∣R₁⟧⇒⟦q₀σ₀⇒τ₀⟧
 
-    ⟦Γ₀∣R₂⟧⇒⟦σ₀⟧ : ⟦ Γ₀ Γ∣ R₂ R⟧ ⇒ ⟦ σ₀-wf ⁎⟧' 
+    ⟦Γ₀∣R₂⟧⇒⟦σ₀⟧ : ⟦ Γ₀ Γ∣ R₂ R⟧ ⇒ ⟦ σ₀-wf ⋆⟧' 
     ⟦Γ₀∣R₂⟧⇒⟦σ₀⟧ = ⟦_⊢⟧ {τ₀-wf = σ₀-wf} Γ₀∣R₂⊢e₂∣σ₀
 
-    ⟦q₀⟧⟦Γ₀∣R₂⟧⇒⟦q₀⟧⟦σ₀⟧ : (⟦ q₀ q⟧ ⟦ Γ₀ Γ∣ R₂ R⟧) ⇒ (⟦ q₀ q⟧ ⟦ σ₀-wf ⁎⟧')
+    ⟦q₀⟧⟦Γ₀∣R₂⟧⇒⟦q₀⟧⟦σ₀⟧ : (⟦ q₀ q⟧ ⟦ Γ₀ Γ∣ R₂ R⟧) ⇒ (⟦ q₀ q⟧ ⟦ σ₀-wf ⋆⟧')
     ⟦q₀⟧⟦Γ₀∣R₂⟧⇒⟦q₀⟧⟦σ₀⟧ = ⟦ q₀ q⇒⟧ ⟦Γ₀∣R₂⟧⇒⟦σ₀⟧
 --]]]
 ⟦_⊢⟧ {τ₀-wf = ProductPoset posetL posetR} (TyPair {n} {Γ₀} {R₁} {R₂} {e₁} {e₂} {τ₁} {τ₂} Γ₀∣R₁⊢e₁∣τ₁ Γ₀∣R₂⊢e₂∣τ₂)
@@ -254,15 +254,15 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
     wk2 : ⟦ Γ₀ Γ∣ R₁ R+ R₂ R⟧ ⇒ ⟦ Γ₀ Γ∣ R₂ R⟧
     wk2 = strengthenR Γ₀ (R₁ R+ R₂) R₂ R₂≤R₁+R₂    
  
-    ⟦Γ₀∣R₁⊢e₁∣τ₁⟧ : ⟦ Γ₀ Γ∣ R₁ R⟧ ⇒ ⟦ τ₁-wf ⁎⟧' 
+    ⟦Γ₀∣R₁⊢e₁∣τ₁⟧ : ⟦ Γ₀ Γ∣ R₁ R⟧ ⇒ ⟦ τ₁-wf ⋆⟧' 
     ⟦Γ₀∣R₁⊢e₁∣τ₁⟧ = ⟦_⊢⟧ {τ₀-wf = τ₁-wf} Γ₀∣R₁⊢e₁∣τ₁   
 
-    ⟦Γ₀∣R₂⊢e₂∣τ₂⟧ : ⟦ Γ₀ Γ∣ R₂ R⟧ ⇒ ⟦ τ₂-wf ⁎⟧'
+    ⟦Γ₀∣R₂⊢e₂∣τ₂⟧ : ⟦ Γ₀ Γ∣ R₂ R⟧ ⇒ ⟦ τ₂-wf ⋆⟧'
     ⟦Γ₀∣R₂⊢e₂∣τ₂⟧ = ⟦_⊢⟧ {τ₀-wf = τ₂-wf} Γ₀∣R₂⊢e₂∣τ₂   
 --]]]
 ⟦_⊢⟧ {τ₀-wf = τ₀-wf} (TyProj1 {n} {Γ₀} {R₀} {ePair} {τ₁} {τ₂} Γ₀∣R₀⊢ePair∣τ₁×τ₂) = 
 --[[[
-  ⟦Γ₀∣R⊢ePair∣τ₁×τ₂⟧ >> π₁ {⟦ τ₀-wf ⁎⟧'} {⟦ τ₂-wf ⁎⟧'}
+  ⟦Γ₀∣R⊢ePair∣τ₁×τ₂⟧ >> π₁ {⟦ τ₀-wf ⋆⟧'} {⟦ τ₂-wf ⋆⟧'}
   where
     τ₁×τ₂-wf : IsPoset (τProduct τ₁ τ₂)
     τ₁×τ₂-wf = τRes-wf Γ₀∣R₀⊢ePair∣τ₁×τ₂
@@ -275,13 +275,13 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
     τ₂-wf with τ₁×τ₂-wf
     τ₂-wf | ProductPoset _ goal = goal
 
-    ⟦Γ₀∣R⊢ePair∣τ₁×τ₂⟧ : ⟦ Γ₀ Γ∣ R₀ R⟧ ⇒ ⟦ ProductPoset τ₀-wf τ₂-wf ⁎⟧'
+    ⟦Γ₀∣R⊢ePair∣τ₁×τ₂⟧ : ⟦ Γ₀ Γ∣ R₀ R⟧ ⇒ ⟦ ProductPoset τ₀-wf τ₂-wf ⋆⟧'
     ⟦Γ₀∣R⊢ePair∣τ₁×τ₂⟧ rewrite (isPosetUnique τ₀-wf τ₁-wf) | isPosetUnique τ₁×τ₂-wf (ProductPoset τ₁-wf τ₂-wf) = 
       ⟦_⊢⟧ {τ₀-wf = ProductPoset τ₁-wf τ₂-wf} Γ₀∣R₀⊢ePair∣τ₁×τ₂
 --]]]
 ⟦_⊢⟧ {τ₀-wf = τ₀-wf} (TyProj2 {n} {Γ₀} {R₀} {ePair} {τ₁} {τ₂} Γ₀∣R₀⊢ePair∣τ₁×τ₂) = 
 --[[[
-  ⟦Γ₀∣R⊢ePair∣τ₁×τ₂⟧ >> π₂ {⟦ τ₁-wf ⁎⟧'} {⟦ τ₀-wf ⁎⟧'}
+  ⟦Γ₀∣R⊢ePair∣τ₁×τ₂⟧ >> π₂ {⟦ τ₁-wf ⋆⟧'} {⟦ τ₀-wf ⋆⟧'}
   where
     τ₁×τ₂-wf : IsPoset (τProduct τ₁ τ₂)
     τ₁×τ₂-wf = τRes-wf Γ₀∣R₀⊢ePair∣τ₁×τ₂
@@ -294,7 +294,7 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
     τ₂-wf with τ₁×τ₂-wf
     τ₂-wf | ProductPoset _ goal = goal
 
-    ⟦Γ₀∣R⊢ePair∣τ₁×τ₂⟧ : ⟦ Γ₀ Γ∣ R₀ R⟧ ⇒ ⟦ ProductPoset τ₁-wf τ₀-wf ⁎⟧'
+    ⟦Γ₀∣R⊢ePair∣τ₁×τ₂⟧ : ⟦ Γ₀ Γ∣ R₀ R⟧ ⇒ ⟦ ProductPoset τ₁-wf τ₀-wf ⋆⟧'
     ⟦Γ₀∣R⊢ePair∣τ₁×τ₂⟧ rewrite (isPosetUnique τ₀-wf τ₂-wf) | isPosetUnique τ₁×τ₂-wf (ProductPoset τ₁-wf τ₂-wf) = 
       ⟦_⊢⟧ {τ₀-wf = ProductPoset τ₁-wf τ₂-wf} Γ₀∣R₀⊢ePair∣τ₁×τ₂
 --]]]
@@ -330,10 +330,10 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
     R₂≤··· : R₂ R≤ (((q₁ q+ q₂) qR∘ R₀) R+ (R₁ R+ R₂))
     R₂≤··· = VPW.trans (Preorder.trans QP.≤-preorder) R₂≤R₁+R₂ R₁+R₂≤···
     
-    ⟦Γ₀∣R₁⟧⇒⟦q₁τ₁⇒τ₀⟧ : ⟦ Γ₀ Γ∣ R₁ R⟧ ⇒ (⇒-preorder (⟦ q₁ q⟧ ⟦ τ₁-wf ⁎⟧') ⟦ τ₀-wf ⁎⟧')
+    ⟦Γ₀∣R₁⟧⇒⟦q₁τ₁⇒τ₀⟧ : ⟦ Γ₀ Γ∣ R₁ R⟧ ⇒ (⇒-preorder (⟦ q₁ q⟧ ⟦ τ₁-wf ⋆⟧') ⟦ τ₀-wf ⋆⟧')
     ⟦Γ₀∣R₁⟧⇒⟦q₁τ₁⇒τ₀⟧ = Λ (⟦_⊢⟧ {τ₀-wf = τ₀-wf} τ₁∷Γ∣q₁∷R₁⊢e₁:τ₀)
     
-    ⟦Γ₀∣R₂⟧⇒⟦q₂τ₂⇒τ₀⟧ : ⟦ Γ₀ Γ∣ R₂ R⟧ ⇒ (⇒-preorder (⟦ q₂ q⟧ ⟦ τ₂-wf ⁎⟧') ⟦ τ₀-wf ⁎⟧')
+    ⟦Γ₀∣R₂⟧⇒⟦q₂τ₂⇒τ₀⟧ : ⟦ Γ₀ Γ∣ R₂ R⟧ ⇒ (⇒-preorder (⟦ q₂ q⟧ ⟦ τ₂-wf ⋆⟧') ⟦ τ₀-wf ⋆⟧')
     ⟦Γ₀∣R₂⟧⇒⟦q₂τ₂⇒τ₀⟧ = Λ (⟦_⊢⟧ {τ₀-wf = τ₀-wf} τ₂∷Γ∣q₂∷R₂⊢e₂:τ₀)
 
     ⟦Γ₀∣···⟧⇒⟦Γ₀∣R₁⟧ :  ⟦ Γ₀ Γ∣ (((q₁ q+ q₂) qR∘ R₀) R+ (R₁ R+ R₂)) R⟧ ⇒ ⟦ Γ₀ Γ∣ R₁ R⟧
@@ -345,26 +345,26 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
     ⟦Γ₀∣···⟧⇒⟦Γ₀∣⟨q₁+q₂⟩∘R₀⟧ : ⟦ Γ₀ Γ∣ (((q₁ q+ q₂) qR∘ R₀) R+ (R₁ R+ R₂)) R⟧ ⇒ ⟦ Γ₀ Γ∣ (q₁ q+ q₂) qR∘ R₀ R⟧  
     ⟦Γ₀∣···⟧⇒⟦Γ₀∣⟨q₁+q₂⟩∘R₀⟧ = strengthenR Γ₀ (((q₁ q+ q₂) qR∘ R₀) R+ (R₁ R+ R₂)) ((q₁ q+ q₂) qR∘ R₀) ⟨q₁+q₂⟩∘R₀≤··· 
 
-    ⟦q₁+q₂⟧⟦Γ₀∣R₀⟧⇒⟦q₁+q₂⟧⟦τ₁+τ₂⟧ : (⟦ q₁ q+ q₂ q⟧ ⟦ Γ₀ Γ∣ R₀ R⟧) ⇒ (⟦ q₁ q+ q₂ q⟧ ⟦ τ₁+τ₂-wf' ⁎⟧')
+    ⟦q₁+q₂⟧⟦Γ₀∣R₀⟧⇒⟦q₁+q₂⟧⟦τ₁+τ₂⟧ : (⟦ q₁ q+ q₂ q⟧ ⟦ Γ₀ Γ∣ R₀ R⟧) ⇒ (⟦ q₁ q+ q₂ q⟧ ⟦ τ₁+τ₂-wf' ⋆⟧')
     ⟦q₁+q₂⟧⟦Γ₀∣R₀⟧⇒⟦q₁+q₂⟧⟦τ₁+τ₂⟧ = 
       ⟦ q₁ q+ q₂ q⇒⟧ (⟦_⊢⟧ {τ₀-wf = τ₁+τ₂-wf'} Γ₀∣R₀⊢e₀∣τ₁+τ₂)  
 
     ⟦Γ₀∣⟨q₁+q₂⟩∘R₀⟧⇒⟦q₁+q₂⟧⟦τ₁⟧+⟦q₁+q₂⟧⟦τ₂⟧ : 
       ⟦ Γ₀ Γ∣ (q₁ q+ q₂) qR∘ R₀ R⟧ ⇒ 
-      (⊎-preorder0 (⟦ (q₁ q+ q₂) q⟧ ⟦ τ₁-wf ⁎⟧') (⟦ (q₁ q+ q₂) q⟧ ⟦ τ₂-wf ⁎⟧'))  
+      (⊎-preorder0 (⟦ (q₁ q+ q₂) q⟧ ⟦ τ₁-wf ⋆⟧') (⟦ (q₁ q+ q₂) q⟧ ⟦ τ₂-wf ⋆⟧'))  
     ⟦Γ₀∣⟨q₁+q₂⟩∘R₀⟧⇒⟦q₁+q₂⟧⟦τ₁⟧+⟦q₁+q₂⟧⟦τ₂⟧ =  
-      (Δ (q₁ q+ q₂) Γ₀ R₀) >> ⟦q₁+q₂⟧⟦Γ₀∣R₀⟧⇒⟦q₁+q₂⟧⟦τ₁+τ₂⟧ >> (q-preserves-+⃗ ⟦ τ₁-wf ⁎⟧' ⟦ τ₂-wf ⁎⟧' (q₁ q+ q₂))  
+      (Δ (q₁ q+ q₂) Γ₀ R₀) >> ⟦q₁+q₂⟧⟦Γ₀∣R₀⟧⇒⟦q₁+q₂⟧⟦τ₁+τ₂⟧ >> (q-preserves-+⃗ ⟦ τ₁-wf ⋆⟧' ⟦ τ₂-wf ⋆⟧' (q₁ q+ q₂))  
 
     ⟦Γ₀∣···⟧⇒⟦q₁τ₁+q₂τ₂⟧ : ⟦ Γ₀ Γ∣ (((q₁ q+ q₂) qR∘ R₀) R+ (R₁ R+ R₂)) R⟧ ⇒ 
-      (⊎-preorder0 (⟦ q₁ q⟧ ⟦ τ₁-wf ⁎⟧') (⟦ q₂ q⟧ ⟦ τ₂-wf ⁎⟧'))   
+      (⊎-preorder0 (⟦ q₁ q⟧ ⟦ τ₁-wf ⋆⟧') (⟦ q₂ q⟧ ⟦ τ₂-wf ⋆⟧'))   
     ⟦Γ₀∣···⟧⇒⟦q₁τ₁+q₂τ₂⟧ = 
       ⟦Γ₀∣···⟧⇒⟦Γ₀∣⟨q₁+q₂⟩∘R₀⟧ >> 
       ⟦Γ₀∣⟨q₁+q₂⟩∘R₀⟧⇒⟦q₁+q₂⟧⟦τ₁⟧+⟦q₁+q₂⟧⟦τ₂⟧ >> 
-      (q≤⟦ q₁≤q₁+q₂ {q₁} {q₂} ⟧ ⟦ τ₁-wf ⁎⟧' ⟨+⟩ q≤⟦ q₂≤q₁+q₂ {q₁} {q₂} ⟧ ⟦ τ₂-wf ⁎⟧') 
+      (q≤⟦ q₁≤q₁+q₂ {q₁} {q₂} ⟧ ⟦ τ₁-wf ⋆⟧' ⟨+⟩ q≤⟦ q₂≤q₁+q₂ {q₁} {q₂} ⟧ ⟦ τ₂-wf ⋆⟧') 
 
     ⟦Γ₀∣···⟧⇒⟦q₁τ₁+q₂τ₂⇒τ₀⟧ : 
       ⟦ Γ₀ Γ∣ (((q₁ q+ q₂) qR∘ R₀) R+ (R₁ R+ R₂)) R⟧ ⇒ 
-      (⇒-preorder (⊎-preorder (⟦ q₁ q⟧ ⟦ τ₁-wf ⁎⟧') (⟦ q₂ q⟧ ⟦ τ₂-wf ⁎⟧')) ⟦ τ₀-wf ⁎⟧')
+      (⇒-preorder (⊎-preorder (⟦ q₁ q⟧ ⟦ τ₁-wf ⋆⟧') (⟦ q₂ q⟧ ⟦ τ₂-wf ⋆⟧')) ⟦ τ₀-wf ⋆⟧')
     ⟦Γ₀∣···⟧⇒⟦q₁τ₁+q₂τ₂⇒τ₀⟧ = 
       ⟨ ⟦Γ₀∣···⟧⇒⟦Γ₀∣R₁⟧ >> ⟦Γ₀∣R₁⟧⇒⟦q₁τ₁⇒τ₀⟧ , ⟦Γ₀∣···⟧⇒⟦Γ₀∣R₂⟧ >> ⟦Γ₀∣R₂⟧⇒⟦q₂τ₂⇒τ₀⟧ ⟩ >> [[+]]
 --]]]
@@ -377,7 +377,7 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
 ⟦_⊢⟧ {τ₀-wf = _} (TyInl {n} {Γ₀} {R₀} {e} {τL} {τR} {τR-wf} Γ₀∣R₀⊢e∣τL) | τL-wf | PE.refl =
   ⟦Γ₀∣R₀⟧⇒⟦τL⟧ >> κ₁ 
   where
-    ⟦Γ₀∣R₀⟧⇒⟦τL⟧ : ⟦ Γ₀ Γ∣ R₀ R⟧ ⇒ ⟦ τL-wf ⁎⟧' 
+    ⟦Γ₀∣R₀⟧⇒⟦τL⟧ : ⟦ Γ₀ Γ∣ R₀ R⟧ ⇒ ⟦ τL-wf ⋆⟧' 
     ⟦Γ₀∣R₀⟧⇒⟦τL⟧ = ⟦_⊢⟧ {τ₀-wf = τL-wf} Γ₀∣R₀⊢e∣τL 
     
 ⟦_⊢⟧ {τ₀-wf = τ₀-wf} (TyInr {n} {Γ₀} {R₀} {e} {τL} {τR} {τL-wf} Γ₀∣R₀⊢e∣τR) 
@@ -388,24 +388,24 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
 ⟦_⊢⟧ {τ₀-wf = _} (TyInr {n} {Γ₀} {R₀} {e} {τL} {τR} {τL-wf} Γ₀∣R₀⊢e∣τR) | τR-wf | PE.refl =
   ⟦Γ₀∣R₀⟧⇒⟦τR⟧ >> κ₂ 
   where
-    ⟦Γ₀∣R₀⟧⇒⟦τR⟧ : ⟦ Γ₀ Γ∣ R₀ R⟧ ⇒ ⟦ τR-wf ⁎⟧' 
+    ⟦Γ₀∣R₀⟧⇒⟦τR⟧ : ⟦ Γ₀ Γ∣ R₀ R⟧ ⇒ ⟦ τR-wf ⋆⟧' 
     ⟦Γ₀∣R₀⟧⇒⟦τR⟧ = ⟦_⊢⟧ {τ₀-wf = τR-wf} Γ₀∣R₀⊢e∣τR 
 
 ⟦_⊢⟧ {τ₀-wf = FunPoset τ₁-wf τ₂-wf} 
-     (TyHom {n} {Γ₀} {R₀} {e₀} {τ₁} {τ₁'} {τ₂} {τ₂'} {τ₁⁂} {τ₂⁂} {τ₁'-wf} τ₁'∷Γ∣+∷R₀⊢e₀∣τ₂) =
+     (TyHom {n} {Γ₀} {R₀} {e₀} {τ₁} {τ₁'} {τ₂} {τ₂'} {τ₁Δ} {τ₂Δ} {τ₁'-wf} τ₁'∷Γ∣+∷R₀⊢e₀∣τ₂) =
   ⟦Γ∣R₀⟧⇒⟦P⇒S⟧ >> (♯ P₁ S₂) >> precomp-f 
   where
     open import Relation.Binary.Lattice
     open import FreeForgetfulAdjunction
 
-    semilat₁ : SemSemilatCore _ _ _ _ _ _ _ τ₁⁂
-    semilat₁ = ⟦ τ₁⁂ ⁂⟧
+    semilat₁ : SemSemilatCore _ _ _ _ _ _ _ τ₁Δ
+    semilat₁ = ⟦ τ₁Δ Δ⟧
 
-    semilatIso₁ : SemSemilatIso _ _ _ _ _ _ _ τ₁⁂
-    semilatIso₁ = ⟦ τ₁⁂ ⁂iso⟧
+    semilatIso₁ : SemSemilatIso _ _ _ _ _ _ _ τ₁Δ
+    semilatIso₁ = ⟦ τ₁Δ Δiso⟧
 
-    semilat₂ : SemSemilatCore _ _ _ _ _ _ _ τ₂⁂
-    semilat₂ = ⟦ τ₂⁂ ⁂⟧ 
+    semilat₂ : SemSemilatCore _ _ _ _ _ _ _ τ₂Δ
+    semilat₂ = ⟦ τ₂Δ Δ⟧ 
 
     open SemSemilatCore semilat₂ renaming (S to S₂ ; US to US₂)
     open SemSemilatCore semilat₁ renaming (P to P₁ ; i to i₁ ; US to US₁ ; S to S₁) 
@@ -414,13 +414,13 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
     open BoundedJoinSemilattice S₂ renaming (preorder to S₂')
 
     τ₁-wf' : IsPoset τ₁
-    τ₁-wf' = semilat→poset τ₁⁂
+    τ₁-wf' = semilat→poset τ₁Δ
 
     τ₁'-wf' : IsPoset τ₁'
-    τ₁'-wf' = semilat→deltaPoset τ₁⁂
+    τ₁'-wf' = semilat→deltaPoset τ₁Δ
 
     τ₂-wf' : IsPoset τ₂
-    τ₂-wf' = semilat→poset τ₂⁂
+    τ₂-wf' = semilat→poset τ₂Δ
 
     τ₂-wf≡τ₂-wf' : τ₂-wf ≡ τ₂-wf' 
     τ₂-wf≡τ₂-wf' = isPosetUnique τ₂-wf τ₂-wf'
@@ -431,10 +431,10 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
     τ₁'-wf≡t₁'-wf' : τ₁'-wf ≡ τ₁'-wf'
     τ₁'-wf≡t₁'-wf' = isPosetUnique τ₁'-wf τ₁'-wf'
     
-    ⟦Γ∣R₀⟧⇒⟦τ₁'⇒τ₂⟧ : ⟦ Γ₀ Γ∣ R₀ R⟧ ⇒ (⇒-preorder ⟦ τ₁'-wf' ⁎⟧' ⟦ τ₂-wf ⁎⟧') 
+    ⟦Γ∣R₀⟧⇒⟦τ₁'⇒τ₂⟧ : ⟦ Γ₀ Γ∣ R₀ R⟧ ⇒ (⇒-preorder ⟦ τ₁'-wf' ⋆⟧' ⟦ τ₂-wf ⋆⟧') 
     ⟦Γ∣R₀⟧⇒⟦τ₁'⇒τ₂⟧ rewrite τ₁'-wf≡t₁'-wf' = Λ (⟦_⊢⟧ {τ₀-wf = τ₂-wf} τ₁'∷Γ∣+∷R₀⊢e₀∣τ₂)
 
-    precomp-f : (⇒-preorder FP₁' S₂') ⇒ (⇒-preorder ⟦ τ₁-wf ⁎⟧' ⟦ τ₂-wf ⁎⟧')   
+    precomp-f : (⇒-preorder FP₁' S₂') ⇒ (⇒-preorder ⟦ τ₁-wf ⋆⟧' ⟦ τ₂-wf ⋆⟧')   
     precomp-f rewrite τ₁-wf≡τ₁-wf' | τ₂-wf≡τ₂-wf' | US₂ | (PE.sym US₁) = precomp ((⇉-to-⇒ {S = S₁} {T = FP₁-BJS} f₁))
 
     ⟦Γ∣R₀⟧⇒⟦P⇒S⟧ : ⟦ Γ₀ Γ∣ R₀ R⟧ ⇒ (⇒-preorder (DeltaPoset.preorder P₁) (BoundedJoinSemilattice.preorder S₂))
@@ -466,21 +466,21 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
     ⟦Γ₀∣?R₁+R₂⟧⇒⟦?⟧⟦Γ₀∣R₁⟧×⟦Γ₀∣R₂⟧ : ⟦ Γ₀ Γ∣ R₃ R⟧ ⇒ (×-preorder (⟦ qAny q⟧ ⟦ Γ₀ Γ∣ R₁ R⟧) ⟦ Γ₀ Γ∣ R₂ R⟧)
     ⟦Γ₀∣?R₁+R₂⟧⇒⟦?⟧⟦Γ₀∣R₁⟧×⟦Γ₀∣R₂⟧ rewrite eq = ⟨ ⟦Γ₀∣?R₁+R₂⟧⇒⟦Γ₀∣?R₁⟧ >> (Δ qAny Γ₀ R₁) , ⟦Γ₀∣?R₁+R₂⟧⇒⟦Γ₀∣R₂⟧ ⟩ 
 
-    ⟦Γ₀∣R₁⟧⇒⟦τKey⟧ : ⟦ Γ₀ Γ∣ R₁ R⟧ ⇒ ⟦ τKey-wf ⁎⟧'
+    ⟦Γ₀∣R₁⟧⇒⟦τKey⟧ : ⟦ Γ₀ Γ∣ R₁ R⟧ ⇒ ⟦ τKey-wf ⋆⟧'
     ⟦Γ₀∣R₁⟧⇒⟦τKey⟧ = ⟦_⊢⟧ { τ₀-wf = τKey-wf } Γ∣R₁⊢eKey∣τKey 
 
-    ⟦?⟧⟦Γ₀∣R₁⟧⇒⟦?⟧⟦τKey⟧ : (⟦ qAny q⟧ ⟦ Γ₀ Γ∣ R₁ R⟧) ⇒ (⟦ qAny q⟧ ⟦ τKey-wf ⁎⟧')
+    ⟦?⟧⟦Γ₀∣R₁⟧⇒⟦?⟧⟦τKey⟧ : (⟦ qAny q⟧ ⟦ Γ₀ Γ∣ R₁ R⟧) ⇒ (⟦ qAny q⟧ ⟦ τKey-wf ⋆⟧')
     ⟦?⟧⟦Γ₀∣R₁⟧⇒⟦?⟧⟦τKey⟧ = ⟦ qAny q⇒⟧ ⟦Γ₀∣R₁⟧⇒⟦τKey⟧      
 
-    ⟦Γ₀∣R₂⟧⇒⟦τVal⟧ : ⟦ Γ₀ Γ∣ R₂ R⟧ ⇒ ⟦ τVal-wf ⁎⟧'
+    ⟦Γ₀∣R₂⟧⇒⟦τVal⟧ : ⟦ Γ₀ Γ∣ R₂ R⟧ ⇒ ⟦ τVal-wf ⋆⟧'
     ⟦Γ₀∣R₂⟧⇒⟦τVal⟧ = ⟦_⊢⟧ { τ₀-wf = τVal-wf}  Γ∣R₂⊢eVal∣τVal 
 
-    ▹-sng' : (×-preorder (⟦ qAny q⟧ ⟦ τKey-wf ⁎⟧')  ⟦ τVal-wf ⁎⟧') ⇒ 
-            (▹-preorder (SemStoset.T ⟦ isStosetKey ⁑⟧) (SemSemilatCore.S ⟦ isSemilatVal ⁂⟧))
-    ▹-sng' rewrite PE.sym $ SemSemilatCore.US ⟦ isSemilatVal ⁂⟧ = 
-      ▹-sng ⟦ τKey-wf ⁎⟧ (SemStoset.T ⟦ isStosetKey ⁑⟧) (PE.sym $ SemStoset.eq ⟦ isStosetKey ⁑⟧)
-             (SemSemilatCore.S ⟦ isSemilatVal ⁂⟧) (SemSemilatCore.P ⟦ isSemilatVal ⁂⟧)
-             (SemSemilatIso.f ⟦ isSemilatVal ⁂iso⟧)
+    ▹-sng' : (×-preorder (⟦ qAny q⟧ ⟦ τKey-wf ⋆⟧')  ⟦ τVal-wf ⋆⟧') ⇒ 
+            (▹-preorder (SemStoset.T ⟦ isStosetKey ⋇⟧) (SemSemilatCore.S ⟦ isSemilatVal Δ⟧))
+    ▹-sng' rewrite PE.sym $ SemSemilatCore.US ⟦ isSemilatVal Δ⟧ = 
+      ▹-sng ⟦ τKey-wf ⋆⟧ (SemStoset.T ⟦ isStosetKey ⋇⟧) (PE.sym $ SemStoset.eq ⟦ isStosetKey ⋇⟧)
+             (SemSemilatCore.S ⟦ isSemilatVal Δ⟧) (SemSemilatCore.P ⟦ isSemilatVal Δ⟧)
+             (SemSemilatIso.f ⟦ isSemilatVal Δiso⟧)
 
 ⟦_⊢⟧ {τ₀-wf = τ₀-wf} (TyExtract {n} {q₁} {q₂} {q₃} {Γ₀} {R₁} {R₂} {R₃} {eDict} {eBody} {τKey} {τVal} {τValDelta} {τTarget} {τTargetDelta} isStosetKey isSemilatVal isSemilatTarget eq q₂≤+ q₃≤+ Γ₀∣R₁⊢eDict∣τ▹σ τ∷σ∷κ∷Γ₀∣q₁∷q₂∷q₃∷R₂⊢eBody∣κ)
 --[[[
@@ -491,13 +491,13 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
   elim
   where
     semStosetKey : SemStoset isStosetKey
-    semStosetKey = ⟦ isStosetKey ⁑⟧
+    semStosetKey = ⟦ isStosetKey ⋇⟧
 
     semSemilatVal : SemSemilatCore l0 l0 l0 l0 l0 l0 l0 isSemilatVal
-    semSemilatVal = ⟦ isSemilatVal ⁂⟧
+    semSemilatVal = ⟦ isSemilatVal Δ⟧
 
     semSemilatTarget : SemSemilatCore l0 l0 l0 l0 l0 l0 l0 isSemilatTarget
-    semSemilatTarget = ⟦ isSemilatTarget ⁂⟧
+    semSemilatTarget = ⟦ isSemilatTarget Δ⟧
 
     T = SemStoset.T semStosetKey
     S = SemSemilatCore.S semSemilatVal
@@ -515,22 +515,22 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
     κ-wf : IsPoset τTarget
     κ-wf = semilat→poset isSemilatTarget
 
-    ⟦Γ₀∣R₁⟧⇒⟦τ▹σ⟧ : ⟦ Γ₀ Γ∣ R₁ R⟧ ⇒ ⟦ DictPoset isStosetKey isSemilatVal ⁎⟧'  
+    ⟦Γ₀∣R₁⟧⇒⟦τ▹σ⟧ : ⟦ Γ₀ Γ∣ R₁ R⟧ ⇒ ⟦ DictPoset isStosetKey isSemilatVal ⋆⟧'  
     ⟦Γ₀∣R₁⟧⇒⟦τ▹σ⟧ rewrite (SemSemilatCore.US semSemilatVal) = 
       ⟦_⊢⟧ {τ₀-wf = DictPoset isStosetKey isSemilatVal} Γ₀∣R₁⊢eDict∣τ▹σ 
 
     ⟦τ∷σ∷κ∷Γ₀∣q₁∷q₂∷q₃∷R₂⟧⇒⟦κ⟧ : 
-      ⟦ (τKey , τ-wf) ∷ (τVal , σ-wf) ∷ (τTarget , κ-wf) ∷ Γ₀ Γ∣ q₁ ∷ q₂ ∷ q₃ ∷ R₂ R⟧ ⇒ ⟦ κ-wf ⁎⟧'
+      ⟦ (τKey , τ-wf) ∷ (τVal , σ-wf) ∷ (τTarget , κ-wf) ∷ Γ₀ Γ∣ q₁ ∷ q₂ ∷ q₃ ∷ R₂ R⟧ ⇒ ⟦ κ-wf ⋆⟧'
     ⟦τ∷σ∷κ∷Γ₀∣q₁∷q₂∷q₃∷R₂⟧⇒⟦κ⟧ = ⟦_⊢⟧ {τ₀-wf = κ-wf} τ∷σ∷κ∷Γ₀∣q₁∷q₂∷q₃∷R₂⊢eBody∣κ
 
-    ⟦+⟧⟦κ⟧⇒⟦q₃⟧⟦κ⟧ : (⟦ qMono q⟧ ⟦ κ-wf ⁎⟧') ⇒ (⟦ q₃ q⟧ ⟦ κ-wf ⁎⟧')    
-    ⟦+⟧⟦κ⟧⇒⟦q₃⟧⟦κ⟧ = q≤⟦ q₃≤+ ⟧ ⟦ κ-wf ⁎⟧'   
+    ⟦+⟧⟦κ⟧⇒⟦q₃⟧⟦κ⟧ : (⟦ qMono q⟧ ⟦ κ-wf ⋆⟧') ⇒ (⟦ q₃ q⟧ ⟦ κ-wf ⋆⟧')    
+    ⟦+⟧⟦κ⟧⇒⟦q₃⟧⟦κ⟧ = q≤⟦ q₃≤+ ⟧ ⟦ κ-wf ⋆⟧'   
 
-    ⟦+⟧⟦σ⟧⇒⟦q₂⟧⟦σ⟧ : (⟦ qMono q⟧ ⟦ σ-wf ⁎⟧') ⇒ (⟦ q₂ q⟧ ⟦ σ-wf ⁎⟧')
-    ⟦+⟧⟦σ⟧⇒⟦q₂⟧⟦σ⟧ = q≤⟦ q₂≤+ ⟧ ⟦ σ-wf ⁎⟧'
+    ⟦+⟧⟦σ⟧⇒⟦q₂⟧⟦σ⟧ : (⟦ qMono q⟧ ⟦ σ-wf ⋆⟧') ⇒ (⟦ q₂ q⟧ ⟦ σ-wf ⋆⟧')
+    ⟦+⟧⟦σ⟧⇒⟦q₂⟧⟦σ⟧ = q≤⟦ q₂≤+ ⟧ ⟦ σ-wf ⋆⟧'
 
-    ⟦?⟧⟦τ⟧⇒⟦q₁⟧⟦τ⟧ : (⟦ qAny q⟧ ⟦ τ-wf ⁎⟧') ⇒ (⟦ q₁ q⟧ ⟦ τ-wf ⁎⟧')
-    ⟦?⟧⟦τ⟧⇒⟦q₁⟧⟦τ⟧ = q≤⟦ q≤? q₁ ⟧ ⟦ τ-wf ⁎⟧'
+    ⟦?⟧⟦τ⟧⇒⟦q₁⟧⟦τ⟧ : (⟦ qAny q⟧ ⟦ τ-wf ⋆⟧') ⇒ (⟦ q₁ q⟧ ⟦ τ-wf ⋆⟧')
+    ⟦?⟧⟦τ⟧⇒⟦q₁⟧⟦τ⟧ = q≤⟦ q≤? q₁ ⟧ ⟦ τ-wf ⋆⟧'
 
     ⟦τ∷σ∷κ∷Γ₀∣?∷+∷+∷R₂⟧⇒⟦κ∷σ∷τ∷Γ₀∣q₁∷q₂∷q₃∷R₂⟧ : 
       ⟦ (τKey , τ-wf) ∷ (τVal , σ-wf) ∷ (τTarget , κ-wf) ∷ Γ₀ Γ∣ qAny ∷ qMono ∷ qMono ∷ R₂ R⟧ ⇒
@@ -539,15 +539,15 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
       ⟦?⟧⟦τ⟧⇒⟦q₁⟧⟦τ⟧ ⟨×⟩ (⟦+⟧⟦σ⟧⇒⟦q₂⟧⟦σ⟧ ⟨×⟩ (⟦+⟧⟦κ⟧⇒⟦q₃⟧⟦κ⟧ ⟨×⟩ id))
   
     ⟦τ∷σ∷κ∷Γ₀∣?∷+∷+∷R₂⟧⇒⟦κ⟧ : 
-      ⟦ (τKey , τ-wf) ∷ (τVal , σ-wf) ∷ (τTarget , κ-wf) ∷ Γ₀ Γ∣ qAny ∷ qMono ∷ qMono ∷ R₂ R⟧ ⇒ ⟦ κ-wf ⁎⟧'
+      ⟦ (τKey , τ-wf) ∷ (τVal , σ-wf) ∷ (τTarget , κ-wf) ∷ Γ₀ Γ∣ qAny ∷ qMono ∷ qMono ∷ R₂ R⟧ ⇒ ⟦ κ-wf ⋆⟧'
     ⟦τ∷σ∷κ∷Γ₀∣?∷+∷+∷R₂⟧⇒⟦κ⟧ = 
       ⟦τ∷σ∷κ∷Γ₀∣?∷+∷+∷R₂⟧⇒⟦κ∷σ∷τ∷Γ₀∣q₁∷q₂∷q₃∷R₂⟧ >> 
       ⟦τ∷σ∷κ∷Γ₀∣q₁∷q₂∷q₃∷R₂⟧⇒⟦κ⟧
 
     ⟦Γ₀∣R₂⟧⇒⟦τ×σ×κ⇒κ⟧ : 
-      ⟦ Γ₀ Γ∣ R₂ R⟧ ⇒ (⇒-preorder (×-preorder (×-preorder (⟦ qAny q⟧ ⟦ τ-wf ⁎⟧') ⟦ σ-wf ⁎⟧') ⟦ κ-wf ⁎⟧') ⟦ κ-wf ⁎⟧')
-    ⟦Γ₀∣R₂⟧⇒⟦τ×σ×κ⇒κ⟧ = Λ ( assoc (×-preorder (⟦ qAny q⟧ ⟦ τ-wf ⁎⟧') ⟦ σ-wf ⁎⟧') ⟦ κ-wf ⁎⟧' ⟦ Γ₀ Γ∣ R₂ R⟧ >>
-                             assoc (⟦ qAny q⟧ ⟦ τ-wf ⁎⟧') ⟦ σ-wf ⁎⟧' (×-preorder ⟦ κ-wf ⁎⟧' ⟦ Γ₀ Γ∣ R₂ R⟧) >>
+      ⟦ Γ₀ Γ∣ R₂ R⟧ ⇒ (⇒-preorder (×-preorder (×-preorder (⟦ qAny q⟧ ⟦ τ-wf ⋆⟧') ⟦ σ-wf ⋆⟧') ⟦ κ-wf ⋆⟧') ⟦ κ-wf ⋆⟧')
+    ⟦Γ₀∣R₂⟧⇒⟦τ×σ×κ⇒κ⟧ = Λ ( assoc (×-preorder (⟦ qAny q⟧ ⟦ τ-wf ⋆⟧') ⟦ σ-wf ⋆⟧') ⟦ κ-wf ⋆⟧' ⟦ Γ₀ Γ∣ R₂ R⟧ >>
+                             assoc (⟦ qAny q⟧ ⟦ τ-wf ⋆⟧') ⟦ σ-wf ⋆⟧' (×-preorder ⟦ κ-wf ⋆⟧' ⟦ Γ₀ Γ∣ R₂ R⟧) >>
                              ⟦τ∷σ∷κ∷Γ₀∣?∷+∷+∷R₂⟧⇒⟦κ⟧)
     
     ⟦Γ₀∣R₃⟧⇒⟦Γ₀∣R₁⟧ : ⟦ Γ₀ Γ∣ R₃ R⟧ ⇒ ⟦ Γ₀ Γ∣ R₁ R⟧  
@@ -558,20 +558,20 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
 
     elim : 
       (×-preorder 
-        ⟦ DictPoset isStosetKey isSemilatVal ⁎⟧'
-        (⇒-preorder (×-preorder (×-preorder (⟦ qAny q⟧ ⟦ τ-wf ⁎⟧') ⟦ σ-wf ⁎⟧') ⟦ κ-wf ⁎⟧')
-                                 ⟦ κ-wf ⁎⟧'))
-      ⇒ (Poset.preorder ⟦ semilat→poset isSemilatTarget ⁎⟧)
+        ⟦ DictPoset isStosetKey isSemilatVal ⋆⟧'
+        (⇒-preorder (×-preorder (×-preorder (⟦ qAny q⟧ ⟦ τ-wf ⋆⟧') ⟦ σ-wf ⋆⟧') ⟦ κ-wf ⋆⟧')
+                                 ⟦ κ-wf ⋆⟧'))
+      ⇒ (Poset.preorder ⟦ semilat→poset isSemilatTarget ⋆⟧)
     elim rewrite PE.sym (SemSemilatCore.US semSemilatVal) | PE.sym (SemSemilatCore.US semSemilatTarget) = 
-      (▹-elim ⟦ τ-wf ⁎⟧ T (PE.sym $ SemStoset.eq semStosetKey) S targetS)
+      (▹-elim ⟦ τ-wf ⋆⟧ T (PE.sym $ SemStoset.eq semStosetKey) S targetS)
 --]]]
 
 
 ⟦_⊢⟧ {τ₀-wf = PartialPoset σ-wf} (TyPure {n} {Γ₀} {R₀} {eBody} {σ} Γ₀∣R₀⊢eBody∣σ) =
 --[[[
-  ⟦Γ₀∣R₀⟧⇒⟦σ⟧ >> pure ⟦ σ-wf ⁎⟧'
+  ⟦Γ₀∣R₀⟧⇒⟦σ⟧ >> pure ⟦ σ-wf ⋆⟧'
   where
-    ⟦Γ₀∣R₀⟧⇒⟦σ⟧ : ⟦ Γ₀ Γ∣ R₀ R⟧ ⇒ ⟦ σ-wf ⁎⟧'
+    ⟦Γ₀∣R₀⟧⇒⟦σ⟧ : ⟦ Γ₀ Γ∣ R₀ R⟧ ⇒ ⟦ σ-wf ⋆⟧'
     ⟦Γ₀∣R₀⟧⇒⟦σ⟧ = ⟦_⊢⟧ {τ₀-wf = σ-wf} Γ₀∣R₀⊢eBody∣σ
 --]]]
 
@@ -584,13 +584,13 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
     τ₂ᵀ-wf≡τ₀-wf : (τRes-wf τ₁∷Γ₀∣+∷R₂⊢eAndThen∣τ₂ᵀ) ≡ (PartialPoset τ₂-wf)
     τ₂ᵀ-wf≡τ₀-wf = isPosetUnique (τRes-wf τ₁∷Γ₀∣+∷R₂⊢eAndThen∣τ₂ᵀ) (PartialPoset τ₂-wf)
 
-    ⟦Γ₀∣R₁⟧⇒⟦τ₁ᵀ⟧ : ⟦ Γ₀ Γ∣ R₁ R⟧ ⇒ ⟦ PartialPoset τ₁-wf ⁎⟧'
+    ⟦Γ₀∣R₁⟧⇒⟦τ₁ᵀ⟧ : ⟦ Γ₀ Γ∣ R₁ R⟧ ⇒ ⟦ PartialPoset τ₁-wf ⋆⟧'
     ⟦Γ₀∣R₁⟧⇒⟦τ₁ᵀ⟧ = ⟦_⊢⟧ {τ₀-wf = PartialPoset τ₁-wf} Γ₀∣R₁⊢eFirst∣τ₁ᵀ 
 
-    ⟦τ₁∷Γ₀∣+∷R₂⟧⇒⟦τ₂ᵀ⟧ : ⟦ ((τ₁ , τ₁-wf) ∷ Γ₀) Γ∣ (qMono ∷ R₂) R⟧ ⇒ ⟦ PartialPoset τ₂-wf ⁎⟧'
+    ⟦τ₁∷Γ₀∣+∷R₂⟧⇒⟦τ₂ᵀ⟧ : ⟦ ((τ₁ , τ₁-wf) ∷ Γ₀) Γ∣ (qMono ∷ R₂) R⟧ ⇒ ⟦ PartialPoset τ₂-wf ⋆⟧'
     ⟦τ₁∷Γ₀∣+∷R₂⟧⇒⟦τ₂ᵀ⟧ rewrite τ₂ᵀ-wf≡τ₀-wf = ⟦_⊢⟧ {τ₀-wf = PartialPoset τ₂-wf} τ₁∷Γ₀∣+∷R₂⊢eAndThen∣τ₂ᵀ
 
-    ⟦Γ₀∣R₂⟧⇒⟦τ₁⇒τ₂ᵀ⟧ : ⟦ Γ₀ Γ∣ R₂ R⟧ ⇒ (⇒-preorder ⟦ τ₁-wf ⁎⟧' ⟦ PartialPoset τ₂-wf ⁎⟧')
+    ⟦Γ₀∣R₂⟧⇒⟦τ₁⇒τ₂ᵀ⟧ : ⟦ Γ₀ Γ∣ R₂ R⟧ ⇒ (⇒-preorder ⟦ τ₁-wf ⋆⟧' ⟦ PartialPoset τ₂-wf ⋆⟧')
     ⟦Γ₀∣R₂⟧⇒⟦τ₁⇒τ₂ᵀ⟧ rewrite τ₂ᵀ-wf≡τ₀-wf = Λ ⟦τ₁∷Γ₀∣+∷R₂⟧⇒⟦τ₂ᵀ⟧ 
 
     ⟦Γ₀∣R₃⟧⇒⟦Γ₀∣R₁⟧ : ⟦ Γ₀ Γ∣ R₃ R⟧ ⇒ ⟦ Γ₀ Γ∣ R₁ R⟧ 
@@ -602,10 +602,10 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
 
 ⟦_⊢⟧ {τ₀-wf = IVarPoset contentStoset} (TyICell {n} {Γ₁} {R₁} {R₂} {eq} {e₁} {τ₁} {τ₁-stoset} Γ₁∣R₂⊢e₁∣τ₁) =
 --[[[
-  ⟦Γ₁∣R₁⟧⇒⟦?⟧⟦τ₁⟧ >> (ξ {T} {⟦ stoset→poset contentStoset ⁎⟧} {eqT})
+  ⟦Γ₁∣R₁⟧⇒⟦?⟧⟦τ₁⟧ >> (ξ {T} {⟦ stoset→poset contentStoset ⋆⟧} {eqT})
   where
-    T = (SemStoset.T ⟦ contentStoset ⁑⟧)
-    eqT = (SemStoset.eq ⟦ contentStoset ⁑⟧)
+    T = (SemStoset.T ⟦ contentStoset ⋇⟧)
+    eqT = (SemStoset.eq ⟦ contentStoset ⋇⟧)
     
     open import IVar
 
@@ -618,13 +618,13 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
     τ₁-wf'≡τ₁-wf : τ₁-wf' ≡ τ₁-wf
     τ₁-wf'≡τ₁-wf = isPosetUnique τ₁-wf' τ₁-wf
 
-    ⟦Γ₁∣R₂⟧⇒⟦τ₁⟧ : ⟦ Γ₁ Γ∣ R₂ R⟧ ⇒ ⟦ τ₁-wf ⁎⟧'
+    ⟦Γ₁∣R₂⟧⇒⟦τ₁⟧ : ⟦ Γ₁ Γ∣ R₂ R⟧ ⇒ ⟦ τ₁-wf ⋆⟧'
     ⟦Γ₁∣R₂⟧⇒⟦τ₁⟧ = ⟦_⊢⟧ {τ₀-wf = τ₁-wf} Γ₁∣R₂⊢e₁∣τ₁
 
-    ⟦Γ₁∣?R₂⟧⇒⟦?⟧⟦τ₁⟧ : (⟦ Γ₁ Γ∣ (qAny qR∘ R₂) R⟧) ⇒ (⟦ qAny q⟧ ⟦ τ₁-wf ⁎⟧')
+    ⟦Γ₁∣?R₂⟧⇒⟦?⟧⟦τ₁⟧ : (⟦ Γ₁ Γ∣ (qAny qR∘ R₂) R⟧) ⇒ (⟦ qAny q⟧ ⟦ τ₁-wf ⋆⟧')
     ⟦Γ₁∣?R₂⟧⇒⟦?⟧⟦τ₁⟧ = (Δ qAny Γ₁ R₂) >> (⟦ qAny q⇒⟧ ⟦Γ₁∣R₂⟧⇒⟦τ₁⟧)                    
 
-    ⟦Γ₁∣R₁⟧⇒⟦?⟧⟦τ₁⟧ : ⟦ Γ₁ Γ∣ R₁ R⟧ ⇒ (⟦ qAny q⟧ ⟦ τ₁-wf' ⁎⟧')
+    ⟦Γ₁∣R₁⟧⇒⟦?⟧⟦τ₁⟧ : ⟦ Γ₁ Γ∣ R₁ R⟧ ⇒ (⟦ qAny q⟧ ⟦ τ₁-wf' ⋆⟧')
     ⟦Γ₁∣R₁⟧⇒⟦?⟧⟦τ₁⟧ rewrite eq | τ₁-wf'≡τ₁-wf = ⟦Γ₁∣?R₂⟧⇒⟦?⟧⟦τ₁⟧
 --]]]
 
@@ -640,15 +640,15 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
     τBody-eq : τBody-wf ≡ τBody-wf'
     τBody-eq = isPosetUnique τBody-wf τBody-wf'
 
-    ⟦Γ₀∣R₁⟧⇒⟦τIVar⟧ : ⟦ Γ₀ Γ∣ R₁ R⟧ ⇒ ⟦ IVarPoset isCellStoset ⁎⟧'  
+    ⟦Γ₀∣R₁⟧⇒⟦τIVar⟧ : ⟦ Γ₀ Γ∣ R₁ R⟧ ⇒ ⟦ IVarPoset isCellStoset ⋆⟧'  
     ⟦Γ₀∣R₁⟧⇒⟦τIVar⟧ = ⟦_⊢⟧ {τ₀-wf = IVarPoset isCellStoset} Γ₀∣R₁⊢eCell∣τIVar
   
     ⟦τCell∷Γ₀∣?∷R₂⟧⇒⟦τBody⟧ : 
-      ⟦ ((τCell , stoset→poset isCellStoset) ∷ Γ₀) Γ∣ (qAny ∷ R₂) R⟧ ⇒ ⟦ semilat→poset isBodySemilat ⁎⟧'
+      ⟦ ((τCell , stoset→poset isCellStoset) ∷ Γ₀) Γ∣ (qAny ∷ R₂) R⟧ ⇒ ⟦ semilat→poset isBodySemilat ⋆⟧'
     ⟦τCell∷Γ₀∣?∷R₂⟧⇒⟦τBody⟧ = ⟦_⊢⟧ {τ₀-wf = semilat→poset isBodySemilat} τCell∷Γ₀∣?∷R₂∣eBody∣τBody
 
     ⟦Γ₀∣R₂⟧⇒⟦?τCell⇒τBody⟧ : 
-      ⟦ Γ₀ Γ∣ R₂ R⟧ ⇒ (⇒-preorder (⟦ qAny q⟧ ⟦ stoset→poset isCellStoset ⁎⟧') ⟦  τBody-wf ⁎⟧')
+      ⟦ Γ₀ Γ∣ R₂ R⟧ ⇒ (⇒-preorder (⟦ qAny q⟧ ⟦ stoset→poset isCellStoset ⋆⟧') ⟦  τBody-wf ⋆⟧')
     ⟦Γ₀∣R₂⟧⇒⟦?τCell⇒τBody⟧ rewrite τBody-eq = Λ ⟦τCell∷Γ₀∣?∷R₂⟧⇒⟦τBody⟧ 
     
     ⟦Γ₀∣R₃⟧⇒⟦Γ₀∣R₁⟧ : ⟦ Γ₀ Γ∣ R₃ R⟧ ⇒ ⟦ Γ₀ Γ∣ R₁ R⟧  
@@ -657,13 +657,13 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
     ⟦Γ₀∣R₃⟧⇒⟦Γ₀∣R₂⟧ : ⟦ Γ₀ Γ∣ R₃ R⟧ ⇒ ⟦ Γ₀ Γ∣ R₂ R⟧  
     ⟦Γ₀∣R₃⟧⇒⟦Γ₀∣R₂⟧ rewrite eq = strengthenR Γ₀ (R₁ R+ R₂) R₂ (S≤R+S R₁ R₂)
 
-    ζ' :  (×-preorder ⟦ IVarPoset isCellStoset ⁎⟧' (⇒-preorder (⟦ qAny q⟧ ⟦ stoset→poset isCellStoset ⁎⟧') ⟦ τBody-wf ⁎⟧'))
-          ⇒ ⟦ PartialPoset τBody-wf ⁎⟧'
-    ζ' rewrite τBody-eq | PE.sym $ SemSemilatCore.US ⟦ isBodySemilat ⁂⟧ = 
-      ζ {SemStoset.T ⟦ isCellStoset ⁑⟧} 
-        {⟦ stoset→poset isCellStoset ⁎⟧} 
-        {SemSemilatCore.S ⟦ isBodySemilat ⁂⟧} 
-        {SemStoset.eq ⟦ isCellStoset ⁑⟧} 
+    ζ' :  (×-preorder ⟦ IVarPoset isCellStoset ⋆⟧' (⇒-preorder (⟦ qAny q⟧ ⟦ stoset→poset isCellStoset ⋆⟧') ⟦ τBody-wf ⋆⟧'))
+          ⇒ ⟦ PartialPoset τBody-wf ⋆⟧'
+    ζ' rewrite τBody-eq | PE.sym $ SemSemilatCore.US ⟦ isBodySemilat Δ⟧ = 
+      ζ {SemStoset.T ⟦ isCellStoset ⋇⟧} 
+        {⟦ stoset→poset isCellStoset ⋆⟧} 
+        {SemSemilatCore.S ⟦ isBodySemilat Δ⟧} 
+        {SemStoset.eq ⟦ isCellStoset ⋇⟧} 
 --]]]
 
 ⟦_⊢⟧ {τ₀-wf = CapsulePoset q₀' τ₁-wf} (TyCapIntro {n} {Γ₀} {R₁} {R₂} {q₀'} {eq} {eBody} {τ₁} Γ₀∣R₁⊢eBody∣τ₁) =
@@ -676,14 +676,14 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
     τ₁-wf≡τ₁-wf' : τ₁-wf ≡ τ₁-wf'
     τ₁-wf≡τ₁-wf' = isPosetUnique τ₁-wf τ₁-wf'
 
-    ⟦Γ₀∣R₁⟧⇒⟦τ₁⟧ : ⟦ Γ₀ Γ∣ R₁ R⟧ ⇒ ⟦ τ₁-wf ⁎⟧'
+    ⟦Γ₀∣R₁⟧⇒⟦τ₁⟧ : ⟦ Γ₀ Γ∣ R₁ R⟧ ⇒ ⟦ τ₁-wf ⋆⟧'
     ⟦Γ₀∣R₁⟧⇒⟦τ₁⟧ rewrite τ₁-wf≡τ₁-wf' = ⟦_⊢⟧ {τ₀-wf = τ₁-wf'} Γ₀∣R₁⊢eBody∣τ₁
 
     ⟦Γ₀∣R₂⟧⇒⟦q₀'⟧⟦Γ₀∣R₁⟧ : ⟦ Γ₀ Γ∣ R₂ R⟧ ⇒ (⟦ q'→q q₀' q⟧ ⟦ Γ₀ Γ∣ R₁ R⟧)
     ⟦Γ₀∣R₂⟧⇒⟦q₀'⟧⟦Γ₀∣R₁⟧ rewrite eq = Δ (q'→q q₀') Γ₀ R₁
 
-    ⟦q₀'⟧⟦Γ₀∣R₁⟧⇒⟦?τ₁⟧ : (⟦ q'→q q₀' q⟧ ⟦ Γ₀ Γ∣ R₁ R⟧) ⇒ (Poset.preorder $ ⟦ q₀' q'⟧ ⟦ τ₁-wf ⁎⟧)
-    ⟦q₀'⟧⟦Γ₀∣R₁⟧⇒⟦?τ₁⟧ rewrite coheres ⟦ τ₁-wf ⁎⟧ q₀' = ⟦ (q'→q q₀') q⇒⟧ ⟦Γ₀∣R₁⟧⇒⟦τ₁⟧
+    ⟦q₀'⟧⟦Γ₀∣R₁⟧⇒⟦?τ₁⟧ : (⟦ q'→q q₀' q⟧ ⟦ Γ₀ Γ∣ R₁ R⟧) ⇒ (Poset.preorder $ ⟦ q₀' q'⟧ ⟦ τ₁-wf ⋆⟧)
+    ⟦q₀'⟧⟦Γ₀∣R₁⟧⇒⟦?τ₁⟧ rewrite coheres ⟦ τ₁-wf ⋆⟧ q₀' = ⟦ (q'→q q₀') q⇒⟧ ⟦Γ₀∣R₁⟧⇒⟦τ₁⟧
 --]]]
 
 ⟦_⊢⟧ {τ₀-wf = τ₀-wf} 
@@ -701,15 +701,15 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
     τBody-wf : IsPoset τBody
     τBody-wf = τRes-wf τContent∷Γ₀∣q₀'∷R₂⊢eBody∣τBody
 
-    ⟦Γ₀∣R₁⟧⇒⟦q₀'-τContent⟧ : ⟦ Γ₀ Γ∣ R₁ R⟧ ⇒ ⟦ q₀'τContent-wf ⁎⟧'
+    ⟦Γ₀∣R₁⟧⇒⟦q₀'-τContent⟧ : ⟦ Γ₀ Γ∣ R₁ R⟧ ⇒ ⟦ q₀'τContent-wf ⋆⟧'
     ⟦Γ₀∣R₁⟧⇒⟦q₀'-τContent⟧ = ⟦_⊢⟧ {τ₀-wf = q₀'τContent-wf} Γ₀∣R₁⊢eCap∣q₀'-τContent
  
-    ⟦τContent∷Γ₀∣q₀'∷R₂⟧⇒⟦τBody⟧ : ⟦ ((τContent , τContent-wf) ∷ Γ₀) Γ∣ ((q'→q q₀') ∷ R₂) R⟧ ⇒ ⟦ τBody-wf ⁎⟧'    
+    ⟦τContent∷Γ₀∣q₀'∷R₂⟧⇒⟦τBody⟧ : ⟦ ((τContent , τContent-wf) ∷ Γ₀) Γ∣ ((q'→q q₀') ∷ R₂) R⟧ ⇒ ⟦ τBody-wf ⋆⟧'    
     ⟦τContent∷Γ₀∣q₀'∷R₂⟧⇒⟦τBody⟧ = ⟦_⊢⟧ {τ₀-wf = τBody-wf} τContent∷Γ₀∣q₀'∷R₂⊢eBody∣τBody
 
     ⟦Γ₀∣R₂⟧⇒⟦q₀-τContent⇒τBody⟧ : 
-      ⟦ Γ₀ Γ∣ R₂ R⟧ ⇒ (⇒-preorder (Poset.preorder $  ⟦ q₀'τContent-wf ⁎⟧) ⟦ τBody-wf ⁎⟧')
-    ⟦Γ₀∣R₂⟧⇒⟦q₀-τContent⇒τBody⟧ rewrite q₀'τContent-wf≡cap | coheres ⟦ τContent-wf ⁎⟧ q₀' = 
+      ⟦ Γ₀ Γ∣ R₂ R⟧ ⇒ (⇒-preorder (Poset.preorder $  ⟦ q₀'τContent-wf ⋆⟧) ⟦ τBody-wf ⋆⟧')
+    ⟦Γ₀∣R₂⟧⇒⟦q₀-τContent⇒τBody⟧ rewrite q₀'τContent-wf≡cap | coheres ⟦ τContent-wf ⋆⟧ q₀' = 
       Λ ⟦τContent∷Γ₀∣q₀'∷R₂⟧⇒⟦τBody⟧
 
     ⟦Γ₀∣R₃⟧⇒⟦Γ₀∣R₁⟧ : ⟦ Γ₀ Γ∣ R₃ R⟧ ⇒ ⟦ Γ₀ Γ∣ R₁ R⟧
@@ -718,8 +718,8 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
     ⟦Γ₀∣R₃⟧⇒⟦Γ₀∣R₂⟧ : ⟦ Γ₀ Γ∣ R₃ R⟧ ⇒ ⟦ Γ₀ Γ∣ R₂ R⟧
     ⟦Γ₀∣R₃⟧⇒⟦Γ₀∣R₂⟧ rewrite eq = strengthenR Γ₀ (R₁ R+ R₂) R₂ (S≤R+S R₁ R₂)
 
-    ev' :  ×-preorder ⟦ q₀'τContent-wf ⁎⟧' 
-                      (⇒-preorder (Poset.preorder $ ⟦ q₀'τContent-wf ⁎⟧) ⟦ τBody-wf ⁎⟧') ⇒ ⟦ τ₀-wf ⁎⟧'
+    ev' :  ×-preorder ⟦ q₀'τContent-wf ⋆⟧' 
+                      (⇒-preorder (Poset.preorder $ ⟦ q₀'τContent-wf ⋆⟧) ⟦ τBody-wf ⋆⟧') ⇒ ⟦ τ₀-wf ⋆⟧'
     ev' rewrite isPosetUnique τ₀-wf τBody-wf = ev
 --]]]
 
@@ -735,11 +735,11 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
     projVar : (n k : ℕ) → (m : Fin n) → (Γ : Vec wfτ n) → (R : Vec q n) → (eq1 : τ₀ ≡ proj₁ (V.lookup m Γ)) → 
               (eq2 : k ≡ toℕ m) → (eq3 : V.lookup m R ≡ qMono) → 
               (eq4 : {l : Fin n} → (¬ l ≡ m) → (V.lookup l R ≡ qConst)) → 
-              ⟦ Γ Γ∣ R R⟧ ⇒ ⟦ τ₀-wf ⁎⟧'
+              ⟦ Γ Γ∣ R R⟧ ⇒ ⟦ τ₀-wf ⋆⟧'
     projVar n .(toℕ {n} Fin.zero) Fin.zero ((τ₀ , τ₀-wf') ∷ Γ) (q₀ ∷ R) PE.refl PE.refl PE.refl _ = 
       π₁'
       where
-        π₁' : ⟦ ((τ₀ , τ₀-wf') ∷ Γ) Γ∣ (q₀ ∷ R) R⟧ ⇒ ⟦ τ₀-wf ⁎⟧'
+        π₁' : ⟦ ((τ₀ , τ₀-wf') ∷ Γ) Γ∣ (q₀ ∷ R) R⟧ ⇒ ⟦ τ₀-wf ⋆⟧'
         π₁' rewrite isPosetUnique τ₀-wf τ₀-wf' = π₁        
     projVar (suc n) .(toℕ {suc n} (Fin.suc m)) (Fin.suc m) ((τ₁ , τ₁-wf) ∷ Γ) (q₁ ∷ R) PE.refl PE.refl eq3 eq4 =
       ⟦τ₁∷Γ∣q₁∷R⟧⇒⟦Γ∣R⟧ >> projVar n (toℕ {n} m) m Γ R PE.refl PE.refl eq3 eq4'

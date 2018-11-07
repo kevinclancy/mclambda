@@ -27,7 +27,7 @@ open import BoolPoset
 open import FinPoset
 open import SemKinding
 
-semilatCore = ⟦ BoolSemilat ⁂⟧
+semilatCore = ⟦ BoolSemilat Δ⟧
 
 P : DeltaPoset {l0} {l0} {l0} {l0}
 P = SemSemilatCore.P semilatCore 

@@ -6,22 +6,22 @@ open import Kinding
 open import SemKinding
 open import Util
 
-⟦_⁂iso⟧ : ∀ {τ τ₀ : τ} → (isSemilat : IsSemilat τ τ₀) → SemSemilatIso l0 l0 l0 l0 l0 l0 l0 isSemilat
-⟦ NatSemilat ⁂iso⟧ = sem
+⟦_Δiso⟧ : ∀ {τ τ₀ : τ} → (isSemilat : IsSemilat τ τ₀) → SemSemilatIso l0 l0 l0 l0 l0 l0 l0 isSemilat
+⟦ NatSemilat Δiso⟧ = sem
   where 
     open import SemilatKinding.Nat
-⟦ BoolSemilat ⁂iso⟧ = sem
+⟦ BoolSemilat Δiso⟧ = sem
   where
     open import SemilatKinding.Bool
-⟦ ProductSemilat isSemilatL isSemilatR ⁂iso⟧ = sem
+⟦ ProductSemilat isSemilatL isSemilatR Δiso⟧ = sem
   where
-    open import SemilatKinding.Product ⟦ isSemilatL ⁂iso⟧ ⟦ isSemilatR ⁂iso⟧  
-⟦ PartialSemilat isSemilatContent ⁂iso⟧ = sem
+    open import SemilatKinding.Product ⟦ isSemilatL Δiso⟧ ⟦ isSemilatR Δiso⟧  
+⟦ PartialSemilat isSemilatContent Δiso⟧ = sem
   where
-    open import SemilatKinding.Partial ⟦ isSemilatContent ⁂iso⟧   
-⟦ IVarSemilat isStosetContent ⁂iso⟧ = sem
+    open import SemilatKinding.Partial ⟦ isSemilatContent Δiso⟧   
+⟦ IVarSemilat isStosetContent Δiso⟧ = sem
   where
     open import SemilatKinding.IVar
-⟦ DictSemilat isStosetDom isSemilatCod ⁂iso⟧ = sem
+⟦ DictSemilat isStosetDom isSemilatCod Δiso⟧ = sem
   where
     postulate sem : SemSemilatIso l0 l0 l0 l0 l0 l0 l0 (DictSemilat isStosetDom isSemilatCod)

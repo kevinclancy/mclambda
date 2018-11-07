@@ -24,7 +24,7 @@ open import Relation.Binary.PropositionalEquality as PE hiding ([_])
 open import SemScalars
 open import PosetScalars
 open import Preorders
-
+--⁎⟧ ⁑⟧
 ----- Stoset conversion (for dealing with the eq field of SemStoset)
 --[[[
 conv : {P : Poset l0 l0 l0} → {T : StrictTotalOrder l0 l0 l0} → (eq : StrictTotalOrder.Eq.setoid T ≡ (poset→setoid P)) →
@@ -132,67 +132,65 @@ conv-inj {P} {T} PE.refl t₁ t₂ t₁≈t₂ = t₁≈t₂
 --]]]
 
 -- interpretation of poset kinding judgment
-⟦_⁎⟧ : ∀ {τ : τ} → IsPoset τ → Poset l0 l0 l0
+⟦_⋆⟧ : ∀ {τ : τ} → IsPoset τ → Poset l0 l0 l0
 
 -- interpret as poset and then upcast to preorder
-⟦_⁎⟧' : ∀ {τ : τ} → IsPoset τ → Preorder l0 l0 l0
-⟦ wf ⁎⟧' = Poset.preorder ⟦ wf ⁎⟧
+⟦_⋆⟧' : ∀ {τ : τ} → IsPoset τ → Preorder l0 l0 l0
+⟦ wf ⋆⟧' = Poset.preorder ⟦ wf ⋆⟧
 
 record SemStoset {τ : τ} (isStoset : IsStoset τ) : Set l1 where
   field
     T : StrictTotalOrder l0 l0 l0
-    eq : StrictTotalOrder.Eq.setoid T ≡ (poset→setoid ⟦ stoset→poset isStoset ⁎⟧)
+    eq : StrictTotalOrder.Eq.setoid T ≡ (poset→setoid ⟦ stoset→poset isStoset ⋆⟧)
 
--- agda-mode: ⁑ is \asterisk, second choice
-⟦_⁑⟧ : ∀ {τ : τ} → (p : IsStoset τ) → SemStoset p
+⟦_⋇⟧ : ∀ {τ : τ} → (p : IsStoset τ) → SemStoset p
 
 record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : Level) {τ τ₀ : τ} (isSemilat : IsSemilat τ τ₀)
                       : Set (Level.suc $ cₛ ⊔ ℓₛ₁ ⊔ ℓₛ₂ ⊔ cₚ ⊔ ℓ⊑ₚ ⊔ ℓ<ₚ ⊔ ℓ~ₚ) where
   field
     -- direct representation of semilattice
     S : BoundedJoinSemilattice l0 l0 l0
-    US : (BoundedJoinSemilattice.poset S) ≡ ⟦ (semilat→poset isSemilat) ⁎⟧
+    US : (BoundedJoinSemilattice.poset S) ≡ ⟦ (semilat→poset isSemilat) ⋆⟧
     -- delta poset (freely generates S up-to-isomorphism)
     P : DeltaPoset {cₚ} {ℓ⊑ₚ} {ℓ<ₚ} {ℓ~ₚ}
     -- injection of τ₀ deltaPoset interpretation into P
-    i : (DeltaPoset.preorder P) ↣+ ⟦ semilat→deltaPoset isSemilat ⁎⟧' 
+    i : (DeltaPoset.preorder P) ↣+ ⟦ semilat→deltaPoset isSemilat ⋆⟧' 
 
 -- partial interpretation of semilattice kinding judgment
 -- this only includes the portion necessary for mutual recursion with poset kinding interpretation
 -- the other portion is implemented in the SemilatKinding directory
--- agda-mode: ⁂ is \asterisk, third choice
-⟦_⁂⟧ : ∀ {τ τ₀ : τ} → (isSemilat : IsSemilat τ τ₀) → SemSemilatCore l0 l0 l0 l0 l0 l0 l0 isSemilat   
+⟦_Δ⟧ : ∀ {τ τ₀ : τ} → (isSemilat : IsSemilat τ τ₀) → SemSemilatCore l0 l0 l0 l0 l0 l0 l0 isSemilat   
 
-⟦ FunPoset {q = q} domIsPoset codIsPoset ⁎⟧ = ⇒-poset (⟦ q q⟧ ⟦ domIsPoset ⁎⟧') ⟦ codIsPoset ⁎⟧
-⟦ DictPoset domIsToset codIsSemilat ⁎⟧ = 
-  ▹-poset (SemStoset.T ⟦ domIsToset ⁑⟧) (SemSemilatCore.S ⟦ codIsSemilat ⁂⟧)
+⟦ FunPoset {q = q} domIsPoset codIsPoset ⋆⟧ = ⇒-poset (⟦ q q⟧ ⟦ domIsPoset ⋆⟧') ⟦ codIsPoset ⋆⟧
+⟦ DictPoset domIsToset codIsSemilat ⋆⟧ = 
+  ▹-poset (SemStoset.T ⟦ domIsToset ⋇⟧) (SemSemilatCore.S ⟦ codIsSemilat Δ⟧)
   where
     open import Dictionary
-⟦ CapsulePoset q₀' isPosetContents ⁎⟧ = ⟦ q₀' q'⟧ ⟦ isPosetContents ⁎⟧ 
+⟦ CapsulePoset q₀' isPosetContents ⋆⟧ = ⟦ q₀' q'⟧ ⟦ isPosetContents ⋆⟧ 
   where
     open import PosetScalars
-⟦ ProductPoset isPosetL isPosetR ⁎⟧ = ×-poset ⟦ isPosetL ⁎⟧ ⟦ isPosetR ⁎⟧  
+⟦ ProductPoset isPosetL isPosetR ⋆⟧ = ×-poset ⟦ isPosetL ⋆⟧ ⟦ isPosetR ⋆⟧  
   where
     open import Data.Product
     open import Data.Product.Relation.Pointwise.NonDependent
-⟦ SumPoset isPosetL isPosetR ⁎⟧ = ⊎-poset {l0} {l0} {l0} {l0} {l0} {l0} ⟦ isPosetL ⁎⟧ ⟦ isPosetR ⁎⟧  
+⟦ SumPoset isPosetL isPosetR ⋆⟧ = ⊎-poset {l0} {l0} {l0} {l0} {l0} {l0} ⟦ isPosetL ⋆⟧ ⟦ isPosetR ⋆⟧  
   where
     open import Data.Sum
     open import Data.Sum.Relation.Pointwise
-⟦ IVarPoset isStosetContents ⁎⟧ = ⌈⌉-poset (SemStoset.T ⟦ isStosetContents ⁑⟧)
+⟦ IVarPoset isStosetContents ⋆⟧ = ⌈⌉-poset (SemStoset.T ⟦ isStosetContents ⋇⟧)
   where
     open import IVar
-⟦ PartialPoset isPosetContents ⁎⟧ = ⊎-<-poset {l0} {l0} {l0} {l0} {l0} {l0} ⟦ isPosetContents ⁎⟧ unitPoset 
+⟦ PartialPoset isPosetContents ⋆⟧ = ⊎-<-poset {l0} {l0} {l0} {l0} {l0} {l0} ⟦ isPosetContents ⋆⟧ unitPoset 
   where
     open import Data.Sum.Relation.LeftOrder
     open import Data.Unit renaming (poset to unitPoset)
-⟦ UnitPoset ⁎⟧ = poset
+⟦ UnitPoset ⋆⟧ = poset
   where
     open import Data.Unit
-⟦ BoolPoset ⁎⟧ = B≤-poset
+⟦ BoolPoset ⋆⟧ = B≤-poset
   where
     open import BoolPoset
-⟦ NatPoset ⁎⟧ = record 
+⟦ NatPoset ⋆⟧ = record 
   { Carrier = ℕ
   ; _≈_ = _≡_
   ; _≤_ = _≤_ 
@@ -203,52 +201,52 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
     open import Data.Nat.Properties
 
 
-⟦ UnitStoset ⁑⟧ = 
+⟦ UnitStoset ⋇⟧ = 
   record
   { T = UnitStrictTotal.⊤-strictTotalOrder
   ; eq = PE.refl
   }
-⟦ NatStoset ⁑⟧ = 
+⟦ NatStoset ⋇⟧ = 
   record
   { T = <-strictTotalOrder
   ; eq = PE.refl
   }
   where
     open import Data.Nat.Properties
-⟦ BoolStoset ⁑⟧ = 
+⟦ BoolStoset ⋇⟧ = 
   record
   { T = B<-strictTotalOrder
   ; eq = PE.refl
   }
   where
     open import BoolPoset
-⟦ ProductStoset stosetL stosetR ⁑⟧ =
+⟦ ProductStoset stosetL stosetR ⋇⟧ =
   record
-  { T = ×-strictTotalOrder (SemStoset.T ⟦ stosetL ⁑⟧) (SemStoset.T ⟦ stosetR ⁑⟧)
-  ; eq = PE.cong₂ ×-setoid (SemStoset.eq ⟦ stosetL ⁑⟧) (SemStoset.eq ⟦ stosetR ⁑⟧)
+  { T = ×-strictTotalOrder (SemStoset.T ⟦ stosetL ⋇⟧) (SemStoset.T ⟦ stosetR ⋇⟧)
+  ; eq = PE.cong₂ ×-setoid (SemStoset.eq ⟦ stosetL ⋇⟧) (SemStoset.eq ⟦ stosetR ⋇⟧)
   }
   where
     open import Data.Product.Relation.Pointwise.NonDependent using (×-setoid)
     open import Data.Product.Relation.Lex.Strict using (×-strictTotalOrder)
-⟦ SumStoset stosetL stosetR ⁑⟧ = 
+⟦ SumStoset stosetL stosetR ⋇⟧ = 
   record
-  { T = ⊎-<-strictTotalOrder {l0} {l0} {l0} {l0} {l0} {l0} (SemStoset.T ⟦ stosetL ⁑⟧) (SemStoset.T ⟦ stosetR ⁑⟧)
-  ; eq = PE.cong₂ ⊎-setoid (SemStoset.eq ⟦ stosetL ⁑⟧) (SemStoset.eq ⟦ stosetR ⁑⟧)
+  { T = ⊎-<-strictTotalOrder {l0} {l0} {l0} {l0} {l0} {l0} (SemStoset.T ⟦ stosetL ⋇⟧) (SemStoset.T ⟦ stosetR ⋇⟧)
+  ; eq = PE.cong₂ ⊎-setoid (SemStoset.eq ⟦ stosetL ⋇⟧) (SemStoset.eq ⟦ stosetR ⋇⟧)
   }
   where
     open import Data.Sum.Relation.LeftOrder using (⊎-<-strictTotalOrder)
     open import Data.Sum.Relation.Pointwise using (⊎-setoid)
-⟦ PartialStoset stosetContents ⁑⟧ =
+⟦ PartialStoset stosetContents ⋇⟧ =
   record
-  { T = ⊎-<-strictTotalOrder {l0} {l0} {l0} {l0} {l0} {l0} (SemStoset.T ⟦ stosetContents ⁑⟧) ⊤-strictTotalOrder  
-  ; eq = PE.cong₂ ⊎-setoid (SemStoset.eq ⟦ stosetContents ⁑⟧) PE.refl  
+  { T = ⊎-<-strictTotalOrder {l0} {l0} {l0} {l0} {l0} {l0} (SemStoset.T ⟦ stosetContents ⋇⟧) ⊤-strictTotalOrder  
+  ; eq = PE.cong₂ ⊎-setoid (SemStoset.eq ⟦ stosetContents ⋇⟧) PE.refl  
   } 
   where
     open import Data.Sum.Relation.LeftOrder
     open UnitStrictTotal using (⊤-strictTotalOrder)
     open import Data.Sum.Relation.Pointwise using (⊎-setoid)
 
-⟦ BoolSemilat ⁂⟧  =
+⟦ BoolSemilat Δ⟧  =
   record
   { S = S
   ; US = PE.refl
@@ -351,13 +349,13 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
     |i| : (DeltaPoset.Carrier P) → (DeltaPoset.Carrier P)
     |i| tt = tt
 
-    |i|-monotone : Monotone (DeltaPoset.preorder P) ⟦ semilat→deltaPoset BoolSemilat  ⁎⟧' |i|
+    |i|-monotone : Monotone (DeltaPoset.preorder P) ⟦ semilat→deltaPoset BoolSemilat  ⋆⟧' |i|
     |i|-monotone {tt} {tt} tt⊑tt = record {}
 
-    |i|-monic : Injective (DeltaPoset.≈-setoid P) (preorder→setoid ⟦ semilat→deltaPoset BoolSemilat ⁎⟧') |i|
+    |i|-monic : Injective (DeltaPoset.≈-setoid P) (preorder→setoid ⟦ semilat→deltaPoset BoolSemilat ⋆⟧') |i|
     |i|-monic {tt} {tt} _ = PE.refl 
 
-⟦ NatSemilat ⁂⟧ = 
+⟦ NatSemilat Δ⟧ = 
   record
   { S = S
   ; US = PE.refl
@@ -471,19 +469,19 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
           ; _≤?_ = _⊑₀?_
           }
 
-   |i| : (DeltaPoset.Carrier P) → (Poset.Carrier ⟦ semilat→deltaPoset NatSemilat ⁎⟧)
+   |i| : (DeltaPoset.Carrier P) → (Poset.Carrier ⟦ semilat→deltaPoset NatSemilat ⋆⟧)
    |i| (n , p) = n
 
-   |i|-monotone : Monotone (DeltaPoset.preorder P) ⟦ semilat→deltaPoset NatSemilat ⁎⟧' |i|
+   |i|-monotone : Monotone (DeltaPoset.preorder P) ⟦ semilat→deltaPoset NatSemilat ⋆⟧' |i|
    |i|-monotone {n , _} {n' , _} n⊑n' = n⊑n'
 
-   |i|-monic : Injective (DeltaPoset.≈-setoid P) (preorder→setoid ⟦ semilat→deltaPoset NatSemilat ⁎⟧') |i|
+   |i|-monic : Injective (DeltaPoset.≈-setoid P) (preorder→setoid ⟦ semilat→deltaPoset NatSemilat ⋆⟧') |i|
    |i|-monic {a , _} {a' , _} fa≈fa' = fa≈fa' 
 
-   i : (DeltaPoset.preorder P) ↣+ ⟦ semilat→deltaPoset NatSemilat ⁎⟧'
+   i : (DeltaPoset.preorder P) ↣+ ⟦ semilat→deltaPoset NatSemilat ⋆⟧'
    i = (|i| , (λ {a} → λ {a'} → |i|-monotone {a} {a'}) , (λ {a} → λ {a'} → |i|-monic {a} {a'}))
 
-⟦ ProductSemilat isSemilatL isSemilatR ⁂⟧ = record
+⟦ ProductSemilat isSemilatL isSemilatR Δ⟧ = record
   { S = S
   ; US = US
   ; P = P
@@ -494,8 +492,8 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
     open import Data.Product.Relation.Pointwise.NonDependent as PW
     open import Data.Sum.Relation.Pointwise hiding (Pointwise)
 
-    semSemilatL = ⟦ isSemilatL ⁂⟧
-    semSemilatR = ⟦ isSemilatR ⁂⟧
+    semSemilatL = ⟦ isSemilatL Δ⟧
+    semSemilatR = ⟦ isSemilatR Δ⟧
 
     bjsL = SemSemilatCore.S semSemilatL
     bjsR = SemSemilatCore.S semSemilatR
@@ -595,13 +593,13 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
         } 
       }
 
-    US : (BoundedJoinSemilattice.poset S) ≡ ⟦ (ProductPoset (semilat→poset isSemilatL) (semilat→poset isSemilatR)) ⁎⟧
+    US : (BoundedJoinSemilattice.poset S) ≡ ⟦ (ProductPoset (semilat→poset isSemilatL) (semilat→poset isSemilatR)) ⋆⟧
     US = PE.cong₂ (λ x y → ×-poset x y) USL USR
       where
-        USL : (BoundedJoinSemilattice.poset bjsL) ≡ ⟦ semilat→poset isSemilatL ⁎⟧
+        USL : (BoundedJoinSemilattice.poset bjsL) ≡ ⟦ semilat→poset isSemilatL ⋆⟧
         USL = SemSemilatCore.US semSemilatL
 
-        USR : (BoundedJoinSemilattice.poset bjsR) ≡ ⟦ semilat→poset isSemilatR ⁎⟧
+        USR : (BoundedJoinSemilattice.poset bjsR) ≡ ⟦ semilat→poset isSemilatR ⋆⟧
         USR = SemSemilatCore.US semSemilatR
 
     joinSemilatticeS : JoinSemilattice l0 l0 l0
@@ -617,8 +615,8 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
       ; isEquivalence = ×-isEquivalence (BoundedJoinSemilattice.isEquivalence bjsL) (BoundedJoinSemilattice.isEquivalence bjsR)
       }
 
-    deltaL = SemSemilatCore.P ⟦ isSemilatL ⁂⟧
-    deltaR = SemSemilatCore.P ⟦ isSemilatR ⁂⟧
+    deltaL = SemSemilatCore.P ⟦ isSemilatL Δ⟧
+    deltaR = SemSemilatCore.P ⟦ isSemilatR Δ⟧
 
     |L₀| = DeltaPoset.Carrier deltaL
     |R₀| = DeltaPoset.Carrier deltaR
@@ -763,51 +761,51 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
     _∥P_ : |P| → |P| → Set
     _∥P_ = DeltaPoset._∥_ P
 
-    iL : (DeltaPoset.preorder deltaL) ↣+ ⟦ semilat→deltaPoset isSemilatL ⁎⟧'   
+    iL : (DeltaPoset.preorder deltaL) ↣+ ⟦ semilat→deltaPoset isSemilatL ⋆⟧'   
     iL = SemSemilatCore.i semSemilatL
 
-    |iL| : (DeltaPoset.Carrier deltaL) → Preorder.Carrier ⟦ semilat→deltaPoset isSemilatL ⁎⟧'
+    |iL| : (DeltaPoset.Carrier deltaL) → Preorder.Carrier ⟦ semilat→deltaPoset isSemilatL ⋆⟧'
     |iL| = proj₁ iL
 
-    iL-mono : Monotone (DeltaPoset.preorder deltaL) ⟦ semilat→deltaPoset isSemilatL ⁎⟧' |iL|
+    iL-mono : Monotone (DeltaPoset.preorder deltaL) ⟦ semilat→deltaPoset isSemilatL ⋆⟧' |iL|
     iL-mono = proj₁ $ proj₂ iL
 
     iL-injective : 
       Injective 
       (DeltaPoset.≈-setoid deltaL) 
-      (preorder→setoid ⟦ semilat→deltaPoset isSemilatL ⁎⟧') 
+      (preorder→setoid ⟦ semilat→deltaPoset isSemilatL ⋆⟧') 
       |iL|
     iL-injective = proj₂ $ proj₂ iL
 
-    iR : (DeltaPoset.preorder deltaR) ↣+ ⟦ semilat→deltaPoset isSemilatR ⁎⟧' 
+    iR : (DeltaPoset.preorder deltaR) ↣+ ⟦ semilat→deltaPoset isSemilatR ⋆⟧' 
     iR = SemSemilatCore.i semSemilatR
 
-    |iR| : DeltaPoset.Carrier deltaR → Preorder.Carrier ⟦ semilat→deltaPoset isSemilatR ⁎⟧' 
+    |iR| : DeltaPoset.Carrier deltaR → Preorder.Carrier ⟦ semilat→deltaPoset isSemilatR ⋆⟧' 
     |iR| = let |iR| , _ , _ = iR in |iR|
 
-    iR-mono : Monotone (DeltaPoset.preorder deltaR) ⟦ semilat→deltaPoset isSemilatR ⁎⟧' |iR|
+    iR-mono : Monotone (DeltaPoset.preorder deltaR) ⟦ semilat→deltaPoset isSemilatR ⋆⟧' |iR|
     iR-mono = let _ , iR-mono , _ = iR in iR-mono
 
-    iR-injective : Injective (DeltaPoset.≈-setoid deltaR) (preorder→setoid ⟦ semilat→deltaPoset isSemilatR ⁎⟧') |iR|
+    iR-injective : Injective (DeltaPoset.≈-setoid deltaR) (preorder→setoid ⟦ semilat→deltaPoset isSemilatR ⋆⟧') |iR|
     iR-injective = let _ , _ , iR-injective = iR in iR-injective
 
-    |i| : DeltaPoset.Carrier P → Preorder.Carrier ⟦ semilat→deltaPoset $ ProductSemilat isSemilatL isSemilatR ⁎⟧' 
+    |i| : DeltaPoset.Carrier P → Preorder.Carrier ⟦ semilat→deltaPoset $ ProductSemilat isSemilatL isSemilatR ⋆⟧' 
     |i| (inj₁ x) = inj₁ (|iL| x) 
     |i| (inj₂ x) = inj₂ (|iR| x)
 
-    |i|-mono : Monotone (DeltaPoset.preorder P) ⟦ semilat→deltaPoset $ ProductSemilat isSemilatL isSemilatR ⁎⟧' |i|
+    |i|-mono : Monotone (DeltaPoset.preorder P) ⟦ semilat→deltaPoset $ ProductSemilat isSemilatL isSemilatR ⋆⟧' |i|
     |i|-mono {inj₁ a'} {inj₁ b'} (₁∼₁ a'⊑b') = ₁∼₁ (iL-mono a'⊑b')
     |i|-mono {inj₁ a'} {inj₂ b'} (₁∼₂ ())
     |i|-mono {inj₂ a'} {inj₁ x} ()
     |i|-mono {inj₂ a'} {inj₂ b'} (₂∼₂ a'⊑b') = ₂∼₂ (iR-mono a'⊑b')
 
-    |i|-injective : Injective (DeltaPoset.≈-setoid P) (preorder→setoid ⟦ semilat→deltaPoset $ ProductSemilat isSemilatL isSemilatR ⁎⟧') |i|
+    |i|-injective : Injective (DeltaPoset.≈-setoid P) (preorder→setoid ⟦ semilat→deltaPoset $ ProductSemilat isSemilatL isSemilatR ⋆⟧') |i|
     |i|-injective {inj₁ a'} {inj₁ b'} (₁∼₁ ia'≈ib') = ₁∼₁ (iL-injective ia'≈ib')
     |i|-injective {inj₁ a'} {inj₂ b'} (₁∼₂ ())
     |i|-injective {inj₂ a'} {inj₁ b'} ()
     |i|-injective {inj₂ a'} {inj₂ b'} (₂∼₂ ia'≈ib') = ₂∼₂ (iR-injective ia'≈ib')
 
-⟦ PartialSemilat isContentsSemilat ⁂⟧ = 
+⟦ PartialSemilat isContentsSemilat Δ⟧ = 
   record 
   { S = S
   ; US = US
@@ -821,7 +819,7 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
     open import Data.Sum
 
     semContents : SemSemilatCore l0 l0 l0 l0 l0 l0 l0 isContentsSemilat
-    semContents = ⟦ isContentsSemilat ⁂⟧ 
+    semContents = ⟦ isContentsSemilat Δ⟧ 
 
     deltaContents : DeltaPoset {l0} {l0} {l0} {l0}
     deltaContents = SemSemilatCore.P semContents
@@ -881,7 +879,7 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
         minimum (inj₁ x) = ₁∼₁ (isBjsContents.minimum x)
         minimum (inj₂ tt) = ₁∼₂ tt
 
-    US : (BoundedJoinSemilattice.poset S) ≡ ⟦ semilat→poset (PartialSemilat isContentsSemilat) ⁎⟧ 
+    US : (BoundedJoinSemilattice.poset S) ≡ ⟦ semilat→poset (PartialSemilat isContentsSemilat) ⋆⟧
     US = PE.cong₂ (⊎-<-poset {l0} {l0} {l0} {l0} {l0} {l0}) (SemSemilatCore.US semContents) PE.refl
 
     P : DeltaPoset {l0} {l0} {l0} {l0}
@@ -979,15 +977,15 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
         convexity {inj₂ y} {inj₁ x} {c} () b<c a∥b b∥c
         convexity {inj₂ y} {inj₂ y₁} {c} (₂∼₂ ()) b<c a∥b b∥c
 
-    |i| : (DeltaPoset.Carrier P) → -- ((DeltaPoset.Carrier deltaContents) ⊎ ⊤) → 
-          (Poset.Carrier ⟦ PartialPoset (semilat→deltaPoset isContentsSemilat) ⁎⟧) 
+    |i| : (DeltaPoset.Carrier P) →
+          (Poset.Carrier ⟦ PartialPoset (semilat→deltaPoset isContentsSemilat) ⋆⟧) 
     |i| (inj₁ x) = inj₁ $ (proj₁ $ SemSemilatCore.i semContents) x 
     |i| (inj₂ x) = inj₂ x
 
     |i|-monotone :
       Monotone 
-        (DeltaPoset.preorder P) -- (⊎-<-preorder (DeltaPoset.preorder deltaContents) (Poset.preorder unitPoset))
-        (Poset.preorder ⟦ PartialPoset (semilat→deltaPoset isContentsSemilat) ⁎⟧)
+        (DeltaPoset.preorder P)
+        (Poset.preorder ⟦ PartialPoset (semilat→deltaPoset isContentsSemilat) ⋆⟧)
         |i|
     |i|-monotone {inj₁ a'} {inj₁ b'} (₁∼₁ a'∼b') = ₁∼₁ $ (proj₁ $ proj₂ $ SemSemilatCore.i semContents) a'∼b'
     |i|-monotone {inj₁ x} {inj₂ tt} (₁∼₂ tt) = ₁∼₂ tt
@@ -997,44 +995,44 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
     |i|-injective : 
       Injective 
         (preorder→setoid $ DeltaPoset.preorder P)
-        (preorder→setoid $ Poset.preorder ⟦ PartialPoset (semilat→deltaPoset isContentsSemilat) ⁎⟧) |i|
+        (preorder→setoid $ Poset.preorder ⟦ PartialPoset (semilat→deltaPoset isContentsSemilat) ⋆⟧) |i|
     |i|-injective {inj₁ a'} {inj₁ b'} (₁∼₁ ia'≈ib') = ₁∼₁ $ (proj₂ $ proj₂ $ SemSemilatCore.i semContents) ia'≈ib'
     |i|-injective {inj₁ a'} {inj₂ b'} (₁∼₂ ())
     |i|-injective {inj₂ a'} {inj₁ b'} ()
     |i|-injective {inj₂ a'} {inj₂ b'} (₂∼₂ PE.refl) = ₂∼₂ PE.refl
 
-⟦ IVarSemilat isContentStoset ⁂⟧ = record
+⟦ IVarSemilat isContentStoset Δ⟧ = record
   { S = ⌈⌉-semilat
   ; P = deltaPoset
   ; US = PE.refl
   ; i = |i| , |i|-monotone , |i|-injective
   }
   where
-    T = SemStoset.T ⟦ isContentStoset ⁑⟧
+    T = SemStoset.T ⟦ isContentStoset ⋇⟧
     open import IVar T
     open import DiscreteDelta T using (sym≈ ; deltaPoset ; ⊑-refl)
     P = deltaPoset
     |P| = DeltaPoset.Carrier P
-    eq = SemStoset.eq ⟦ isContentStoset ⁑⟧
+    eq = SemStoset.eq ⟦ isContentStoset ⋇⟧
 
-    |i| : |P| → Poset.Carrier ⟦ semilat→deltaPoset (IVarSemilat isContentStoset)  ⁎⟧
-    |i| p = conv {⟦ stoset→poset isContentStoset ⁎⟧} {SemStoset.T ⟦ isContentStoset ⁑⟧} eq p
+    |i| : |P| → Poset.Carrier ⟦ semilat→deltaPoset (IVarSemilat isContentStoset)  ⋆⟧
+    |i| p = conv {⟦ stoset→poset isContentStoset ⋆⟧} {SemStoset.T ⟦ isContentStoset ⋇⟧} eq p
     
-    |i|-monotone : Monotone (DeltaPoset.preorder P) ⟦ semilat→deltaPoset (IVarSemilat isContentStoset) ⁎⟧' |i|
+    |i|-monotone : Monotone (DeltaPoset.preorder P) ⟦ semilat→deltaPoset (IVarSemilat isContentStoset) ⋆⟧' |i|
     |i|-monotone {p} {p'} (⊑-refl p≈p') = 
       (reflexive (conv-≈ eq p p' p≈p') , reflexive (conv-≈ eq p' p (sym≈ p≈p')))  
       where
-        open Preorder ⟦ stoset→poset isContentStoset ⁎⟧' using (reflexive)
+        open Preorder ⟦ stoset→poset isContentStoset ⋆⟧' using (reflexive)
 
     |i|-injective : 
       Injective 
         (preorder→setoid $ DeltaPoset.preorder P)
-        (preorder→setoid ⟦ semilat→deltaPoset $ IVarSemilat isContentStoset ⁎⟧') 
+        (preorder→setoid ⟦ semilat→deltaPoset $ IVarSemilat isContentStoset ⋆⟧') 
         |i|
     |i|-injective {p} {p'} |i|p≈|i|p' = conv-inj eq p p' |i|p≈|i|p'
 
-⟦ DictSemilat isDomStoset isCodSemilat ⁂⟧ = record
-  { S = ▹-semilat (SemStoset.T ⟦ isDomStoset ⁑⟧) (SemSemilatCore.S ⟦ isCodSemilat ⁂⟧)
+⟦ DictSemilat isDomStoset isCodSemilat Δ⟧ = record
+  { S = ▹-semilat (SemStoset.T ⟦ isDomStoset ⋇⟧) (SemSemilatCore.S ⟦ isCodSemilat Δ⟧)
   ; P = P
   ; US = PE.refl
   ; i = |i| , |i|-monotone , |i|-injective 
@@ -1045,10 +1043,10 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
     open import Data.Product.Relation.Lex.Strict as LS
 
     T₀ : StrictTotalOrder l0 l0 l0
-    T₀ = SemStoset.T ⟦ isDomStoset ⁑⟧
+    T₀ = SemStoset.T ⟦ isDomStoset ⋇⟧
 
     P₀ : DeltaPoset {l0} {l0} {l0} {l0}
-    P₀ = SemSemilatCore.P ⟦ isCodSemilat ⁂⟧ 
+    P₀ = SemSemilatCore.P ⟦ isCodSemilat Δ⟧ 
 
     _≈T₀_ = StrictTotalOrder._≈_ T₀
     _<T₀_ = StrictTotalOrder._<_ T₀
@@ -1146,27 +1144,27 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
         --]]]
     --]]]
 
-    eq = SemStoset.eq ⟦ isDomStoset ⁑⟧
+    eq = SemStoset.eq ⟦ isDomStoset ⋇⟧
 
-    |i| : (DeltaPoset.Carrier P) → (Poset.Carrier ⟦ semilat→deltaPoset $ DictSemilat isDomStoset isCodSemilat ⁎⟧)
+    |i| : (DeltaPoset.Carrier P) → (Poset.Carrier ⟦ semilat→deltaPoset $ DictSemilat isDomStoset isCodSemilat ⋆⟧)
     |i| (t , s) = 
-      (conv {P = ⟦ stoset→poset isDomStoset ⁎⟧} {T = T₀} eq t) , ((proj₁ $ SemSemilatCore.i ⟦ isCodSemilat ⁂⟧) s)
+      (conv {P = ⟦ stoset→poset isDomStoset ⋆⟧} {T = T₀} eq t) , ((proj₁ $ SemSemilatCore.i ⟦ isCodSemilat Δ⟧) s)
 
     |i|-monotone : 
       Monotone
         (DeltaPoset.preorder P) 
-        ⟦ ProductPoset (CapsulePoset qAny' $ stoset→poset isDomStoset) (semilat→deltaPoset isCodSemilat) ⁎⟧'
+        ⟦ ProductPoset (CapsulePoset qAny' $ stoset→poset isDomStoset) (semilat→deltaPoset isCodSemilat) ⋆⟧'
         |i|
     --[[[
     |i|-monotone {t , s} {t' , s'} (t≈t' , s≤s') = 
-      ((ct≤ct' , ct'≤ct) , (proj₁ $ proj₂ $ SemSemilatCore.i ⟦ isCodSemilat ⁂⟧) s≤s') 
+      ((ct≤ct' , ct'≤ct) , (proj₁ $ proj₂ $ SemSemilatCore.i ⟦ isCodSemilat Δ⟧) s≤s') 
       where
         Q : Poset l0 l0 l0
-        Q = ⟦ stoset→poset isDomStoset ⁎⟧
+        Q = ⟦ stoset→poset isDomStoset ⋆⟧
         _≤Q_ = Poset._≤_ Q
  
-        ct = conv {P = ⟦ stoset→poset isDomStoset ⁎⟧} {T = T₀} eq t
-        ct' = conv {P = ⟦ stoset→poset isDomStoset ⁎⟧} {T = T₀} eq t'
+        ct = conv {P = ⟦ stoset→poset isDomStoset ⋆⟧} {T = T₀} eq t
+        ct' = conv {P = ⟦ stoset→poset isDomStoset ⋆⟧} {T = T₀} eq t'
 
         ct≈ct' = conv-≈ eq t t' t≈t'
 
@@ -1180,7 +1178,7 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
     |i|-injective :
       Injective 
         (preorder→setoid (DeltaPoset.preorder P))
-        (preorder→setoid ⟦ ProductPoset (CapsulePoset qAny' (stoset→poset isDomStoset)) (semilat→deltaPoset isCodSemilat) ⁎⟧')
+        (preorder→setoid ⟦ ProductPoset (CapsulePoset qAny' (stoset→poset isDomStoset)) (semilat→deltaPoset isCodSemilat) ⋆⟧')
         |i|
     |i|-injective {t , s} {t' , s'} (convt≈convt' , |i|s≈|i|s') = 
-      (conv-inj eq t t' convt≈convt' , (proj₂ $ proj₂ $ SemSemilatCore.i ⟦ isCodSemilat ⁂⟧) |i|s≈|i|s') 
+      (conv-inj eq t t' convt≈convt' , (proj₂ $ proj₂ $ SemSemilatCore.i ⟦ isCodSemilat Δ⟧) |i|s≈|i|s') 

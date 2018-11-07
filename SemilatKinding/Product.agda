@@ -42,16 +42,16 @@ open import Function.Equivalence
 open import Function.Equality using (_⟨$⟩_) 
 open import SemKinding
 
-semilatCore = ⟦ ProductSemilat isSemilatL isSemilatR ⁂⟧ 
+semilatCore = ⟦ ProductSemilat isSemilatL isSemilatR Δ⟧ 
 
 P : DeltaPoset {l0} {l0} {l0} {l0}
 P = SemSemilatCore.P semilatCore
 
-deltaL = SemSemilatCore.P ⟦ isSemilatL ⁂⟧
-deltaR = SemSemilatCore.P ⟦ isSemilatR ⁂⟧
+deltaL = SemSemilatCore.P ⟦ isSemilatL Δ⟧
+deltaR = SemSemilatCore.P ⟦ isSemilatR Δ⟧
 
-bjsL = SemSemilatCore.S ⟦ isSemilatL ⁂⟧
-bjsR = SemSemilatCore.S ⟦ isSemilatR ⁂⟧
+bjsL = SemSemilatCore.S ⟦ isSemilatL Δ⟧
+bjsR = SemSemilatCore.S ⟦ isSemilatR Δ⟧
 
 |L| = BoundedJoinSemilattice.Carrier bjsL
 |R| = BoundedJoinSemilattice.Carrier bjsR

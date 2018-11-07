@@ -31,13 +31,13 @@ module SemilatKinding.Partial
  where
 
 S : BoundedJoinSemilattice l0 l0 l0
-S = SemSemilatCore.S ⟦ PartialSemilat isSemilatContent ⁂⟧
+S = SemSemilatCore.S ⟦ PartialSemilat isSemilatContent Δ⟧
 
 |S| : Set
 |S| = BoundedJoinSemilattice.Carrier S
 
 P : DeltaPoset {l0} {l0} {l0} {l0}
-P = SemSemilatCore.P ⟦ PartialSemilat isSemilatContent ⁂⟧ 
+P = SemSemilatCore.P ⟦ PartialSemilat isSemilatContent Δ⟧ 
 
 open import FreeSemilattice P as FP hiding (⊥)
 
@@ -45,13 +45,13 @@ open import FreeSemilattice P as FP hiding (⊥)
 |P| = DeltaPoset.Carrier P
 
 S₀ : BoundedJoinSemilattice l0 l0 l0
-S₀ = SemSemilatCore.S ⟦ isSemilatContent ⁂⟧
+S₀ = SemSemilatCore.S ⟦ isSemilatContent Δ⟧
 
 |S₀| : Set
 |S₀| = BoundedJoinSemilattice.Carrier S₀
 
 P₀ : DeltaPoset {l0} {l0} {l0} {l0}
-P₀ = SemSemilatCore.P ⟦ isSemilatContent ⁂⟧
+P₀ = SemSemilatCore.P ⟦ isSemilatContent Δ⟧
 
 import FreeSemilattice P₀ as FP₀
 

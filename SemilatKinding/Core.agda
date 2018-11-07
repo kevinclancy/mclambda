@@ -22,13 +22,13 @@ record SemSemilatIso (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ : 
                      : Set (Level.suc $ cₛ ⊔ ℓₛ₁ ⊔ ℓₛ₂ ⊔ cₚ ⊔ ℓ⊑ₚ ⊔ ℓ<ₚ ⊔ ℓ~ₚ) where
   field
     -- factorization into free semilattice
-    f : (SemSemilatCore.S ⟦ isSemilat ⁂⟧) ⇉ FP (SemSemilatCore.P ⟦ isSemilat ⁂⟧)
+    f : (SemSemilatCore.S ⟦ isSemilat Δ⟧) ⇉ FP (SemSemilatCore.P ⟦ isSemilat Δ⟧)
     -- defactorization out of free semilattice
-    g : FP (SemSemilatCore.P ⟦ isSemilat ⁂⟧) ⇉ (SemSemilatCore.S ⟦ isSemilat ⁂⟧) 
+    g : FP (SemSemilatCore.P ⟦ isSemilat Δ⟧) ⇉ (SemSemilatCore.S ⟦ isSemilat Δ⟧) 
     -- f and g are inverses
     inv-S→FP→S : 
-      (a : BoundedJoinSemilattice.Carrier (SemSemilatCore.S ⟦ isSemilat ⁂⟧)) → 
-      (BoundedJoinSemilattice._≈_ (SemSemilatCore.S ⟦ isSemilat ⁂⟧) (proj₁ g $ proj₁ f $ a) a) 
+      (a : BoundedJoinSemilattice.Carrier (SemSemilatCore.S ⟦ isSemilat Δ⟧)) → 
+      (BoundedJoinSemilattice._≈_ (SemSemilatCore.S ⟦ isSemilat Δ⟧) (proj₁ g $ proj₁ f $ a) a) 
     inv-FP→S→FP : 
-      (a : BoundedJoinSemilattice.Carrier $ FP (SemSemilatCore.P ⟦ isSemilat ⁂⟧)) → 
-      (BoundedJoinSemilattice._≈_ (FP (SemSemilatCore.P ⟦ isSemilat ⁂⟧)) (proj₁ f $ proj₁ g $ a) a) 
+      (a : BoundedJoinSemilattice.Carrier $ FP (SemSemilatCore.P ⟦ isSemilat Δ⟧)) → 
+      (BoundedJoinSemilattice._≈_ (FP (SemSemilatCore.P ⟦ isSemilat Δ⟧)) (proj₁ f $ proj₁ g $ a) a) 

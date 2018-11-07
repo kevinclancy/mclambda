@@ -14,7 +14,7 @@ open import Relation.Nullary
 open import Relation.Binary
 open import Relation.Binary.Lattice
 open import Relation.Binary.PropositionalEquality as PE
-open import RelationalStructures
+open import Deltas
 open import Util
 
 module FreeSemilattice.Semilattice {c ℓ⊑ ℓ< ℓ≈} (P : DeltaPoset {c} {ℓ⊑} {ℓ<} {ℓ≈}) where

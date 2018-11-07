@@ -30,7 +30,7 @@ open import SemKinding
 
 open import Data.Nat.Base as NB renaming (_⊔_ to _N⊔_)
 
-semilatCore = ⟦ NatSemilat ⁂⟧ 
+semilatCore = ⟦ NatSemilat Δ⟧ 
 
 P : DeltaPoset {l0} {l0} {l0} {l0}
 P = SemSemilatCore.P semilatCore

@@ -64,7 +64,7 @@ data _∣_⊢_∣_ where
            (Γ ∣ (((q₁ q+ q₂) qR∘ R₀) R+ (R₁ R+ R₂)) ⊢ Case e₀ e₁ e₂ ∣ τRes) 
  
   TyHom : {n : ℕ} {Γ₀ : Vec wfτ n} {R₀ : Vec q n} {e₀ : e} {τ₁ τ₁' τ₂ τ₂' : τ} →
-          {τ₁⁂ : IsSemilat τ₁ τ₁'} → {τ₂⁂ : IsSemilat τ₂ τ₂'} → {wf-τ₁' : IsPoset τ₁'} → 
+          {τ₁Δ : IsSemilat τ₁ τ₁'} → {τ₂Δ : IsSemilat τ₂ τ₂'} → {wf-τ₁' : IsPoset τ₁'} → 
           (((τ₁' , wf-τ₁') ∷ Γ₀) ∣ (qMono ∷ R₀) ⊢ e₀ ∣ τ₂) → 
           (Γ₀ ∣ R₀ ⊢ e₀ ∣ (τFun τ₁ qMono τ₂))
 
@@ -124,7 +124,7 @@ data _∣_⊢_∣_ where
 τRes-wf (TyInl {τR-wf = τR-wf} d) = SumPoset (τRes-wf d) τR-wf
 τRes-wf (TyInr {τL-wf = τL-wf} d) = SumPoset τL-wf (τRes-wf d)
 τRes-wf (TyCase _ d _) = τRes-wf d
-τRes-wf (TyHom {τ₁⁂ = τ₁⁂} {τ₂⁂ = τ₂⁂} τ₁∷Γ@+∷R₀⊢e₀∣τ₂) = FunPoset (semilat→poset τ₁⁂) (semilat→poset τ₂⁂) 
+τRes-wf (TyHom {τ₁Δ = τ₁Δ} {τ₂Δ = τ₂Δ} τ₁∷Γ@+∷R₀⊢e₀∣τ₂) = FunPoset (semilat→poset τ₁Δ) (semilat→poset τ₂Δ) 
 τRes-wf (TySng keyIsStoset valIsSemilat eq d1 d2) = DictPoset keyIsStoset valIsSemilat
 τRes-wf (TyExtract _ _ targetIsSemilat _ _ _ _ _) = semilat→poset targetIsSemilat
 τRes-wf (TyPure d) = PartialPoset (τRes-wf d)
