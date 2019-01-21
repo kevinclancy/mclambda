@@ -7,6 +7,7 @@ open import Data.List.All
 open import Data.List.Any as LAny
 open import Data.List.Membership.Propositional renaming (_∈_ to _∈≡_)
 open import Data.Product
+open import Data.Sum
 open import Relation.Nullary
 open import Function as F using (_$_)
 open import Function.Equivalence
@@ -23,6 +24,7 @@ module Dictionary (K : StrictTotalOrder l0 l0 l0) (V : BoundedJoinSemilattice l0
 _<_ = StrictTotalOrder._<_ K
 <-trans = StrictTotalOrder.trans K
 <-respˡ-≈ = StrictTotalOrder.<-respˡ-≈ K
+<-respʳ-≈ = StrictTotalOrder.<-respʳ-≈ K
 <-irrefl = StrictTotalOrder.irrefl K
 _≈k_ = StrictTotalOrder.Eq._≈_ K
 ≈k-sym = StrictTotalOrder.Eq.sym K
@@ -61,6 +63,10 @@ dict-no⊥ (h ∷ t) (∷-Dict .h .t min ¬h≈⊥ dt) e (there e∈t) = dict-no
 _≤e_ : |E| → |E| → Set
 (k₁ , v₁) ≤e (k₂ , v₂) = (k₁ ≈k k₂) × (v₁ ≤v v₂)
 
+    -- note that this is an unusual notion of ∈, in that we require the value to be *less than* some value with matching key in the list, rather than *equal to*
+_∈d_ : |E| → ▹-Ty → Set
+(k , v) ∈d (l , _) = (Any ((k , v) ≤e_) l) ⊎ (v ≈v ⊥v) 
+
 ≤e-trans : Transitive _≤e_
 ≤e-trans {k1 , v1} {k2 , v2} {k3 , v3} (k1≈k2 , v1≤v2) (k2≈k3 , v2≤v3)  = 
   (StrictTotalOrder.Eq.trans K k1≈k2 k2≈k3) , (BoundedJoinSemilattice.trans V v1≤v2 v2≤v3)
@@ -93,7 +99,6 @@ _≈e_ : |E| → |E| → Set
     open import Data.List.All as LAll
     open import Data.List.Membership.Propositional
     open import Data.Empty
-    open import Data.Sum
     open import Relation.Binary renaming (_⇒_ to _Implies_)
     open StrictTotalOrder K using (compare)
 
@@ -106,10 +111,6 @@ _≈e_ : |E| → |E| → Set
 
     _≤'_ : Carrier' → Carrier' → Set
     (l₁ , _) ≤' (l₂ , _) = All (λ e₁ → Any (λ e₂ → e₁ ≤e e₂) l₂) l₁
-
-    -- note that this is an unusual notion of ∈, in that we require the value to be *less than* some value with matching key in the list, rather than *equal to*
-    _∈'_ : |E| → Carrier' → Set
-    (k , v) ∈' (l , _) = (Any ((k , v) ≤e_) l) ⊎ (v ≈v ⊥v) 
 
     _∈k_ : |K| → Carrier' → Set
     k ∈k (l , _) = Any (λ · → k ≈k proj₁ ·) l
@@ -217,10 +218,10 @@ _≈e_ : |E| → |E| → Set
     --[[[
 
     P∨ : (a b : Carrier') → (e : |E|) → Set
-    P∨ a b (k , v) = Σ[ va ∈ |V| ] Σ[ vb ∈ |V| ] ((k , va) ∈' a) × ((k , vb) ∈' b) × (v ≤v (va ∨v vb))   
+    P∨ a b (k , v) = Σ[ va ∈ |V| ] Σ[ vb ∈ |V| ] ((k , va) ∈d a) × ((k , vb) ∈d b) × (v ≤v (va ∨v vb))   
     
     e∈a∨b→P∨ : (a : List |E|) → (da : IsDict a) → (b : List |E|) → (db : IsDict b) → (e : |E|) → 
-                   (e ∈' ((a , da) ∨' (b , db))) → (P∨ (a , da) (b , db) e)
+                   (e ∈d ((a , da) ∨' (b , db))) → (P∨ (a , da) (b , db) e)
    
     --[[[
     e∈a∨b→P∨ _ _ _ _ _ (inj₂ v≈⊥) = 
@@ -320,7 +321,7 @@ _≈e_ : |E| → |E| → Set
     --]]]
 
     P∨→e∈a∨b : (a : List |E|) → (da : IsDict a) → (b : List |E|) → (db : IsDict b) → (e : |E|) → 
-               (P∨ (a , da) (b , db) e) → (e ∈' ((a , da) ∨' (b , db)))
+               (P∨ (a , da) (b , db) e) → (e ∈d ((a , da) ∨' (b , db)))
     --[[[
     P∨→e∈a∨b [] []-Dict [] []-Dict e@(k , v) (va , vb , inj₁ () , kvb∈b , v≤va∨vb)
     P∨→e∈a∨b [] []-Dict [] []-Dict e@(k , v) (va , vb , inj₂ va≈⊥ , inj₁ () , v≤va∨vb)
@@ -684,13 +685,13 @@ _≈e_ : |E| → |E| → Set
         v≈⊥ = ≤v-antisym v≤⊥ (minimum v)
     --]]]
 
-    e∈a∨b⇔P∨ : (a b : Carrier') → (e : |E|) → (e ∈' (a ∨' b)) ⇔ (P∨ a b e)
+    e∈a∨b⇔P∨ : (a b : Carrier') → (e : |E|) → (e ∈d (a ∨' b)) ⇔ (P∨ a b e)
     e∈a∨b⇔P∨ (la , da) (lb , db) e = equivalence (e∈a∨b→P∨ la da lb db e) (P∨→e∈a∨b la da lb db e)
 
     ∨-monoˡ : (a b c : Carrier') → a ≤' b → (a ∨' c) ≤' (b ∨' c)
     ∨-monoˡ a@(la , da) b@(lb , db) c@(lc , dc) a≤b = LAll.tabulate tab'
       where
-        tab : {kv : |E|} → kv ∈ (proj₁ $ a ∨' c) → kv ∈' (b ∨' c)
+        tab : {kv : |E|} → kv ∈ (proj₁ $ a ∨' c) → kv ∈d (b ∨' c)
         --[[[
         tab {kv@(k , v)} kv∈a∨c with to ⟨$⟩ (inj₁ $ LAny.map aux kv∈a∨c) 
           where
@@ -700,11 +701,11 @@ _≈e_ : |E| → |E| → Set
         tab {kv@(k , v)} kv∈a∨c | va , vc , inj₁ kva≤a , kvc∈c , v≤va∨vc = 
           anyEliminate la elim kva≤a 
           where
-            elim : AnyEliminator {ℓQ = l0} |E| (kv ∈' (b ∨' c)) ((k , va) ≤e_) la
+            elim : AnyEliminator {ℓQ = l0} |E| (kv ∈d (b ∨' c)) ((k , va) ≤e_) la
             elim z@(kz , vz) f (k≈kz , va≤vz) z∈≡la with LAll.lookup a≤b z∈≡la
             elim z@(kz , vz) f (k≈kz , va≤vz) z∈≡la | z≤b = anyEliminate lb elim' z≤b
               where
-                elim' : AnyEliminator {ℓQ = l0} |E| (kv ∈' (b ∨' c)) (z ≤e_) lb
+                elim' : AnyEliminator {ℓQ = l0} |E| (kv ∈d (b ∨' c)) (z ≤e_) lb
                 elim' w@(kw , vw) f (kz≈kw , vz≤vw) w∈≡lb = 
                   from ⟨$⟩ (vw , vc , (inj₁ $ LAny.map aux w∈≡lb) , kvc∈c , v≤vw∨vc)
                   where
@@ -731,7 +732,7 @@ _≈e_ : |E| → |E| → Set
             open import Relation.Binary.Properties.JoinSemilattice
         --]]]
 
-        p : All (λ z → z ∈' (b ∨' c)) (proj₁ $ (a ∨' c))
+        p : All (λ z → z ∈d (b ∨' c)) (proj₁ $ (a ∨' c))
         p = LAll.tabulate tab
 
         tab' : {kv : |E|} → kv ∈ (proj₁ $ (a ∨' c)) → Any (kv ≤e_) (proj₁ $ b ∨' c)
@@ -748,7 +749,7 @@ _≈e_ : |E| → |E| → Set
     --[[[
     ∨-monoʳ a@(la , da) b@(lb , db) c@(lc , dc) b≤c = LAll.tabulate tab'
       where
-        tab : {kv : |E|} → kv ∈ (proj₁ $ a ∨' b) → kv ∈' (a ∨' c)
+        tab : {kv : |E|} → kv ∈ (proj₁ $ a ∨' b) → kv ∈d (a ∨' c)
         --[[[
         tab {kv@(k , v)} kv∈a∨b with to ⟨$⟩ (inj₁ $ LAny.map aux kv∈a∨b) 
           where
@@ -758,11 +759,11 @@ _≈e_ : |E| → |E| → Set
         tab {kv@(k , v)} kv∈a∨b | va , vb , kva∈a , inj₁ kvb≤b , v≤va∨vb = 
           anyEliminate lb elim kvb≤b 
           where
-            elim : AnyEliminator {ℓQ = l0} |E| (kv ∈' (a ∨' c)) ((k , vb) ≤e_) lb
+            elim : AnyEliminator {ℓQ = l0} |E| (kv ∈d (a ∨' c)) ((k , vb) ≤e_) lb
             elim z@(kz , vz) f (k≈kz , vb≤vz) z∈≡lb with LAll.lookup b≤c z∈≡lb
             elim z@(kz , vz) f (k≈kz , vb≤vz) z∈≡la | z≤c = anyEliminate lc elim' z≤c
               where
-                elim' : AnyEliminator {ℓQ = l0} |E| (kv ∈' (a ∨' c)) (z ≤e_) lc
+                elim' : AnyEliminator {ℓQ = l0} |E| (kv ∈d (a ∨' c)) (z ≤e_) lc
                 elim' w@(kw , vw) f (kz≈kw , vz≤vw) w∈≡lc = 
                   from ⟨$⟩ (va , vw , kva∈a , (inj₁ $ LAny.map aux w∈≡lc) , v≤va∨vw)
                   where
@@ -789,7 +790,7 @@ _≈e_ : |E| → |E| → Set
             open import Relation.Binary.Properties.JoinSemilattice
         --]]]
 
-        p : All (λ z → z ∈' (a ∨' c)) (proj₁ $ (a ∨' b))
+        p : All (λ z → z ∈d (a ∨' c)) (proj₁ $ (a ∨' b))
         p = LAll.tabulate tab
 
         tab' : {kv : |E|} → kv ∈ (proj₁ $ (a ∨' b)) → Any (kv ≤e_) (proj₁ $ a ∨' c)
@@ -870,7 +871,7 @@ _≈e_ : |E| → |E| → Set
     ∨'-unitˡ a@([] , []-Dict) = refl-≈' {a}
     ∨'-unitˡ a@(h ∷ t , ∷-Dict h t min ¬h≈⊥ dt) = refl-≈' {a} 
 
-    ▹-functional : (l : List |E|) → (d : IsDict l) → (e1 e2 : |E|) → e1 ∈' (l , d) → e2 ∈' (l , d) → ((proj₁ e1) ≈k (proj₁ e2)) → ((proj₁ e1) , (proj₂ e1) ∨v (proj₂ e2)) ∈' (l , d)
+    ▹-functional : (l : List |E|) → (d : IsDict l) → (e1 e2 : |E|) → e1 ∈d (l , d) → e2 ∈d (l , d) → ((proj₁ e1) ≈k (proj₁ e2)) → ((proj₁ e1) , (proj₂ e1) ∨v (proj₂ e2)) ∈d (l , d)
     ▹-functional [] []-Dict e1 e2 (inj₁ ()) _ k1≈k2  
     ▹-functional [] []-Dict e1 e2 _ (inj₁ ()) k1≈k2
     ▹-functional [] []-Dict (k1 , v1) (k2 , v2) (inj₂ v1≈⊥) (inj₂ v2≈⊥) k1≈k2 = 
@@ -1005,7 +1006,7 @@ _≈e_ : |E| → |E| → Set
                                 kca≈kcb : kca ≈k kcb
                                 kca≈kcb = ≈k-trans (≈k-trans (≈k-sym ka'≈kca) ka'≈kb') kb'≈kcb 
 
-                                kca-vca∨vcb∈c : (kca , vca ∨v vcb) ∈' c 
+                                kca-vca∨vcb∈c : (kca , vca ∨v vcb) ∈d c 
                                 kca-vca∨vcb∈c = 
                                   ▹-functional lc dc (kca , vca) (kcb , vcb) (inj₁ (LAny.map aux1 ca∈≡lc)) ((inj₁ (LAny.map aux2 cb∈≡lc))) kca≈kcb
                                   where

@@ -24,7 +24,7 @@ open import Relation.Binary.PropositionalEquality as PE hiding ([_])
 open import SemScalars
 open import PosetScalars
 open import Preorders
---⁎⟧ ⁑⟧
+
 ----- Stoset conversion (for dealing with the eq field of SemStoset)
 --[[[
 conv : {P : Poset l0 l0 l0} → {T : StrictTotalOrder l0 l0 l0} → (eq : StrictTotalOrder.Eq.setoid T ≡ (poset→setoid P)) →
@@ -480,7 +480,7 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
 
    i : (DeltaPoset.preorder P) ↣+ ⟦ semilat→deltaPoset NatSemilat ⋆⟧'
    i = (|i| , (λ {a} → λ {a'} → |i|-monotone {a} {a'}) , (λ {a} → λ {a'} → |i|-monic {a} {a'}))
-
+{-
 ⟦ ProductSemilat isSemilatL isSemilatR Δ⟧ = record
   { S = S
   ; US = US
@@ -1030,7 +1030,7 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
         (preorder→setoid ⟦ semilat→deltaPoset $ IVarSemilat isContentStoset ⋆⟧') 
         |i|
     |i|-injective {p} {p'} |i|p≈|i|p' = conv-inj eq p p' |i|p≈|i|p'
-
+-}
 ⟦ DictSemilat isDomStoset isCodSemilat Δ⟧ = record
   { S = ▹-semilat (SemStoset.T ⟦ isDomStoset ⋇⟧) (SemSemilatCore.S ⟦ isCodSemilat Δ⟧)
   ; P = P
@@ -1182,3 +1182,8 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
         |i|
     |i|-injective {t , s} {t' , s'} (convt≈convt' , |i|s≈|i|s') = 
       (conv-inj eq t t' convt≈convt' , (proj₂ $ proj₂ $ SemSemilatCore.i ⟦ isCodSemilat Δ⟧) |i|s≈|i|s') 
+--]]
+
+⟦ x Δ⟧ = sem
+  where
+    postulate sem : SemSemilatCore l0 l0 l0 l0 l0 l0 l0 x

@@ -202,7 +202,7 @@ open import FreeSemilattice deltaL renaming
    ≈-reflexive to ≈FL-reflexive ; 
    _∈_ to _∈L_ ; _∈'_ to _∈L'_ ;
    c1≈c2⇔sameElements to c1≈c2⇔sameElementsL ; p∈c1≈c2 to p∈c1≈c2-L ; x∈∨⇔P∨ to x∈∨⇔P∨-L ;
-   concat-F to concat-FR)
+   concat-F to concat-FL)
 open import FreeSemilattice deltaR renaming 
   (IsFreeList to IsFreeListR ; []-Free to []-FreeR ; ∷-Free to ∷-FreeR ; _≈_ to _≈FR_ ; ⊥ to ⊥FR ; 
    SemilatCarrier to Carrier-FPR ; _∨_ to _∨FR_ ; FP-BJS to FPR-BJS ; FP-setoid to FPR-setoid ;
@@ -211,7 +211,7 @@ open import FreeSemilattice deltaR renaming
    sng-free to sng-freeR ; _≤_ to _≤FR_ ; ≈-sym to ≈FR-sym ; ≈-trans to ≈FR-trans ; ≈-refl to ≈FR-refl ; 
    ≈-reflexive to ≈FR-reflexive ; _∈_ to _∈R_ ; _∈'_ to _∈R'_ ;
    c1≈c2⇔sameElements to c1≈c2⇔sameElementsR ; p∈c1≈c2 to p∈c1≈c2-R ; x∈∨⇔P∨ to x∈∨⇔P∨-R ;
-   concat-F to concat-FL)
+   concat-F to concat-FR)
 
 |fL| : |L| → Σ[ l ∈ List (DeltaPoset.Carrier deltaL) ] (IsFreeListL l)
 |fL| = proj₁ $ SemSemilatIso.f semSemilatL
