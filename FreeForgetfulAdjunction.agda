@@ -110,8 +110,8 @@ FP P = FP-BJS
     (|h| b)
    ∎
   where
-    jsS = BoundedJoinSemilattice.joinSemiLattice S
-    jsT = BoundedJoinSemilattice.joinSemiLattice T
+    jsS = BoundedJoinSemilattice.joinSemilattice S
+    jsT = BoundedJoinSemilattice.joinSemilattice T
 
     open import Relation.Binary.PartialOrderReasoning (BoundedJoinSemilattice.poset T)
     module BJT = BoundedJoinSemilattice T
@@ -230,7 +230,7 @@ FP P = FP-BJS
                     gz≤fa₂ : (g z) ≤ₛ (f a₂)
                     gz≤fa₂ = LA.lookup {A = |S|} {P = _≤ₛ (f a₂)} 
                                        (∨-list-upper {S} (mapList g (proj₁ a₂))) 
-                                       (∈-map⁺ z∈a₂)
+                                       (∈-map⁺ g z∈a₂)
         --]]]
 
         f-∨ : ∀ (a₁ a₂ : |A|) → f (a₁ ∨ₐ a₂) ≈ₛ (f a₁) ∨ₛ (f a₂)

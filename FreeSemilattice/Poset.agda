@@ -46,7 +46,7 @@ mutual
  t⋜h∷t {h} {t@(h' ∷ t')} f@(∷-Free .h .t min incomp _) ft = skip-⋜ ft ft f h<h' (∥-sym h∥h') (⋜-refl-lemma t ft ft)   
    where
      h<h' : h < h'
-     h<h' = head min
+     h<h' = LA.head min
 
      h∥h' : h ∥ h'
      h∥h' h∦h' = incomp $ here (h∦h') 

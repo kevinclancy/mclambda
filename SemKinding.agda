@@ -183,10 +183,10 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
 ⟦ PartialPoset isPosetContents ⋆⟧ = ⊎-<-poset {l0} {l0} {l0} {l0} {l0} {l0} ⟦ isPosetContents ⋆⟧ unitPoset 
   where
     open import Data.Sum.Relation.LeftOrder
-    open import Data.Unit renaming (poset to unitPoset)
-⟦ UnitPoset ⋆⟧ = poset
+    open import Data.Unit.Properties renaming (≤-poset to unitPoset)
+⟦ UnitPoset ⋆⟧ = ≤-poset
   where
-    open import Data.Unit
+    open import Data.Unit.Properties
 ⟦ BoolPoset ⋆⟧ = B≤-poset
   where
     open import BoolPoset
@@ -256,7 +256,7 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
   where
     open import Relation.Binary.Lattice
     open import Relation.Binary.PropositionalEquality as PE using (_≡_)
-    open import Relation.Binary.Closure.ReflexiveTransitive
+    open import Relation.Binary.Construct.Closure.ReflexiveTransitive
     open import UnitPoset
     open import Data.List
     open import Data.List.Any
@@ -265,7 +265,7 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
     open import Data.Unit
     open import Data.Empty
     open import Data.Sum
-    open import Data.Bool
+    open import Data.Bool hiding (_<_)
 
     open import Relation.Binary
     open import Deltas
@@ -480,7 +480,6 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
 
    i : (DeltaPoset.preorder P) ↣+ ⟦ semilat→deltaPoset NatSemilat ⋆⟧'
    i = (|i| , (λ {a} → λ {a'} → |i|-monotone {a} {a'}) , (λ {a} → λ {a'} → |i|-monic {a} {a'}))
-{-
 ⟦ ProductSemilat isSemilatL isSemilatR Δ⟧ = record
   { S = S
   ; US = US
@@ -603,7 +602,7 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
         USR = SemSemilatCore.US semSemilatR
 
     joinSemilatticeS : JoinSemilattice l0 l0 l0
-    joinSemilatticeS = BoundedJoinSemilattice.joinSemiLattice S
+    joinSemilatticeS = BoundedJoinSemilattice.joinSemilattice S
 
     ≈'-refl = BoundedJoinSemilattice.Eq.refl S
     ≈'-reflexive = BoundedJoinSemilattice.Eq.reflexive S
@@ -685,36 +684,36 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
           }
 
         convexity : {a b c : |P|} → a <ₚ b → b <ₚ c → a ∥ₚ b → b ∥ₚ c → a ∥ₚ c
-        convexity {inj₁ a'} {inj₂ b'} {inj₁ c'} (₁∼₂ .tt) () a∥b b∥c a∦c
-        convexity {inj₁ a'} {inj₂ b'} {inj₂ c'} (₁∼₂ .tt) (₂∼₂ b'<c') a∥b b∥c (inj₁ (₁∼₂ ()))
-        convexity {inj₁ a'} {inj₂ b'} {inj₂ c'} (₁∼₂ .tt) (₂∼₂ b'<c') a∥b b∥c (inj₂ ())
-        convexity {inj₁ a'} {inj₁ b'} {inj₂ c'} (₁∼₁ a'<b') (₁∼₂ .tt) a∥b b∥c (inj₁ (₁∼₂ ()))
-        convexity {inj₁ a'} {inj₁ b'} {inj₂ c'} (₁∼₁ a'<b') (₁∼₂ .tt) a∥b b∥c (inj₂ ())
+        convexity {inj₁ a'} {inj₂ b'} {inj₁ c'} ₁∼₂ () a∥b b∥c a∦c
+        convexity {inj₁ a'} {inj₂ b'} {inj₂ c'} ₁∼₂ (₂∼₂ b'<c') a∥b b∥c (inj₁ ())
+        convexity {inj₁ a'} {inj₂ b'} {inj₂ c'} ₁∼₂ (₂∼₂ b'<c') a∥b b∥c (inj₂ ())
+        convexity {inj₁ a'} {inj₁ b'} {inj₂ c'} (₁∼₁ a'<b') ₁∼₂ a∥b b∥c (inj₁ ())
+        convexity {inj₁ a'} {inj₁ b'} {inj₂ c'} (₁∼₁ a'<b') ₁∼₂ a∥b b∥c (inj₂ ())
         convexity {inj₁ a'} {inj₁ b'} {inj₁ c'} (₁∼₁ a'<b') (₁∼₁ b'<c') a∥b b∥c a∦c with a'∥b' | b'∥c'
           where
             a'∥b' : a' L∥ b'
-            a'∥b' (inj₁ a'⊑b') = a∥b $ inj₁ (₁∼₁ a'⊑b')
-            a'∥b' (inj₂ b'⊑a') = a∥b $ inj₂ (₁∼₁ b'⊑a')
+            a'∥b' (inj₁ a'⊑b') = a∥b $ inj₁ (inj₁ a'⊑b')
+            a'∥b' (inj₂ b'⊑a') = a∥b $ inj₂ (inj₁ b'⊑a')
 
             b'∥c' : b' L∥ c'
-            b'∥c' (inj₁ b'⊑c') = b∥c $ inj₁ (₁∼₁ b'⊑c')
-            b'∥c' (inj₂ c'⊑b') = b∥c $ inj₂ (₁∼₁ c'⊑b')
-        convexity {inj₁ a'} {inj₁ b'} {inj₁ c'} (₁∼₁ a'<b') (₁∼₁ b'<c') a∥b b∥c (inj₁ (₁∼₁ a'⊑c')) | a'∥b' | b'∥c' =
+            b'∥c' (inj₁ b'⊑c') = b∥c $ inj₁ (inj₁ b'⊑c')
+            b'∥c' (inj₂ c'⊑b') = b∥c $ inj₂ (inj₁ c'⊑b')
+        convexity {inj₁ a'} {inj₁ b'} {inj₁ c'} (₁∼₁ a'<b') (₁∼₁ b'<c') a∥b b∥c (inj₁ (inj₁ a'⊑c')) | a'∥b' | b'∥c' =
           (convexL a'<b' b'<c' a'∥b' b'∥c') (inj₁ a'⊑c')
-        convexity {inj₁ a'} {inj₁ b'} {inj₁ c'} (₁∼₁ a'<b') (₁∼₁ b'<c') a∥b b∥c (inj₂ (₁∼₁ c'⊑a')) | a'∥b' | b'∥c' =
+        convexity {inj₁ a'} {inj₁ b'} {inj₁ c'} (₁∼₁ a'<b') (₁∼₁ b'<c') a∥b b∥c (inj₂ (inj₁ c'⊑a')) | a'∥b' | b'∥c' =
           (convexL a'<b' b'<c' a'∥b' b'∥c') (inj₂ c'⊑a')
         convexity {inj₂ a'} {inj₂ b'} {inj₂ c'} (₂∼₂ a'<b') (₂∼₂ b'<c') a∥b b∥c a∦c with a'∥b' | b'∥c'
           where
             a'∥b' : a' R∥ b'
-            a'∥b' (inj₁ a'⊑b') = a∥b $ inj₁ (₂∼₂ a'⊑b')
-            a'∥b' (inj₂ b'⊑a') = a∥b $ inj₂ (₂∼₂ b'⊑a')
+            a'∥b' (inj₁ a'⊑b') = a∥b $ inj₁ (inj₂ a'⊑b')
+            a'∥b' (inj₂ b'⊑a') = a∥b $ inj₂ (inj₂ b'⊑a')
 
             b'∥c' : b' R∥ c'
-            b'∥c' (inj₁ b'⊑c') = b∥c $ inj₁ (₂∼₂ b'⊑c')
-            b'∥c' (inj₂ c'⊑b') = b∥c $ inj₂ (₂∼₂ c'⊑b')
-        convexity {inj₂ a'} {inj₂ b'} {inj₂ c'} (₂∼₂ a'<b') (₂∼₂ b'<c') a∥b b∥c (inj₁ (₂∼₂ a'⊑c')) | a'∥b' | b'∥c' =
+            b'∥c' (inj₁ b'⊑c') = b∥c $ inj₁ (inj₂ b'⊑c')
+            b'∥c' (inj₂ c'⊑b') = b∥c $ inj₂ (inj₂ c'⊑b')
+        convexity {inj₂ a'} {inj₂ b'} {inj₂ c'} (₂∼₂ a'<b') (₂∼₂ b'<c') a∥b b∥c (inj₁ (inj₂ a'⊑c')) | a'∥b' | b'∥c' =
           (convexR a'<b' b'<c' a'∥b' b'∥c') (inj₁ a'⊑c')
-        convexity {inj₂ a'} {inj₂ b'} {inj₂ c'} (₂∼₂ a'<b') (₂∼₂ b'<c') a∥b b∥c (inj₂ (₂∼₂ c'⊑a')) | a'∥b' | b'∥c' =
+        convexity {inj₂ a'} {inj₂ b'} {inj₂ c'} (₂∼₂ a'<b') (₂∼₂ b'<c') a∥b b∥c (inj₂ (inj₂ c'⊑a')) | a'∥b' | b'∥c' =
           (convexR a'<b' b'<c' a'∥b' b'∥c') (inj₂ c'⊑a')
 
         sumDeltaPoset : DeltaPoset {_} {_} {_} {_}
@@ -794,16 +793,12 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
     |i| (inj₂ x) = inj₂ (|iR| x)
 
     |i|-mono : Monotone (DeltaPoset.preorder P) ⟦ semilat→deltaPoset $ ProductSemilat isSemilatL isSemilatR ⋆⟧' |i|
-    |i|-mono {inj₁ a'} {inj₁ b'} (₁∼₁ a'⊑b') = ₁∼₁ (iL-mono a'⊑b')
-    |i|-mono {inj₁ a'} {inj₂ b'} (₁∼₂ ())
-    |i|-mono {inj₂ a'} {inj₁ x} ()
-    |i|-mono {inj₂ a'} {inj₂ b'} (₂∼₂ a'⊑b') = ₂∼₂ (iR-mono a'⊑b')
+    |i|-mono {inj₁ a'} {inj₁ b'} (inj₁ a'⊑b') = inj₁ (iL-mono a'⊑b')
+    |i|-mono {inj₂ a'} {inj₂ b'} (inj₂ a'⊑b') = inj₂ (iR-mono a'⊑b')
 
     |i|-injective : Injective (DeltaPoset.≈-setoid P) (preorder→setoid ⟦ semilat→deltaPoset $ ProductSemilat isSemilatL isSemilatR ⋆⟧') |i|
-    |i|-injective {inj₁ a'} {inj₁ b'} (₁∼₁ ia'≈ib') = ₁∼₁ (iL-injective ia'≈ib')
-    |i|-injective {inj₁ a'} {inj₂ b'} (₁∼₂ ())
-    |i|-injective {inj₂ a'} {inj₁ b'} ()
-    |i|-injective {inj₂ a'} {inj₂ b'} (₂∼₂ ia'≈ib') = ₂∼₂ (iR-injective ia'≈ib')
+    |i|-injective {inj₁ a'} {inj₁ b'} (inj₁ ia'≈ib') = inj₁ (iL-injective ia'≈ib')
+    |i|-injective {inj₂ a'} {inj₂ b'} (inj₂ ia'≈ib') = inj₂ (iR-injective ia'≈ib')
 
 ⟦ PartialSemilat isContentsSemilat Δ⟧ = 
   record 
@@ -813,9 +808,10 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
   ; i = |i| , |i|-monotone , |i|-injective
   }
   where
-    open import Data.Unit renaming (setoid to unitSetoid ; poset to unitPoset)
+    open import Data.Unit renaming (setoid to unitSetoid)
+    open import Data.Unit.Properties using (≤-poset)
     open import Data.Sum.Relation.LeftOrder
-    open import Data.Sum.Relation.Pointwise using (⊎-setoid)
+    open import Data.Sum.Relation.Pointwise using (⊎-setoid ; inj₁ ; inj₂)
     open import Data.Sum
 
     semContents : SemSemilatCore l0 l0 l0 l0 l0 l0 l0 isContentsSemilat
@@ -837,7 +833,7 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
       ; isBoundedJoinSemilattice = record
         { isJoinSemilattice = record
           { isPartialOrder = ⊎-<-isPartialOrder (BoundedJoinSemilattice.isPartialOrder bjsContents) 
-                                                (Poset.isPartialOrder unitPoset)
+                                                (Poset.isPartialOrder ≤-poset)
           ; supremum = supremum
           }
           ; minimum = minimum
@@ -849,7 +845,7 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
         Carrier = (BoundedJoinSemilattice.Carrier bjsContents) ⊎ ⊤
         module isBjsContents = IsBoundedJoinSemilattice (BoundedJoinSemilattice.isBoundedJoinSemilattice bjsContents)
 
-        _≤ᵀ_ = (BoundedJoinSemilattice._≤_ bjsContents) ⊎-< (Poset._≤_ unitPoset)
+        _≤ᵀ_ = (BoundedJoinSemilattice._≤_ bjsContents) ⊎-< (Poset._≤_ ≤-poset)
         ⊥ᵀ = inj₁ (BoundedJoinSemilattice.⊥ bjsContents)
         _∨'_ = BoundedJoinSemilattice._∨_ bjsContents
 
@@ -861,15 +857,15 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
 
         upper : (x y : Carrier) → x ≤ᵀ (x ∨ᵀ y) × y ≤ᵀ (x ∨ᵀ y)
         upper (inj₁ x) (inj₁ y) = ₁∼₁ (proj₁ $ isBjsContents.supremum x y) , ₁∼₁ (proj₁ $ proj₂ $ isBjsContents.supremum x y)
-        upper (inj₁ x) (inj₂ tt) = ₁∼₂ tt , ₂∼₂ (record {})
-        upper (inj₂ tt) (inj₁ x) = ₂∼₂ (record {}) , ₁∼₂ tt
+        upper (inj₁ x) (inj₂ tt) = ₁∼₂ , ₂∼₂ (record {})
+        upper (inj₂ tt) (inj₁ x) = ₂∼₂ (record {}) , ₁∼₂
         upper (inj₂ tt) (inj₂ tt) = ₂∼₂ (record {}) , ₂∼₂ (record {})
 
         least : (x y : Carrier) → (z : Carrier) → (x ≤ᵀ z) → (y ≤ᵀ z) → ((x ∨ᵀ y) ≤ᵀ z)
-        least .(inj₁ _) .(inj₁ _) .(inj₂ tt) (₁∼₂ tt) (₁∼₂ tt) = ₁∼₂ tt
-        least .(inj₁ _) .(inj₂ _) .(inj₂ _) (₁∼₂ tt) (₂∼₂ (record {})) = ₂∼₂ (record {})
+        least .(inj₁ _) .(inj₁ _) .(inj₂ tt) ₁∼₂ ₁∼₂ = ₁∼₂
+        least .(inj₁ _) .(inj₂ _) .(inj₂ _) ₁∼₂ (₂∼₂ (record {})) = ₂∼₂ (record {})
         least (inj₁ x) (inj₁ y) (inj₁ z) (₁∼₁ x≤z) (₁∼₁ y≤z) = ₁∼₁ $ (proj₂ $ proj₂ $ isBjsContents.supremum x y) z x≤z y≤z
-        least .(inj₂ _) .(inj₁ _) .(inj₂ _) (₂∼₂ (record {})) (₁∼₂ tt) = ₂∼₂ (record {})
+        least .(inj₂ _) .(inj₁ _) .(inj₂ _) (₂∼₂ (record {})) ₁∼₂ = ₂∼₂ (record {})
         least .(inj₂ _) .(inj₂ _) .(inj₂ _) (₂∼₂ (record {})) (₂∼₂ (record{})) = ₂∼₂ (record {})
 
         supremum : Supremum _≤ᵀ_ _∨ᵀ_
@@ -877,7 +873,7 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
 
         minimum : Minimum _≤ᵀ_ ⊥ᵀ 
         minimum (inj₁ x) = ₁∼₁ (isBjsContents.minimum x)
-        minimum (inj₂ tt) = ₁∼₂ tt
+        minimum (inj₂ tt) = ₁∼₂
 
     US : (BoundedJoinSemilattice.poset S) ≡ ⟦ semilat→poset (PartialSemilat isContentsSemilat) ⋆⟧
     US = PE.cong₂ (⊎-<-poset {l0} {l0} {l0} {l0} {l0} {l0}) (SemSemilatCore.US semContents) PE.refl
@@ -891,7 +887,7 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
       ; isStrictTotalOrder = ⊎-<-isStrictTotalOrder (DeltaPoset.isStrictTotalOrder P') (UnitStrictTotal.⊤-IsStrictTotalOrder)
       ; isDecPartialOrder = record
         { isPartialOrder = ⊎-<-isPartialOrder (IsDecPartialOrder.isPartialOrder isDecPartialOrder₀) 
-                                               (Poset.isPartialOrder unitPoset)
+                                               (Poset.isPartialOrder ≤-poset)
         ; _≟_ = _≟₀_
         ; _≤?_ = _≤₀?_
         } 
@@ -900,7 +896,8 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
       where
         open import Data.Sum.Relation.Pointwise as SPW using (⊎-setoid)
         open import Data.Sum.Relation.LeftOrder
-        open import Data.Unit renaming (poset to unitPoset ; setoid to unitSetoid)
+        open import Data.Unit renaming (setoid to unitSetoid)
+        open import Data.Unit.Properties using (≤-poset)
 
         P' : DeltaPoset {l0} {l0} {l0} {l0}
         P' = deltaContents 
@@ -916,20 +913,20 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
 
         _≟₀_ : Decidable _≈₀_
         inj₁ a ≟₀ inj₁ b with IsDecPartialOrder._≟_ isDecPartialOrder₀ a b 
-        inj₁ a ≟₀ inj₁ b | yes a≈b = yes $ ₁∼₁ a≈b 
+        inj₁ a ≟₀ inj₁ b | yes a≈b = yes (SPW.inj₁ a≈b) 
         inj₁ a ≟₀ inj₁ b | no ¬a≈b = no ¬inj₁a≈₀inj₁b
           where
             ¬inj₁a≈₀inj₁b : ¬ (inj₁ a ≈₀ inj₁ b)
-            ¬inj₁a≈₀inj₁b (₁∼₁ a≈b) = ¬a≈b a≈b
+            ¬inj₁a≈₀inj₁b (SPW.inj₁ a≈b) = ¬a≈b a≈b
         inj₁ a ≟₀ inj₂ tt = no ¬inj₁a≈₀inj₂tt
           where
             ¬inj₁a≈₀inj₂tt : ¬ (inj₁ a ≈₀ inj₂ tt)
-            ¬inj₁a≈₀inj₂tt (₁∼₂ ())
+            ¬inj₁a≈₀inj₂tt ()
         inj₂ tt ≟₀ inj₁ b = no (λ ())
-        inj₂ tt ≟₀ inj₂ tt = yes (₂∼₂ PE.refl)
+        inj₂ tt ≟₀ inj₂ tt = yes (SPW.inj₂ PE.refl)
 
         _≤₀_ : Carrier₀ → Carrier₀ → Set
-        _≤₀_ = (DeltaPoset._⊑_ P') ⊎-< (Poset._≤_ unitPoset)
+        _≤₀_ = (DeltaPoset._⊑_ P') ⊎-< (Poset._≤_ ≤-poset)
 
         _≤₀?_ : Decidable _≤₀_
         inj₁ a ≤₀? inj₁ b with IsDecPartialOrder._≤?_ isDecPartialOrder₀ a b
@@ -938,7 +935,7 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
           where
             ¬inj₁a≤₀inj₁b : ¬ (inj₁ a ≤₀ inj₁ b)
             ¬inj₁a≤₀inj₁b (₁∼₁ a≤b) = ¬a≤b a≤b
-        inj₁ a ≤₀? inj₂ tt = yes (₁∼₂ tt)
+        inj₁ a ≤₀? inj₂ tt = yes ₁∼₂
         inj₂ tt ≤₀? inj₁ b = no (λ ())
         inj₂ tt ≤₀? inj₂ tt = yes (₂∼₂ (record {}))
 
@@ -959,12 +956,12 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
         convexity {inj₁ a'} {inj₁ b'} {inj₁ c'} (₁∼₁ a'<b') (₁∼₁ b'<c') a∥b b∥c = a∥c
           where
             a'∥b' : a' ∥ b'
-            a'∥b' (inj₁ a'⊑b') = a∥b (inj₁ $ ₁∼₁ a'⊑b')
-            a'∥b' (inj₂ b'⊑a') = a∥b (inj₂ $ ₁∼₁ b'⊑a')
+            a'∥b' (inj₁ a'⊑b') = a∥b (inj₁ (₁∼₁ a'⊑b'))
+            a'∥b' (inj₂ b'⊑a') = a∥b (inj₂ (₁∼₁ b'⊑a'))
 
             b'∥c' : b' ∥ c'
-            b'∥c' (inj₁ b'⊑c') = b∥c (inj₁ $ ₁∼₁ b'⊑c')
-            b'∥c' (inj₂ c'⊑b') = b∥c (inj₂ $ ₁∼₁ c'⊑b')
+            b'∥c' (inj₁ b'⊑c') = b∥c (inj₁ (₁∼₁ b'⊑c'))
+            b'∥c' (inj₂ c'⊑b') = b∥c (inj₂ (₁∼₁ c'⊑b'))
 
             a'∥c' : a' ∥ c'
             a'∥c' = (DeltaPoset.convexity P') a'<b' b'<c' a'∥b' b'∥c' 
@@ -972,8 +969,8 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
             a∥c : (inj₁ a') ∥₀ (inj₁ c')
             a∥c (inj₁ (₁∼₁ a'⊑c')) = a'∥c' (inj₁ a'⊑c')
             a∥c (inj₂ (₁∼₁ c'⊑a')) = a'∥c' (inj₂ c'⊑a')
-        convexity {inj₁ a'} {inj₁ b'} {inj₂ tt} (₁∼₁ a'⊑b') (₁∼₂ tt) a∥b b∥c = ⊥-elim $ b∥c (inj₁ (₁∼₂ tt))
-        convexity {inj₁ x} {inj₂ y} {c} a<b b<c a∥b b∥c = ⊥-elim $ a∥b (inj₁ (₁∼₂ tt))
+        convexity {inj₁ a'} {inj₁ b'} {inj₂ tt} (₁∼₁ a'⊑b') ₁∼₂ a∥b b∥c = ⊥-elim $ b∥c (inj₁ ₁∼₂)
+        convexity {inj₁ x} {inj₂ y} {c} a<b b<c a∥b b∥c = ⊥-elim $ a∥b (inj₁ ₁∼₂)
         convexity {inj₂ y} {inj₁ x} {c} () b<c a∥b b∥c
         convexity {inj₂ y} {inj₂ y₁} {c} (₂∼₂ ()) b<c a∥b b∥c
 
@@ -988,7 +985,7 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
         (Poset.preorder ⟦ PartialPoset (semilat→deltaPoset isContentsSemilat) ⋆⟧)
         |i|
     |i|-monotone {inj₁ a'} {inj₁ b'} (₁∼₁ a'∼b') = ₁∼₁ $ (proj₁ $ proj₂ $ SemSemilatCore.i semContents) a'∼b'
-    |i|-monotone {inj₁ x} {inj₂ tt} (₁∼₂ tt) = ₁∼₂ tt
+    |i|-monotone {inj₁ x} {inj₂ tt} ₁∼₂ = ₁∼₂
     |i|-monotone {inj₂ tt} {inj₁ x} ()
     |i|-monotone {inj₂ tt} {inj₂ tt} (₂∼₂ (record {})) = ₂∼₂ (record {})
 
@@ -996,10 +993,8 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
       Injective 
         (preorder→setoid $ DeltaPoset.preorder P)
         (preorder→setoid $ Poset.preorder ⟦ PartialPoset (semilat→deltaPoset isContentsSemilat) ⋆⟧) |i|
-    |i|-injective {inj₁ a'} {inj₁ b'} (₁∼₁ ia'≈ib') = ₁∼₁ $ (proj₂ $ proj₂ $ SemSemilatCore.i semContents) ia'≈ib'
-    |i|-injective {inj₁ a'} {inj₂ b'} (₁∼₂ ())
-    |i|-injective {inj₂ a'} {inj₁ b'} ()
-    |i|-injective {inj₂ a'} {inj₂ b'} (₂∼₂ PE.refl) = ₂∼₂ PE.refl
+    |i|-injective {inj₁ a'} {inj₁ b'} (inj₁ ia'≈ib') = inj₁ $ (proj₂ $ proj₂ $ SemSemilatCore.i semContents) ia'≈ib'
+    |i|-injective {inj₂ a'} {inj₂ b'} (inj₂ PE.refl) = inj₂ PE.refl
 
 ⟦ IVarSemilat isContentStoset Δ⟧ = record
   { S = ⌈⌉-semilat
@@ -1030,7 +1025,6 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
         (preorder→setoid ⟦ semilat→deltaPoset $ IVarSemilat isContentStoset ⋆⟧') 
         |i|
     |i|-injective {p} {p'} |i|p≈|i|p' = conv-inj eq p p' |i|p≈|i|p'
--}
 ⟦ DictSemilat isDomStoset isCodSemilat Δ⟧ = record
   { S = ▹-semilat (SemStoset.T ⟦ isDomStoset ⋇⟧) (SemSemilatCore.S ⟦ isCodSemilat Δ⟧)
   ; P = P
@@ -1184,6 +1178,6 @@ record SemSemilatCore (cₛ ℓₛ₁ ℓₛ₂ cₚ ℓ⊑ₚ ℓ<ₚ ℓ~ₚ :
       (conv-inj eq t t' convt≈convt' , (proj₂ $ proj₂ $ SemSemilatCore.i ⟦ isCodSemilat Δ⟧) |i|s≈|i|s') 
 --]]
 
-⟦ x Δ⟧ = sem
-  where
-    postulate sem : SemSemilatCore l0 l0 l0 l0 l0 l0 l0 x
+--⟦ x Δ⟧ = sem
+--  where
+--    postulate sem : SemSemilatCore l0 l0 l0 l0 l0 l0 l0 x

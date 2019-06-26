@@ -3,7 +3,7 @@ module Util where
 open import Function using (_∘_ ; _$_)
 open import Function.Equality using (_⟨$⟩_)
 
-open import Data.Maybe hiding (Eq)
+open import Data.Maybe
 open import Data.Bool hiding (_∨_)
 open import Data.Product
 open import Data.Sum
@@ -14,7 +14,7 @@ open import Data.Nat.Properties as NP
 open import Relation.Binary
 open import Relation.Nullary
 open import Relation.Unary hiding (_⇒_ ; Decidable ; _∈_ )
-open import Data.Vec as V hiding ([_] ; _++_ ; reverse ; _∷ʳ_ ; _∈_)
+open import Data.Vec as V hiding ([_] ; _++_ ; reverse ; _∷ʳ_)
 open import Data.List as L
 open import Data.List.Properties as LP
 open import Data.List.Any as LA
@@ -54,8 +54,8 @@ decEquiv {ℓ} {A} {B} {R} {Q} imp1 imp2 d = decidableQ
     decidableQ a b | yes aRb = yes (imp1 aRb)
     decidableQ a b | no ¬aRb = no (¬aRb ∘ imp2)
 
-_≤′?_ : Decidable _≤′_
-_≤′?_ = decEquiv ≤⇒≤′ ≤′⇒≤ N._≤?_
+--_≤′?_ : Decidable _≤′_
+--_≤′?_ = decEquiv ≤⇒≤′ ≤′⇒≤ N._≤?_
 
 AnyEliminator : ∀ {ℓQ ℓP ℓA ℓB} → (A : Set ℓA) → (B : Set ℓB) → (P : Pred A ℓP) → (l : List A) → Set _
 AnyEliminator {ℓQ} A B P l = 
@@ -115,7 +115,7 @@ length-∷ʳ l a = begin
   where
     open ≡-Reasoning
     open import Algebra
-    open CommutativeSemiring (NP.commutativeSemiring) hiding (_+_)
+    open CommutativeSemiring (NP.*-+-commutativeSemiring) hiding (_+_)
 
 lengthReverse : ∀ {a} {A : Set a} → (l : List A) → (L.length l ≡ L.length (L.reverse l))
 lengthReverse (a ∷ as) = begin 
@@ -128,7 +128,7 @@ lengthReverse (a ∷ as) = begin
   where
     open ≡-Reasoning
     open import Algebra
-    open CommutativeSemiring (NP.commutativeSemiring) hiding (_+_)
+    open CommutativeSemiring (NP.*-+-commutativeSemiring) hiding (_+_)
 lengthReverse [] = refl
 
 allReverse : ∀ {a p} {A : Set a} → (l : List A) → (P : A → Set p) → (lAll : LL.All P l) → LL.All P (reverse l)

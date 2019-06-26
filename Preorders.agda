@@ -135,4 +135,4 @@ partial-preorder : (P : Preorder l0 l0 l0) → Preorder l0 l0 l0
 partial-preorder P = ⊎-<-preorder P (Poset.preorder unitPoset)
   where
     open import Data.Sum.Relation.LeftOrder
-    open import Data.Unit renaming (poset to unitPoset)
+    open import Data.Unit.Properties renaming (≤-poset to unitPoset)

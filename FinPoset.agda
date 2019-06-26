@@ -8,8 +8,8 @@ open import Data.Star.Properties as SP
 open import Data.List as L
 open import Data.List.Any as LA
 open import Data.List.All as LAll
-open import Data.Bool as B
-open import Util renaming (_≤′?_ to _N≤?_)
+open import Data.Bool as B hiding (_≤_ ; _≤?_)
+open import Util
 open import Relation.Binary.PropositionalEquality as PE
 open import Relation.Binary as RB
 open import Relation.Unary as RU
@@ -18,6 +18,7 @@ open import Data.Product
 open import Level renaming (zero to ℓ₀)
 open import Data.Empty
 open import Induction.WellFounded as WF
+open import Induction.Nat
 
 -- we may want to show that a transitive property of the covers relation
 -- is also present in ≤, in which case Data.Star.Properties' fold-◅◅ theorem may be useful 
@@ -162,7 +163,7 @@ module FinPoset
     
     -- A decision procedure for _≤_, the partial order derived from the provided cover list
     _≤?_ : RB.Decidable _≤_
-    A₀ ≤? A₁ = ≤?-bounded d (<′-well-founded d) A₀ A₁ ≤′-refl 
+    A₀ ≤? A₁ = ≤?-bounded d (<′-wellFounded d) A₀ A₁ ≤′-refl 
       where
         open import Induction.Nat using (<′-well-founded)
         d : ℕ 

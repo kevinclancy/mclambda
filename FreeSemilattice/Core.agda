@@ -30,7 +30,7 @@ open DeltaPoset P renaming
 open import Data.List.Membership.DecSetoid (DeltaPoset.≈-decSetoid P)
 open import Data.List.Membership.Propositional renaming (_∈_ to _∈≡_)
 
-infix 4 _~_ _⋜_ _≤_ _≈_ _~'_
+infix 4 _⋜_ _≤_ _≈_ _~'_
 infixr 6 _∨'_ _∨_
 
 data IsFreeList : List Carrier → Set (c ⊔ ℓ< ⊔ ℓ⊑) where
@@ -223,19 +223,19 @@ data _⋜_ : Carrier-FP → Carrier-FP → Set (Level.suc $ ℓ⊑ ⊔ ℓ< ⊔ 
   with (≤→⋜ {t1 , ft1} {h2 ∷ t2 , f2} t1≤l2) 
 ≤→⋜ {h1 ∷ t1 , f1@(∷-Free _ _ _ _ ft1)} {l2@(h2 ∷ t2) , f2} (here (h1⊑h2) ∷ t1≤l2) | t1⋜l2 =
   cmp-⋜ ft1 f1 f2 h1⊑h2 t1⋜l2
-≤→⋜ {h1 ∷ t1 , ∷-Free .h1 .t1 _ _ _} {h2 ∷ t2 , ∷-Free .h2 .t2 min2 incomp2 _} h1⋜l2@(there h1⊑t2 ∷ t1≤l2) | t1⋜l2 with h1 ∦? h2
-≤→⋜ {h1 ∷ t1 , f1@(∷-Free _ _ _ _ ft1)} {h2 ∷ t2 , f2@(∷-Free _ _ _ _ _)} t1⋜l2@(there h1⊑t2 ∷ t1≤l2) | t1⋜l2 | l⊑r h1⊑h2 ¬h2⊑h1 =
+≤→⋜ {h1 ∷ t1 , ∷-Free .h1 .t1 _ _ _} {h2 ∷ t2 , ∷-Free .h2 .t2 min2 incomp2 _} l1⋜l2@(there h1⊑t2 ∷ t1≤l2) | t1⋜l2 with h1 ∦? h2
+≤→⋜ {h1 ∷ t1 , f1@(∷-Free _ _ _ _ ft1)} {h2 ∷ t2 , f2@(∷-Free _ _ _ _ _)} l1⋜l2@(there h1⊑t2 ∷ t1≤l2) | t1⋜l2 | l⊑r h1⊑h2 ¬h2⊑h1 =
    cmp-⋜ ft1 f1 f2 h1⊑h2 t1⋜l2 
-≤→⋜ {h1 ∷ t1 , f1@(∷-Free _ _ _ _ ft1)} {h2 ∷ t2 , f2@(∷-Free _ _ _ incomp2 _)} t1⋜l2@(there h1⊑t2 ∷ t1≤l2) | t1⋜l2 | r⊑l ¬h1⊑h2 h2⊑h1 =
+≤→⋜ {h1 ∷ t1 , f1@(∷-Free _ _ _ _ ft1)} {h2 ∷ t2 , f2@(∷-Free _ _ _ incomp2 _)} l1⋜l2@(there h1⊑t2 ∷ t1≤l2) | t1⋜l2 | r⊑l ¬h1⊑h2 h2⊑h1 =
  let
     eliminator : AnyEliminator Carrier ⊥ (h1 ⊑_) t2
     eliminator a f h1⊑a a∈t2 = incomp2 $ f (λ x → h2 ∦ x) (inj₁ $ trans⊑ h2⊑h1 h1⊑a)
   in
   ⊥-elim $ anyEliminate t2 eliminator h1⊑t2
-≤→⋜ {h1 ∷ t1 , f1@(∷-Free _ _ _ _ ft1)} {h2 ∷ t2 , f2@(∷-Free _ _ _ _ _)} t1⋜l2@(there h1⊑t2 ∷ t1≤l2) | t1⋜l2 | l≈r h1~h2 =
+≤→⋜ {h1 ∷ t1 , f1@(∷-Free _ _ _ _ ft1)} {h2 ∷ t2 , f2@(∷-Free _ _ _ _ _)} l1⋜l2@(there h1⊑t2 ∷ t1≤l2) | t1⋜l2 | l≈r h1~h2 =
   cmp-⋜ ft1 f1 f2 (reflexive h1~h2) t1⋜l2
-≤→⋜ {h1 ∷ t1 , f1@(∷-Free _ _ _ _ ft1)} {h2 ∷ t2 , f2@(∷-Free _ _ _ _ _)} t1⋜l2@(there h1⊑t2 ∷ t1≤l2) | t1⋜l2 | l∥r h1∥h2 with compare h1 h2
-≤→⋜ {h1 ∷ t1 , f1@(∷-Free _ _ _ _ ft1)} {h2 ∷ t2 , f2@(∷-Free _ _ min2 incomp2 _)} t1⋜l2@(there h1⊑t2 ∷ t1≤l2) | t1⋜l2 | l∥r h1∥h2 | tri< h1<h2 _ _ =
+≤→⋜ {h1 ∷ t1 , f1@(∷-Free _ _ _ _ ft1)} {h2 ∷ t2 , f2@(∷-Free _ _ _ _ _)} l1⋜l2@(there h1⊑t2 ∷ t1≤l2) | t1⋜l2 | l∥r h1∥h2 with compare h1 h2
+≤→⋜ {h1 ∷ t1 , f1@(∷-Free _ _ _ _ ft1)} {h2 ∷ t2 , f2@(∷-Free _ _ min2 incomp2 _)} l1⋜l2@(there h1⊑t2 ∷ t1≤l2) | t1⋜l2 | l∥r h1∥h2 | tri< h1<h2 _ _ =
   ⊥-elim $ anyEliminate t2 eliminator h1⊑t2
   where
     eliminator : AnyEliminator {ℓQ = ℓ⊑} Carrier ⊥ (h1 ⊑_) t2
@@ -245,7 +245,7 @@ data _⋜_ : Carrier-FP → Carrier-FP → Set (Level.suc $ ℓ⊑ ⊔ ℓ< ⊔ 
         h2∥a h2∦a = incomp2 $ f (h2 ∦_) h2∦a
       in
       (convexity h1<h2 (LA.lookup min2 a∈t2) h1∥h2 h2∥a) (inj₁ h1⊑a)
-≤→⋜ {h1 ∷ t1 , f1@(∷-Free _ _ _ _ ft1)} {h2 ∷ t2 , f2@(∷-Free _ _ min2 incomp2 _)} t1⋜l2@(there h1⊑t2 ∷ t1≤l2) | t1⋜l2 | l∥r h1∥h2 | tri≈ _ h1~h2 _ =
+≤→⋜ {h1 ∷ t1 , f1@(∷-Free _ _ _ _ ft1)} {h2 ∷ t2 , f2@(∷-Free _ _ min2 incomp2 _)} l1⋜l2@(there h1⊑t2 ∷ t1≤l2) | t1⋜l2 | l∥r h1∥h2 | tri≈ _ h1~h2 _ =
   ⊥-elim $ h1∥h2 (inj₁ $ reflexive h1~h2) 
 ≤→⋜ {h1 ∷ t1 , f1@(∷-Free _ _ min1 incomp1 ft1)} {h2 ∷ t2 , f2@(∷-Free _ _ min2 incomp2 ft2)} l1⋜l2@(there h1⊑t2 ∷ t1≤l2) | t1⋜l2 | l∥r h1∥h2 | tri> _ _ h2<h1 =
   skip-⋜ f1 ft2 f2 h2<h1 h1∥h2 (≤→⋜ l1⋜t2)

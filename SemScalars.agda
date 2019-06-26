@@ -8,7 +8,7 @@ open import Data.Product
 open import Data.Product.Relation.Pointwise.NonDependent
 open import Data.Sum
 open import Relation.Binary hiding (_⇒_)
-open import Relation.Binary.Closure.ReflexiveTransitive
+open import Relation.Binary.Construct.Closure.ReflexiveTransitive
 open import FinPoset
 open import Scalars
 open import Util
@@ -76,7 +76,7 @@ open import Preorders
 ⟦_q⟧ qConst P = P'
   where
     open import Relation.Binary
-    import Relation.Binary.Closure.ReflexiveTransitive.Properties as RT
+    import Relation.Binary.Construct.Closure.ReflexiveTransitive.Properties as RT
 
     |P| : Set
     |P| = Preorder.Carrier P
@@ -138,7 +138,7 @@ open import Preorders
   } 
   where
     open import Data.Unit
-    open import Relation.Binary.Closure.ReflexiveTransitive renaming (map to map' ; gmap to gmap')
+    open import Relation.Binary.Construct.Closure.ReflexiveTransitive renaming (map to map' ; gmap to gmap')
 
     |P| = Preorder.Carrier P
     |Q| = Preorder.Carrier Q
@@ -206,7 +206,7 @@ q≤⟦_⟧ {q₁} {q₂} q₁≤q₂ = QP.makeInterpretation ⟦_q≤_⟧ (λ {
           }
           where
             open import Data.Unit
-            open import Relation.Binary.Closure.ReflexiveTransitive
+            open import Relation.Binary.Construct.Closure.ReflexiveTransitive
 
         x4 : ⟦ qConst q≤ qAnti ⟧
         x4 P = record
@@ -215,7 +215,7 @@ q≤⟦_⟧ {q₁} {q₂} q₁≤q₂ = QP.makeInterpretation ⟦_q≤_⟧ (λ {
           }
           where
             open import Data.Unit
-            open import Relation.Binary.Closure.ReflexiveTransitive
+            open import Relation.Binary.Construct.Closure.ReflexiveTransitive
 --]]]
 
 -- note: technically, to be cartesian the functor also must preserve unit
@@ -242,7 +242,7 @@ q-cartesian⃗ P Q qConst =
   ; monotone = λ x∼y → (gmap proj₁ h1 x∼y , gmap proj₂ h2 x∼y) 
   }
   where
-    open import Relation.Binary.Closure.ReflexiveTransitive using (gmap)
+    open import Relation.Binary.Construct.Closure.ReflexiveTransitive using (gmap)
 
     |P| = Preorder.Carrier P
     |Q| = Preorder.Carrier Q
@@ -334,7 +334,7 @@ q-cartesian⃖ P Q qConst =
   }
   where
     open Preorder P
-    import Relation.Binary.Closure.ReflexiveTransitive as RT
+    import Relation.Binary.Construct.Closure.ReflexiveTransitive as RT
 
     rev : ∀ {p₁ p₂} → (p₁ ∼ p₂ ⊎ p₂ ∼ p₁) → (p₂ ∼ p₁ ⊎ p₁ ∼ p₂)
     rev (inj₁ p₁∼p₂) = inj₂ p₁∼p₂
@@ -412,7 +412,7 @@ q-cartesian⃖ P Q qConst =
   ; monotone = monotone
   }
   where
-    import Relation.Binary.Closure.ReflexiveTransitive as RT
+    import Relation.Binary.Construct.Closure.ReflexiveTransitive as RT
     open Preorder P
 
     rev : ∀ {p₁ p₂} → (p₁ ∼ p₂ ⊎ p₂ ∼ p₁) → (p₂ ∼ p₁ ⊎ p₁ ∼ p₂)
@@ -460,9 +460,8 @@ q-preserves-+⃗ P Q qAnti =
 
     monotone : (Preorder._∼_ $ ⟦ qAnti q⟧ $ ⊎-preorder0 P Q) =[ fun ]⇒ (Preorder._∼_ $ ⊎-preorder0 (⟦ qAnti q⟧ P) (⟦ qAnti q⟧ Q))
     monotone {inj₁ x} {inj₂ y} ()
-    monotone {inj₂ x} {inj₁ y} (₁∼₂ ()) 
-    monotone {inj₁ x} {inj₁ y} (₁∼₁ y≤x) = ₁∼₁ y≤x
-    monotone {inj₂ x} {inj₂ y} (₂∼₂ y≤x) = ₂∼₂ y≤x
+    monotone {inj₁ x} {inj₁ y} (inj₁ y≤x) = inj₁ y≤x
+    monotone {inj₂ x} {inj₂ y} (inj₂ y≤x) = inj₂ y≤x
 q-preserves-+⃗ P Q qConst = 
   record
   { fun = fun
@@ -470,6 +469,7 @@ q-preserves-+⃗ P Q qConst =
   }
   where
     open import Data.Sum.Relation.Pointwise
+
     ∗ = ⟦ qConst q⟧
     |P| = Preorder.Carrier P
     |Q| = Preorder.Carrier Q
@@ -478,27 +478,23 @@ q-preserves-+⃗ P Q qConst =
     fun x = x
 
     monotone : (Preorder._∼_ $ ∗ $ ⊎-preorder0 P Q) =[ fun ]⇒ (Preorder._∼_ $ ⊎-preorder0 (∗ P) (∗ Q))
-    monotone {inj₁ p₁} {inj₁ p₂} ε = ₁∼₁ ε
-    monotone {inj₁ p₁} {inj₁ p₂} (inj₁ (₁∼₁ p₁∼) ◅ p₁∼p₂') with monotone p₁∼p₂'
-    monotone {inj₁ p₁} {inj₁ p₂} (inj₁ (₁∼₁ p₁∼) ◅ _) | ₁∼₁ p₁∼p₂' = ₁∼₁ $ inj₁ p₁∼ ◅ p₁∼p₂'
-    monotone {inj₁ p₁} {inj₁ p₂} (inj₁ (₁∼₂ ()) ◅ _)
-    monotone {inj₁ p₁} {inj₁ p₂} (inj₂ (₁∼₁ ∼p₁) ◅ p₁∼p₂') with monotone p₁∼p₂'
-    monotone {inj₁ p₁} {inj₁ p₂} (inj₂ (₁∼₁ ∼p₁) ◅ _) | ₁∼₁ p₁∼p₂' = ₁∼₁ $ inj₂ ∼p₁ ◅ p₁∼p₂'
+    monotone {inj₁ p₁} {inj₁ p₂} ε = inj₁ ε
+    monotone {inj₁ p₁} {inj₁ p₂} (inj₁ (inj₁ p₁∼) ◅ p₁∼p₂') with monotone p₁∼p₂'
+    monotone {inj₁ p₁} {inj₁ p₂} (inj₁ (inj₁ p₁∼) ◅ _) | inj₁ p₁∼p₂' = inj₁ (inj₁ p₁∼ ◅ p₁∼p₂')
+    monotone {inj₁ p₁} {inj₁ p₂} (inj₂ (inj₁ ∼p₁) ◅ p₁∼p₂') with monotone p₁∼p₂'
+    monotone {inj₁ p₁} {inj₁ p₂} (inj₂ (inj₁ ∼p₁) ◅ _) | inj₁ p₁∼p₂' = inj₁ (inj₂ ∼p₁ ◅ p₁∼p₂')
     monotone {inj₁ p} {inj₂ q} (_ ◅ p∼q') with monotone p∼q'
-    monotone {inj₁ p} {inj₂ q} (_ ◅ _) | ₁∼₂ ()
-    monotone {inj₁ p} {inj₂ q} (inj₁ (₁∼₂ ()) ◅ _) | ₂∼₂ _ --= {!!}
-    monotone {inj₁ p} {inj₂ q} (inj₂ () ◅ _) | ₂∼₂ _
-    monotone {inj₂ q₁} {inj₁ p₂} (inj₁ (₂∼₂ q₁∼) ◅ q₁∼p₂') with monotone q₁∼p₂'
-    monotone {inj₂ q₁} {inj₁ p₂} (inj₁ (₂∼₂ q₁∼) ◅ _) | () 
-    monotone {inj₂ q₁} {inj₁ p₂} (inj₂ (₂∼₂ ∼q₁) ◅ q₁∼p₂') with monotone q₁∼p₂'
-    monotone {inj₂ q₁} {inj₁ p₂} (inj₂ (₂∼₂ ∼q₁) ◅ _) | ()
-    monotone {inj₂ q₁} {inj₁ p₂} (inj₂ (₁∼₂ ()) ◅ _) 
-    monotone {inj₂ q₁} {inj₂ q₂} ε = ₂∼₂ ε
-    monotone {inj₂ q₁} {inj₂ q₂} (inj₁ (₂∼₂ q₁∼) ◅ q₁∼q₂') with monotone q₁∼q₂'
-    monotone {inj₂ q₁} {inj₂ q₂} (inj₁ (₂∼₂ q₁∼) ◅ _) | ₂∼₂ q₁∼q₂' = ₂∼₂ $ inj₁ q₁∼ ◅ q₁∼q₂'
-    monotone {inj₂ q₁} {inj₂ q₂} (inj₂ (₂∼₂ ∼q₁) ◅ q₁∼q₂') with monotone q₁∼q₂'
-    monotone {inj₂ q₁} {inj₂ q₂} (inj₂ (₂∼₂ ∼q₁) ◅ _) | ₂∼₂ q₁∼q₂' = ₂∼₂ $ inj₂ ∼q₁ ◅ q₁∼q₂'
-    monotone {inj₂ q₁} {inj₂ q₂} (inj₂ (₁∼₂ ()) ◅ _)
+    monotone {inj₁ p} {inj₂ q} (inj₁ () ◅ _) | inj₂ _ --= {!!}
+    monotone {inj₁ p} {inj₂ q} (inj₂ () ◅ _) | inj₂ _
+    monotone {inj₂ q₁} {inj₁ p₂} (inj₁ (inj₂ q₁∼) ◅ q₁∼p₂') with monotone q₁∼p₂'
+    monotone {inj₂ q₁} {inj₁ p₂} (inj₁ (inj₂ q₁∼) ◅ _) | () 
+    monotone {inj₂ q₁} {inj₁ p₂} (inj₂ (inj₂ ∼q₁) ◅ q₁∼p₂') with monotone q₁∼p₂'
+    monotone {inj₂ q₁} {inj₁ p₂} (inj₂ (inj₂ ∼q₁) ◅ _) | ()
+    monotone {inj₂ q₁} {inj₂ q₂} ε = inj₂ ε
+    monotone {inj₂ q₁} {inj₂ q₂} (inj₁ (inj₂ q₁∼) ◅ q₁∼q₂') with monotone q₁∼q₂'
+    monotone {inj₂ q₁} {inj₂ q₂} (inj₁ (inj₂ q₁∼) ◅ _) | inj₂ q₁∼q₂' = inj₂ (inj₁ q₁∼ ◅ q₁∼q₂')
+    monotone {inj₂ q₁} {inj₂ q₂} (inj₂ (inj₂ ∼q₁) ◅ q₁∼q₂') with monotone q₁∼q₂'
+    monotone {inj₂ q₁} {inj₂ q₂} (inj₂ (inj₂ ∼q₁) ◅ _) | inj₂ q₁∼q₂' = inj₂ (inj₂ ∼q₁ ◅ q₁∼q₂')
 q-preserves-+⃗ P Q qAny = 
   record
   { fun = fun
@@ -514,8 +510,7 @@ q-preserves-+⃗ P Q qAny =
     fun x = x
 
     monotone : (Preorder._∼_ $ ⁇ $ ⊎-preorder0 P Q) =[ fun ]⇒ (Preorder._∼_ $ ⊎-preorder0 (⁇ P) (⁇ Q))
-    monotone {inj₁ p₁} {inj₁ p₂} (₁∼₁ p₁∼p₂ , ₁∼₁ p₂∼p₁) = ₁∼₁ (p₁∼p₂ , p₂∼p₁)
-    monotone {inj₁ p₁} {inj₂ q₂} (₁∼₂ () , ())
+    monotone {inj₁ p₁} {inj₁ p₂} (inj₁ p₁∼p₂ , inj₁ p₂∼p₁) = inj₁ (p₁∼p₂ , p₂∼p₁)
     monotone {inj₂ q₁} {inj₁ p₂} ()
-    monotone {inj₂ q₁} {inj₂ q₂} (₂∼₂ q₁∼q₂ , ₂∼₂ q₂∼q₁) = ₂∼₂ (q₁∼q₂ , q₂∼q₁) 
+    monotone {inj₂ q₁} {inj₂ q₂} (inj₂ q₁∼q₂ , inj₂ q₂∼q₁) = inj₂ (q₁∼q₂ , q₂∼q₁) 
 

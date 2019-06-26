@@ -146,11 +146,11 @@ q₂≤q₁+q₂ {qAny} {qAny} = ε
 
 
 module _ where
-  open import Relation.Binary.Closure.ReflexiveTransitive.Properties
+  open import Relation.Binary.Construct.Closure.ReflexiveTransitive.Properties
   open StarReasoning (_q≺_)
 
   q≤? : ∀ q → (q q≤ qAny)
   q≤? qMono = begin qMono ⟶⟨ here (PE.refl , PE.refl)  ⟩ qAny ∎
-  q≤? qAnti = begin qAnti ⟶⟨ there (here (PE.refl , PE.refl))  ⟩ qAny ∎
+  q≤? qAnti = begin qAnti ⟶⟨ there (here (PE.refl , PE.refl))  ⟩ (qAny ∎)
   q≤? qConst = begin qConst ⟶⟨ there (there (here (PE.refl , PE.refl))) ⟩ qMono ⟶⟨ here (PE.refl , PE.refl) ⟩ qAny ∎  
   q≤? qAny = begin qAny ∎
