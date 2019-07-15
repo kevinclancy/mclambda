@@ -3,7 +3,7 @@ module SemilatKinding.Nat where
 open import Relation.Nullary
 open import Relation.Binary.Lattice
 open import Relation.Binary.PropositionalEquality as PE using (_≡_)
-open import Relation.Binary.Closure.ReflexiveTransitive
+open import Relation.Binary.Construct.Closure.ReflexiveTransitive
 open import Data.Nat as N
 open import Data.Nat.Properties as NP
 open import Data.List
@@ -53,14 +53,26 @@ open import FreeSemilattice P renaming (SemilatCarrier to FP-Carrier ; ⊥ to �
 |f|-∨ N.zero N.zero = []
 |f|-∨ N.zero (N.suc n1) = PE.refl ∷ [] 
 |f|-∨ (N.suc n0') N.zero = PE.refl ∷ []
-|f|-∨ (N.suc n0') (N.suc n1') with n0' N.≤? n1' | n1' N.≤? n0'
-|f|-∨ (N.suc n0') (N.suc n1') | yes n0'≤n1' | yes n1'≤n0' with NP.≤-antisym n0'≤n1' n1'≤n0'
-|f|-∨ (N.suc n0') (N.suc n1') | yes n0'≤n1' | yes n1'≤n0' | PE.refl rewrite NP.⊔-idem n0' = PE.refl ∷ []
-|f|-∨ (N.suc n0') (N.suc n1') | yes n0'≤n1' | no ¬n1'≤n0' rewrite m≤n⇒m⊔n≡n n0'≤n1' = PE.refl ∷ []
-|f|-∨ (N.suc n0') (N.suc n1') | no ¬n0'≤n1' | yes n1'≤n0' rewrite m≤n⇒n⊔m≡n n1'≤n0' = PE.refl ∷ []
-|f|-∨ (N.suc n0') (N.suc n1') | no ¬n0'≤n1' | no ¬n1'≤n0' with ≤-total n0' n1'
-|f|-∨ (N.suc n0') (N.suc n1') | no ¬n0'≤n1' | no ¬n1'≤n0' | inj₁ n0'≤n1' = ⊥-elim $ ¬n0'≤n1' n0'≤n1'
-|f|-∨ (N.suc n0') (N.suc n1') | no ¬n0'≤n1' | no ¬n1'≤n0' | inj₂ n1'≤n0' = ⊥-elim $ ¬n1'≤n0' n1'≤n0' 
+|f|-∨ n0@(N.suc n0') n1@(N.suc n1') with (N.suc n0') N.≤? (N.suc n1') | (N.suc n1') N.≤? (N.suc n0')
+|f|-∨ n0@(N.suc n0') n1@(N.suc n1') | yes n0≤n1 | yes n1≤n0 with NP.≤-antisym n0≤n1 n1≤n0
+|f|-∨ n0@(N.suc n0') n1@(N.suc n1') | yes n0≤n1 | yes n1≤n0 | PE.refl rewrite NP.⊔-idem n0' = PE.refl ∷ [] 
+|f|-∨ n0@(N.suc n0') n1@(N.suc n1') | yes (N.s≤s n0'≤n1') | no ¬n1≤n0 = (PE.cong (λ · → N.suc ·) n0'⊔n1'≡n1') ∷ []
+  where
+    n0'⊔n1'≡n1' : n0' N⊔ n1' ≡ n1'
+    n0'⊔n1'≡n1' = m≤n⇒m⊔n≡n n0'≤n1'
+|f|-∨ n0@(N.suc n0') n1@(N.suc n1') | no ¬n0'≤n1' | yes (N.s≤s n1'≤n0') = (PE.cong (λ · → N.suc ·) n0'⊔n1'≡n0') ∷ []
+  where
+    open import Relation.Binary.PropositionalEquality
+    open ≡-Reasoning
+    n0'⊔n1'≡n0' : n0' N⊔ n1' ≡ n0'
+    n0'⊔n1'≡n0' = begin 
+      n0' N⊔ n1' ≡⟨ ⊔-comm n0' n1' ⟩
+      n1' N⊔ n0' ≡⟨ m≤n⇒m⊔n≡n n1'≤n0' ⟩
+      n0'
+     ∎
+|f|-∨ n0@(N.suc n0') n1@(N.suc n1') | no ¬n0≤n1 | no ¬n1≤n0 with ≤-total n0 n1
+|f|-∨ n0@(N.suc n0') n1@(N.suc n1') | no ¬n0≤n1 | no ¬n1≤n0 | inj₁ n0≤n1 = ⊥-elim $ ¬n0≤n1 n0≤n1
+|f|-∨ n0@(N.suc n0') n1@(N.suc n1') | no ¬n0≤n1 | no ¬n1≤n0 | inj₂ n1≤n0 = ⊥-elim $ ¬n1≤n0 n1≤n0 
 
 |g| : FP-Carrier → ℕ 
 |g| ([] , _) = 0

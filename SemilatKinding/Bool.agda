@@ -2,7 +2,7 @@ module SemilatKinding.Bool where
 
 open import Relation.Binary.Lattice
 open import Relation.Binary.PropositionalEquality as PE using (_≡_)
-open import Relation.Binary.Closure.ReflexiveTransitive
+open import Relation.Binary.Construct.Closure.ReflexiveTransitive
 open import UnitPoset
 open import Data.List
 open import Data.List.Any
