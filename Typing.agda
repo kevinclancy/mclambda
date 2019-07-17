@@ -24,9 +24,9 @@ _qR∘_ : {n : ℕ} → q → Vec q n → Vec q n
 q qR∘ R = V.map (q q∘_) R 
 
 data _∣_⊢_∣_ where
-  TyVar : {n k : ℕ} {m : Fin n} {Γ : Vec wfτ n} {R : Vec q n} {τ₀ : τ} {eq1 : τ₀ ≡ proj₁ (V.lookup m Γ)} 
+  TyVar : {n k : ℕ} {m : Fin n} {Γ : Vec wfτ n} {R : Vec q n} {τ₀ : τ} {eq1 : τ₀ ≡ proj₁ (V.lookup Γ m)} 
           {eq2 : k ≡ toℕ m} → 
-          {eq3 : V.lookup m R ≡ qMono} → {eq4 : ∀ {l : Fin n} → (¬ l ≡ m) → V.lookup l R ≡ qConst} → 
+          {eq3 : V.lookup R m ≡ qMono} → {eq4 : ∀ {l : Fin n} → (¬ l ≡ m) → V.lookup R l ≡ qConst} → 
           (Γ ∣ R ⊢ Var k ∣ τ₀)  
 
   TyBot : {n : ℕ} {Γ : Vec wfτ n} {τ τ₀ : τ} {p : IsSemilat τ τ₀} →
@@ -133,4 +133,4 @@ data _∣_⊢_∣_ where
 τRes-wf (TyIGet {isBodySemilat = isBodySemilat} _ _) = PartialPoset (semilat→poset isBodySemilat)
 τRes-wf (TyCapIntro {q₀' = q₀'} d) = CapsulePoset q₀' (τRes-wf d)
 τRes-wf (TyCapElim _ d2) = τRes-wf d2 
-τRes-wf {τRes = τRes} (TyVar  {m = m} {Γ = Γ} {eq1 = PE.refl}) = proj₂ (V.lookup m Γ)   
+τRes-wf {τRes = τRes} (TyVar  {m = m} {Γ = Γ} {eq1 = PE.refl}) = proj₂ (V.lookup Γ m)   

@@ -100,7 +100,7 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
   }
   where
     open import Data.Unit
-    open import Relation.Binary.Closure.ReflexiveTransitive
+    open import Relation.Binary.Construct.Closure.ReflexiveTransitive
 Δ {.0} qAny [] [] =
   record
   { fun = λ x → tt
@@ -171,7 +171,7 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
         fun (p₁ , p₂) = p₁ ∨ p₂ 
 
         monotone : (Poset._≤_ (×-poset poset poset)) =[ fun ]⇒ (Poset._≤_ poset)
-        monotone {x} {y} (x₁≤y₁ , x₂≤y₂) = ∨-monotonic (BoundedJoinSemilattice.joinSemiLattice S) x₁≤y₁ x₂≤y₂
+        monotone {x} {y} (x₁≤y₁ , x₂≤y₂) = ∨-monotonic (BoundedJoinSemilattice.joinSemilattice S) x₁≤y₁ x₂≤y₂
           where
             open import Relation.Binary.Properties.JoinSemilattice
 
@@ -732,9 +732,9 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
     open import Relation.Nullary
     open import Data.Vec as V
 
-    projVar : (n k : ℕ) → (m : Fin n) → (Γ : Vec wfτ n) → (R : Vec q n) → (eq1 : τ₀ ≡ proj₁ (V.lookup m Γ)) → 
-              (eq2 : k ≡ toℕ m) → (eq3 : V.lookup m R ≡ qMono) → 
-              (eq4 : {l : Fin n} → (¬ l ≡ m) → (V.lookup l R ≡ qConst)) → 
+    projVar : (n k : ℕ) → (m : Fin n) → (Γ : Vec wfτ n) → (R : Vec q n) → (eq1 : τ₀ ≡ proj₁ (V.lookup Γ m)) → 
+              (eq2 : k ≡ toℕ m) → (eq3 : V.lookup R m ≡ qMono) → 
+              (eq4 : {l : Fin n} → (¬ l ≡ m) → (V.lookup R l ≡ qConst)) → 
               ⟦ Γ Γ∣ R R⟧ ⇒ ⟦ τ₀-wf ⋆⟧'
     projVar n .(toℕ {n} Fin.zero) Fin.zero ((τ₀ , τ₀-wf') ∷ Γ) (q₀ ∷ R) PE.refl PE.refl PE.refl _ = 
       π₁'
@@ -746,7 +746,7 @@ strengthenR {(suc n')} (wfτ ∷ Γ₀') (q₀ ∷ R₀) (q₀' ∷ R₀') (q₀
       where
         open import Data.Fin.Properties using (suc-injective)
 
-        eq4' : {l : Fin n} → (¬ l ≡ m) → V.lookup l R ≡ qConst
+        eq4' : {l : Fin n} → (¬ l ≡ m) → V.lookup R l ≡ qConst
         eq4' {l} ¬l≡m = eq4 {suc l} λ suc-l≡suc-m → ¬l≡m $ suc-injective suc-l≡suc-m 
 
         ⟦τ₁∷Γ∣q₁∷R⟧⇒⟦Γ∣R⟧ : ⟦ ((τ₁ , τ₁-wf) ∷ Γ) Γ∣ (q₁ ∷ R) R⟧ ⇒ ⟦ Γ Γ∣ R R⟧

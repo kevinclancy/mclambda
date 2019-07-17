@@ -5,7 +5,7 @@ open import Relation.Binary.PropositionalEquality as PE using (_≡_)
 open import Relation.Binary.Lattice
 open import Data.Product.Relation.Pointwise.NonDependent
 open import Data.Sum
-open import Data.Sum.Relation.Pointwise
+open import Data.Sum.Relation.Pointwise hiding (₁∼₁ ; ₂∼₂)
 open import Data.Product
 open import Data.List
 open import Data.List.All
@@ -143,9 +143,8 @@ assoc P Q R = record
         fun' (inj₂ b) = _⇒_.fun b⇒c b
  
         monotone' : (Preorder._∼_ preorder-A⊎B) =[ fun'  ]⇒ (Preorder._∼_ C)
-        monotone' {inj₁ _} {inj₂ _} (₁∼₂ ())
-        monotone' {inj₁ a₁} {inj₁ a₂} (₁∼₁ a₁≤a₂) = _⇒_.monotone a⇒c a₁≤a₂
-        monotone' {inj₂ b₁} {inj₂ b₂} (₂∼₂ b₁≤b₂) = _⇒_.monotone b⇒c b₁≤b₂
+        monotone' {inj₁ a₁} {inj₁ a₂} (inj₁ a₁≤a₂) = _⇒_.monotone a⇒c a₁≤a₂
+        monotone' {inj₂ b₁} {inj₂ b₂} (inj₂ b₁≤b₂) = _⇒_.monotone b⇒c b₁≤b₂
 
     monotone : (Preorder._∼_ (×-preorder (⇒-preorder A C) (⇒-preorder B C))) =[ fun ]⇒ (Preorder._∼_ (⇒-preorder preorder-A⊎B C))
     monotone {a⇒c₁ , b⇒c₁} {a⇒c₂ , b⇒c₂} (a⇒c₁≤a⇒c₂ , b⇒c₁≤b⇒c₂) {inj₁ a} = a⇒c₁≤a⇒c₂ {a}
@@ -163,7 +162,7 @@ assoc P Q R = record
     fun p = inj₁ p
 
     monotone : (_∼_ P) =[ fun ]⇒ (_∼_ (⊎-preorder P Q))
-    monotone {p₁} {p₂} p₁∼p₂ = ₁∼₁ p₁∼p₂
+    monotone {p₁} {p₂} p₁∼p₂ = inj₁ p₁∼p₂
 
 κ₂ : {P Q : Preorder l0 l0 l0} → Q ⇒ (⊎-preorder P Q)
 κ₂ {P} {Q} =
@@ -177,7 +176,7 @@ assoc P Q R = record
     fun q = inj₂ q
 
     monotone : (_∼_ Q) =[ fun ]⇒ (_∼_ (⊎-preorder P Q))
-    monotone {p₁} {p₂} p₁∼p₂ = ₂∼₂ p₁∼p₂
+    monotone {p₁} {p₂} p₁∼p₂ = inj₂ p₁∼p₂
 
 _⟨+⟩_ : {P Q R S : Preorder l0 l0 l0} → P ⇒ R → Q ⇒ S → (⊎-preorder P Q) ⇒ (⊎-preorder R S)
 _⟨+⟩_ {P} {Q} {R} {S} f g = record
@@ -192,14 +191,12 @@ _⟨+⟩_ {P} {Q} {R} {S} f g = record
     |S| = Carrier S
 
     fun : (|P| ⊎ |Q|) → (|R| ⊎ |S|)
-    fun (inj₁ p) = inj₁ $ (_⇒_.fun f) p
-    fun (inj₂ q) = inj₂ $ (_⇒_.fun g) q
+    fun (inj₁ p) = inj₁ ((_⇒_.fun f) p)
+    fun (inj₂ q) = inj₂ ((_⇒_.fun g) q)
 
     monotone : (_∼_ (⊎-preorder P Q)) =[ fun ]⇒ (_∼_ (⊎-preorder R S))
-    monotone {inj₁ p₁} {inj₁ p₂} (₁∼₁ p₁∼p₂) = ₁∼₁ (_⇒_.monotone f p₁∼p₂)  
-    monotone {inj₁ p₁} {inj₂ q₂} (₁∼₂ ())
-    monotone {inj₂ q₁} {inj₁ p₂} ()
-    monotone {inj₂ q₁} {inj₂ q₂} (₂∼₂ q₁∼q₂) = ₂∼₂ (_⇒_.monotone g q₁∼q₂)
+    monotone {inj₁ p₁} {inj₁ p₂} (inj₁ p₁∼p₂) = inj₁ (_⇒_.monotone f p₁∼p₂)  
+    monotone {inj₂ q₁} {inj₂ q₂} (inj₂ q₁∼q₂) = inj₂ (_⇒_.monotone g q₁∼q₂)
 
 --]]]
 
@@ -307,7 +304,7 @@ ev {A} {B} =
   where
     open import Data.List.All
     open import SemilatIso
-    open import Dictionary T S
+    open import Dictionary T S hiding (<-respʳ-≈)
     open import Relation.Binary.Lattice
     open import Data.List
     open import FreeSemilattice D 
@@ -406,7 +403,7 @@ ev {A} {B} =
   where
     open import Relation.Binary.Lattice
     open import Data.List
-    open import Dictionary T valS
+    open import Dictionary T valS hiding (<-respʳ-≈)
     _<k_ = StrictTotalOrder._<_ T
 
     P' = Poset.preorder P
@@ -477,7 +474,7 @@ ev {A} {B} =
             fun2 ((k2 , v2) , acc2)
            ∎ 
       in
-      ∨-monotonic (BoundedJoinSemilattice.joinSemiLattice targetS) fh1≤fh2 monotone-rec
+      ∨-monotonic (BoundedJoinSemilattice.joinSemilattice targetS) fh1≤fh2 monotone-rec
       where
         open import Relation.Binary.Properties.JoinSemilattice using (∨-monotonic)
         _≤s_ = BoundedJoinSemilattice._≤_ targetS
@@ -604,7 +601,8 @@ ev {A} {B} =
 ----- monotone partiality 
 --[[[
 module _ where
-  open import Data.Unit renaming (poset to unitPoset)
+  open import Data.Unit
+  open import Data.Unit.Properties
   open import Data.Sum.Relation.LeftOrder
   open Preorder using (_∼_)
   
@@ -622,7 +620,7 @@ module _ where
       fun : |P| → |Pᵀ|
       fun p = inj₁ p
 
-      monotone : (_∼_ P) =[ fun ]⇒ (_∼_ $ ⊎-<-preorder P (Poset.preorder unitPoset))
+      monotone : (_∼_ P) =[ fun ]⇒ (_∼_ $ ⊎-<-preorder P (Poset.preorder ≤-poset))
       monotone {p₁} {p₂} p₁∼p₂ = ₁∼₁ p₁∼p₂
 
   -- tensorial strength of the strong monad underlying monotone partiality
@@ -641,7 +639,7 @@ module _ where
       
       monotone : (_∼_ (×-preorder P (partial-preorder Q))) =[ fun ]⇒ (_∼_ (partial-preorder (×-preorder P Q)))
       monotone {p₁ , inj₁ q₁} {p₂ , inj₁ q₂} (p₁∼p₂ , ₁∼₁ q₁∼q₂) = ₁∼₁ (p₁∼p₂ , q₁∼q₂)
-      monotone {p₁ , inj₁ q₁} {p₂ , inj₂ tt} (p₁∼p₂ , ₁∼₂ (record {})) = ₁∼₂ (record {})
+      monotone {p₁ , inj₁ q₁} {p₂ , inj₂ tt} (p₁∼p₂ , ₁∼₂) = ₁∼₂
       monotone {p₁ , inj₂ tt} {p₂ , inj₁ q₂} (p₁∼p₂ , ())
       monotone {p₁ , inj₂ tt} {p₂ , inj₂ tt} (p₁∼p₂ , ₂∼₂ (record {})) = ₂∼₂ (record {})
 
@@ -658,12 +656,12 @@ module _ where
       |f|-mono = _⇒_.monotone f
 
       fun : (|P| ⊎ ⊤) → (|Q| ⊎ ⊤)
-      fun (inj₁ p) = inj₁ $ |f| p
+      fun (inj₁ p) = inj₁ (|f| p)
       fun (inj₂ tt) = inj₂ tt
 
       monotone : (_∼_ (partial-preorder P)) =[ fun ]⇒ (_∼_ (partial-preorder Q))
-      monotone {inj₁ p₁} {inj₁ p₂} (₁∼₁ p₁∼p₂) = ₁∼₁ $ |f|-mono p₁∼p₂
-      monotone {inj₁ p₁} {inj₂ tt} (₁∼₂ tt) = ₁∼₂ tt
+      monotone {inj₁ p₁} {inj₁ p₂} (₁∼₁ p₁∼p₂) = ₁∼₁ (|f|-mono p₁∼p₂)
+      monotone {inj₁ p₁} {inj₂ tt} ₁∼₂ = ₁∼₂
       monotone {inj₂ tt} {inj₁ p₁} ()
       monotone {inj₂ tt} {inj₂ tt} (₂∼₂ (record {})) = ₂∼₂ (record {}) 
 
@@ -681,8 +679,8 @@ module _ where
       
       monotone : (_∼_ (partial-preorder (partial-preorder P))) =[ fun ]⇒ (_∼_ (partial-preorder P))
       monotone {inj₁ p₁} {inj₁ p₂} (₁∼₁ p₁∼p₂)  = p₁∼p₂
-      monotone {inj₁ (inj₁ p₁)} {inj₂ tt} (₁∼₂ (record {})) = ₁∼₂ (record {})
-      monotone {inj₁ (inj₂ tt)} {inj₂ tt} (₁∼₂ (record {})) = ₂∼₂ (record {})
+      monotone {inj₁ (inj₁ p₁)} {inj₂ tt} ₁∼₂ = ₁∼₂
+      monotone {inj₁ (inj₂ tt)} {inj₂ tt} ₁∼₂ = ₂∼₂ (record {})
       monotone {inj₂ tt} {inj₁ p} ()
       monotone {inj₂ tt} {inj₂ tt} (₂∼₂ (record {})) = ₂∼₂ (record {})
 
@@ -730,7 +728,8 @@ module _ where
       open Preorder
       open import Data.Unit using (⊤ ; tt)
       open import IVar T as I
-      open import Data.Sum.Relation.Pointwise using (₁∼₁ ; ₁∼₂ ; ₂∼₂)
+      -- open import Data.Sum.Relation.Pointwise using (₁∼₁ ; )
+      open import Data.Sum.Relation.LeftOrder using (₁∼₁ ; ₁∼₂ ; ₂∼₂)
       open import Data.List.Any.Properties using (¬Any[])
       open import Data.List.Any using (here ; there)
       open import Data.List.All as LAll
@@ -765,7 +764,7 @@ module _ where
       monotone {([] , []-Free) , record { fun = f₁ ; monotone = m₁ }} {(p ∷ [] , ∷-Free p [] [] incomp []-Free) , record { fun = f₂ ; monotone = m₂ }} (p₁≈p₂  , f₁≤f₂) =
         ₁∼₁ $ BoundedJoinSemilattice.minimum S (f₂ p)
       monotone {([] , []-IVar) , record { fun = f₁ ; monotone = m₁ }} {(p ∷ q ∷ _ , _) , record { fun = f₂ ; monotone = m₂ }} (p₁≈p₂  , f₁≤f₂) =
-        ₁∼₂ tt
+        ₁∼₂
       monotone {(p ∷ _ , _) , record { fun = f₁ ; monotone = m₁ }} {([] , _) , record { fun = f₂ ; monotone = m₂ }} (p₁≈p₂  , f₁≤f₂) = 
         ⊥-elim $ ¬Any[] (LAll.lookup p₁≈p₂ (here PE.refl))
       monotone {(p₁ ∷ [] , ∷-Free p₁ [] [] _ []-Free) , record { fun = f₁ ; monotone = m₁ }} {(p₂ ∷ [] , ∷-Free p₂ [] [] _ []-Free) , record { fun = f₂ ; monotone = m₂ }} ((here (⊑-refl p₁≈p₂)) ∷ _  , f₁≤f₂) = 
@@ -783,7 +782,7 @@ module _ where
       monotone {(p₁ ∷ [] , ∷-Free p₁ [] [] _ []-Free) , record { fun = f₁ ; monotone = m₁ }} {(p₂ ∷ [] , ∷-Free p₂ [] [] _ []-Free) , record { fun = f₂ ; monotone = m₂ }} ((there p₁≈[]) ∷ _  , f₁≤f₂) =
         ⊥-elim $ ¬Any[] p₁≈[]
       monotone {(p₁ ∷ [] , ∷-Free p₁ [] [] _ []-Free) , record { fun = f₁ ; monotone = m₁ }} {(p₂ ∷ q₂ ∷ _ , _) , record { fun = f₂ ; monotone = m₂ }} (p₁≈p₂  , f₁≤f₂) = 
-        ₁∼₂ (record {})
+        ₁∼₂
       monotone {(p₁ ∷ q₁ ∷ _ , ∷-Free _ _ min1 _ _) , record { fun = f₁ ; monotone = m₁ }} {(p₂ ∷ [] , _) , record { fun = f₂ ; monotone = m₂ }} ((here (⊑-refl p₁≈p₂)) ∷ (here (⊑-refl q₁≈p₂)) ∷ _  , f₁≤f₂) =
         ⊥-elim $ <ₜ-irrefl p₁≈q₁ (LAll.lookup min1 (here PE.refl))
         where
